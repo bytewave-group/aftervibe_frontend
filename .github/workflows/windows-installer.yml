@@ -1,0 +1,58 @@
+name: Windows installer
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: apps/customer
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Checkout Spout2
+        uses: actions/checkout@v4
+        with:
+          repository: leadedge/Spout2
+          ref: 2.007.018
+          path: spout2
+
+      - name: Use Visual Studio
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Build Spout sender
+        shell: cmd
+        run: |
+          set SPOUT_SDK=%GITHUB_WORKSPACE%\spout2
+          call electron\resolume\native\build-windows.bat
+          dir electron\resolume\native\build
+
+      - name: Use Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: apps/customer/package-lock.json
+
+      - name: Install
+        run: npm ci
+
+      - name: Build app
+        run: npm run build
+
+      - name: Package Windows installer
+        run: npx electron-builder --win
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: after-vibe-windows
+          path: apps/customer/release/*.exe
+          if-no-files-found: error

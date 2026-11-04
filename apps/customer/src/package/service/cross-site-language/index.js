@@ -1,0 +1,1 @@
+export { createUrlWithLanguageParam } from "./function";

@@ -1,0 +1,17 @@
+{
+  "_comment": "'default' is used when the user's language is NOT supported or when the app is opened for the first time — it determines which language version of static content (e.g., banners, images, default titles) is shown.",
+  "_comment2": "'default' is NOT the same as the i18n fallback. 'fallback' is ALWAYS English — it ensures consistent translations when a specific translation key is missing in the selected language.",
+
+  "default": "en",
+  "_comment3": "⚠️ IMPORTANT: Do NOT put any comments or non-language keys inside 'supported'. Only language codes are allowed!",
+
+  "supported": {
+    "en": "English",
+    "cn": "中文"
+  },
+
+  "locale_code": {
+    "en": "en-US",
+    "cn": "zh-CN"
+  }
+}

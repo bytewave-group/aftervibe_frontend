@@ -1,0 +1,22 @@
+directories:
+  output: release
+  buildResources: build
+appId: com.aftervibe.player
+productName: After Vibe
+files:
+  - filter:
+      - dist/**/*
+      - electron/**/*
+      - package.json
+asarUnpack:
+  - electron/resolume/native/build/**
+extraResources:
+  - from: public
+    to: public
+win:
+  target:
+    - nsis
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+electronVersion: 43.2.0

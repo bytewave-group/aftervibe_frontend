@@ -1,0 +1,20 @@
+{
+  "appName": "Thegamer",
+  "variable_prefix": "thegamer",
+  "appId": "com.thegamer.app",
+  "version": "1.0.1",
+  "author": "thegamer",
+  "description": "thegamer - Online betting and gaming platform",
+  "apiBaseUrl": "https://staging3.thegamer.asia/api",
+  "useSwal": true,
+  "use_custom_loading": true,
+  "is_full_page_login": true,
+  "spin_require_login": false,
+  "register_get_code_method": "SMS",
+  "gameLaunch": {
+    "hideGameStatistics": true,
+    "skipGameStatistics": true,
+    "beforeRedirectShowDialog": true
+  },
+  "domain_unique_key": null
+}

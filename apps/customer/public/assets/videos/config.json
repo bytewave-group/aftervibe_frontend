@@ -1,0 +1,45 @@
+[
+    {
+        "id": 1,
+        "name": "Default_LED",
+        "type": 0,
+        "main_video": "./assets/videos/default_1.mp4",
+        "side_video": "./assets/videos/default_tiang.mp4"
+    },
+    {
+        "id": 2,
+        "name": "Default_Neon",
+        "type": 0,
+        "main_video": "./assets/videos/default_2.mp4",
+        "side_video": "./assets/videos/default_tiang2.mp4"
+    },
+    {
+        "id": 3,
+        "name": "Default_Light",
+        "type": 0,
+        "main_video": "./assets/videos/default_3.mp4",
+        "side_video": "./assets/videos/default_tiang3.mp4"
+    },
+
+    {
+        "id": 4,
+        "name": "爱心",
+        "type": 1,
+        "main_video": "./assets/videos/love.mp4",
+        "side_video": "./assets/videos/love_tiang.mp4"
+    },
+    {
+        "id": 5,
+        "name": "蓝色",
+        "type": 1,
+        "main_video": "./assets/videos/blueline.mp4",
+        "side_video": "./assets/videos/blueline_tiang.mp4"
+    },
+    {
+        "id": 6,
+        "name": "圣诞",
+        "type": 1,
+        "main_video": "./assets/videos/Christmas.mp4",
+        "side_video": "./assets/videos/christmas_tiang.mp4"
+    }
+]

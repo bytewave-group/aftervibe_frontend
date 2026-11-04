@@ -1,0 +1,133 @@
+<!doctype html>
+<html style="height: 100%; width: 100%; pointer-events: none">
+  <style>
+    #tawk-iframe-overlay,
+    body {
+      opacity: 1;
+      transition: opacity 1.5s ease;
+    }
+
+    #tawk-iframe-overlay.hide,
+    body.hide {
+      opacity: 0;
+    }
+
+    #tawk-iframe-overlay.show,
+    body.show {
+      opacity: 1;
+    }
+  </style>
+
+  <body
+    style="
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      scrollbar-width: none;
+      pointer-events: auto;
+    "
+  >
+    <div
+      id="tawk-iframe-overlay"
+      style="height: 100%; width: 100%; background: #00000069"
+      class="overlay"
+    ></div>
+
+    <script>
+      let messageChannelName; //? if messageChannelName no same , skip handleMessage
+      let allowedParentOrigin;
+
+      function loadTawk(propertyId, widgetId) {
+        window.Tawk_API = window.Tawk_API || {};
+
+        window.Tawk_API.onLoad = function () {
+          send({
+            type: "TAWK_READY",
+          });
+
+          window.Tawk_API.maximize();
+        };
+
+        document.querySelector("#tawk-iframe-overlay").onclick = function () {
+          send({
+            type: "HIDE_IFRAME",
+          });
+        };
+
+        window.Tawk_API.onChatMinimized = function () {
+          send({
+            type: "HIDE_IFRAME",
+          });
+        };
+
+        const s = document.createElement("script");
+        s.async = true;
+        s.src = `https://embed.tawk.to/${propertyId}/${widgetId}`;
+        s.onerror = (e) => {
+          console.error(e?.message);
+        };
+        document.body.appendChild(s);
+      }
+
+      //？ same as  useTabChannelMessage
+      const send = (msg) => {
+        if (!msg?.type || !messageChannelName || !allowedParentOrigin) return;
+        const payload = {
+          ...msg,
+          channel: messageChannelName,
+        };
+        window?.parent?.postMessage(payload, allowedParentOrigin);
+      };
+
+      const dispatch = (msg) => {
+        switch (msg.type) {
+          case "INIT_TAWK": {
+            const data = msg?.data;
+            if (!data?.propertyId || !data?.widgetId) return;
+            loadTawk(data.propertyId, data.widgetId);
+            break;
+          }
+
+          case "TRIGGER_maximize": {
+            window.Tawk_API?.maximize?.();
+            break;
+          }
+
+          case "TRIGGER_minimize": {
+            window.Tawk_API?.minimize?.();
+            break;
+          }
+        }
+      };
+
+      const handleMessage = (event) => {
+        const payload = event.data || {};
+
+        if (payload?.type === "INIT_MESSAGE_CHANNEL") {
+          if (allowedParentOrigin) return;
+
+          allowedParentOrigin = event.origin;
+          messageChannelName = payload?.data?.channelName;
+
+          setTimeout(() => {
+            send({ type: "CHANNEL_READY" });
+          }, 200);
+
+          return;
+        }
+
+        if (event.origin !== allowedParentOrigin) return;
+
+        if (payload?.channel !== messageChannelName) return;
+
+        dispatch(payload);
+      };
+
+      window.addEventListener("message", handleMessage);
+
+      window.addEventListener("beforeunload", () => {
+        window.removeEventListener("message", handleMessage);
+      });
+    </script>
+  </body>
+</html>

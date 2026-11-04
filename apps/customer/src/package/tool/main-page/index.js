@@ -1,0 +1,1 @@
+export {default as usePreventNumberInputWheel} from "./usePreventNumberInputWheel"

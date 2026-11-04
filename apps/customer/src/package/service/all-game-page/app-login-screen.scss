@@ -1,0 +1,197 @@
+.app-login-screen {
+  width: 100%;
+  max-width: 620px;
+  margin: 0 auto;
+  border: none;
+  border-radius: 0;
+  overflow: visible;
+  background: transparent;
+  box-shadow: none;
+}
+
+.app-login-screen-status-message {
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid var(--transaction-status-failed);
+  background: color-mix(
+    in srgb,
+    var(--transaction-status-failed) 10%,
+    transparent
+  );
+  color: var(--transaction-status-failed);
+}
+
+.app-login-screen-panel {
+  align-items: center;
+  gap: 24px;
+  padding: 15px 0 0;
+  display: flex;
+  flex-direction: column;
+
+  @media (max-width: 768px) {
+    padding: 15px 15px
+      calc(var(--bottom-toolbar-height) + var(--f7-safe-area-bottom));
+  }
+}
+
+.app-login-screen-back-btn {
+  display: none;
+
+  @media (max-width: 768px) {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border: 1px solid var(--primary-color);
+    border-radius: 30px;
+    box-shadow: 0 4px 12px rgba(10, 13, 32, 0.14);
+    font-size: 14px;
+    line-height: 1;
+
+    i {
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    span {
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+  }
+}
+
+.app-login-screen-brand {
+  min-height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+
+  img {
+    display: block;
+    max-width: 210px;
+    object-fit: fill;
+  }
+}
+
+.app-login-screen-brand-name {
+  font-size: 44px;
+  color: var(--casino-section-heading-accent);
+  letter-spacing: 0.03em;
+  text-align: center;
+  word-break: break-word;
+}
+
+.app-login-screen-fields {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.app-login-screen-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.app-login-screen-field-label {
+  font-size: 15px;
+  color: #121212;
+}
+
+.app-login-screen-field {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px;
+  border-radius: 6px;
+  border: 1px solid #1683f6;
+  background: #fff;
+  box-shadow: none;
+
+  input {
+    width: 100%;
+    min-width: 0;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1b1b1b;
+
+    &::placeholder {
+      color: rgba(31, 43, 71, 0.42);
+    }
+  }
+}
+
+.app-login-screen-copy-btn {
+  height: 30px;
+  width: 30px;
+  align-items: center;
+  justify-content: center;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  &.is-disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+.app-login-screen-actions {
+  width: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 28px;
+  margin-top: 14px;
+}
+
+.app-login-screen-platform-btn {
+  border-radius: 6px;
+  border: 1px solid rgba(22, 131, 246, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #0a0d20;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease;
+  box-shadow: none;
+
+  img {
+    width: 25px;
+    height: 25px;
+  }
+
+  &:hover:not(.is-disabled) {
+    transform: none;
+    box-shadow: none;
+  }
+
+  &.is-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+}
+
+.app-login-screen-hint {
+  display: none;
+}

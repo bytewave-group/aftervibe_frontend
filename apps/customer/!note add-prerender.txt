@@ -1,0 +1,25 @@
+1. install 
+npm install --save-dev puppeteer fs-extra chalk @babel/parser @babel/traverse serve
+
+2. copy prerender.mjs , getRoutesAllPath.cjs
+
+3. in app.jsx, add 
+
+      Global.fetch().then((res) => {
+        ...
+        window.__APP_READY__ = true;        <-- add this line
+      });
+
+4. in vite.config.js 
+    export default defineConfig({
+    ...
+    base: "/",    <-- add this line
+    ...
+    });
+
+    !!!! REMEMBER change all path assets to /assets
+
+5. in package.json add command
+ "build_prerender": "cross-env NODE_ENV=production vite build && node prerender.mjs",
+   
+6. in prerender.mjs , change ROUTES

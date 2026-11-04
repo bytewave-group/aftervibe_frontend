@@ -1,0 +1,20 @@
+{
+  "name": "@my-common-tool/core",
+  "version": "1.0.33",
+  "description": "Core utility module for shared tools and helpers across projects, including dynamic imports and common functions.",
+  "updated": "2026-06-23 11:16",
+  "main": "./index.js",
+  "private": true,
+  "author": "WX",
+  "license": "UNLICENSED",
+  "exports": {
+    "./common": "./index.js"
+  },
+  "peerDependencies": {},
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "check": "echo 'No type check (pure JS project)'"
+  }
+}

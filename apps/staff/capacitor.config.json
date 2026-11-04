@@ -1,0 +1,13 @@
+{
+  "appId": "com.night_management.app",
+  "appName": "Babylon",
+  "bundledWebRuntime": false,
+  "npmClient": "npm",
+  "webDir": "www",
+  "plugins": {
+    "SplashScreen": {
+      "launchShowDuration": 0
+    }
+  },
+  "cordova": {}
+}

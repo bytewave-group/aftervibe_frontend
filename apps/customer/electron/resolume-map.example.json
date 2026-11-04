@@ -1,0 +1,15 @@
+{
+  "baseUrl": "http://127.0.0.1:8090/api/v1",
+  "displays": {
+    "1": {
+      "layer": 1,
+      "overlay": {
+        "layer": 4,
+        "clip": 1,
+        "sender": "AfterVibe Rank 1",
+        "width": 1280,
+        "height": 720
+      }
+    }
+  }
+}

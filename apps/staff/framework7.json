@@ -1,0 +1,25 @@
+{
+  "cwd": "/Users/ASUS/Documents/GitHub/f7_babylon_superapp",
+  "type": [
+    "capacitor"
+  ],
+  "name": "Babylon",
+  "framework": "react",
+  "template": "blank",
+  "bundler": "vite",
+  "cssPreProcessor": "scss",
+  "theming": {
+    "customColor": false,
+    "color": "#007aff",
+    "darkMode": false,
+    "iconFonts": true
+  },
+  "customBuild": false,
+  "pkg": "com.night_management.app",
+  "capacitor": {
+    "platforms": [
+      "ios",
+      "android"
+    ]
+  }
+}

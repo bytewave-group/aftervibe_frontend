@@ -1,0 +1,9 @@
+{
+  "name": "thegamer",
+  "main": "src/index.js",
+  "compatibility_date": "2025-11-28",
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS"
+  }
+}

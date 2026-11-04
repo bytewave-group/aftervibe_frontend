@@ -1,0 +1,19 @@
+{
+  "appId": "com.thegamer.app",
+  "appName": "Thegamer",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "plugins": {
+    "CapacitorUpdater": {
+      "autoUpdate": false,
+      "autoDeletePrevious": "true",
+      "autoDeleteFailed": "true",
+      "resetWhenUpdate": "true",
+      "directUpdate": false,
+      "appReadyTimeout": "7000"
+    },
+    "ScreenOrientation": {
+      "orientation": "portrait"
+    }
+  }
+}

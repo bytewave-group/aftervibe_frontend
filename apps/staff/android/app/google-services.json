@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "45718051094",
+    "project_id": "nightmanagement-b6d15",
+    "storage_bucket": "nightmanagement-b6d15.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:45718051094:android:2df382bf18539121215837",
+        "android_client_info": {
+          "package_name": "com.night_management.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAzYrfIIlYIebvS6UyoErDv4NZWO29kurQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

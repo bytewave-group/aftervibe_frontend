@@ -1,0 +1,81 @@
+#body-main,
+#body-main * {
+  box-sizing: border-box;
+}
+
+#promotion-popup {
+  overflow: hidden;
+  padding: 15px;
+  border-radius: 16px;
+  /* background: var(--f7-dialog-bg-color, #07070b); */
+  /* color: #fff; */
+}
+
+html #body-main #promotion-popup {
+  margin-top: 0px !important;
+  margin-bottom: 0px !important;
+}
+
+#promotion-popup #title {
+  font-size: 20px;
+  font-weight: bold;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+  border-bottom: 2px solid;
+}
+
+#promotion-popup #top-image {
+  width: 100%;
+  display: block;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+#promotion-popup table {
+  table-layout: fixed;
+}
+
+#promotion-popup figure table {
+  border-collapse: collapse;
+}
+
+#promotion-popup figure table td {
+  border: 1px solid white;
+  padding: 4px;
+}
+
+#promotion-popup #promotion-popup-bottom-spacer {
+  height: 42px;
+}
+
+#partnershipSection #promotion-popup-bottom-spacer {
+  height: 80px;
+}
+
+#promotion-popup-cancel,
+#promotion-popup-confirm {
+  padding: 8px 12px;
+}
+
+#promotion-popup-cancel {
+  font-size: 15px;
+  flex: 1 0 0%;
+  max-width: 50%;
+  margin-left: auto;
+  margin-right: auto;
+  background: var(--custom-promotion-popup-cancel-bg-color, #000);
+  color: var(--custom-promotion-popup-cancel-text-color, #fff);
+}
+
+#promotion-popup-cancel:has(+ #promotion-popup-confirm) {
+  max-width: 120px;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+#promotion-popup-confirm {
+  font-size: 15px;
+  flex: 1 0 0%;
+  background: var(--custom-promotion-popup-confirm-bg-color, #000);
+  color: var(--custom-promotion-popup-confirm-text-color, #fff);
+}

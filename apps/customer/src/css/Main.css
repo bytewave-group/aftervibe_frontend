@@ -1,0 +1,411 @@
+/*=========Global===========*/
+.back-button {
+    position: absolute;
+    top: 30px;
+    left: 30px;
+
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.back-button img {
+    width: 24px;
+    height: 24px;
+}
+
+/*=========Login Page===========*/
+
+.login-form {
+    background: rgba(20, 18, 40, 0.35);
+    border-radius: 20px;
+}
+
+.login-form h2 {
+    color: #FF5FA2 !important;
+    font-weight: 700;
+}
+
+.login-form label {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.login-form .form-control {
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 10px;
+    height: 48px;
+}
+
+.login-form .form-control:focus {
+    border-color: #FF5FA2;
+    box-shadow: 0 0 0 2px rgba(255, 95, 162, 0.15);
+}
+
+.login-form .btn {
+    height: 48px;
+    border-radius: 12px;
+    transition: .25s;
+}
+
+.login-form .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(255, 95, 162, .25);
+}
+/*=========Home Page===========*/
+.home-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(
+        circle,
+        #2B1D46 0%,
+        #17162A 55%,
+        #0C0C15 100%
+    );
+}
+
+.home-container {
+    width: 100%;
+    max-width: 900px;
+    text-align: center;
+}
+
+.home-title {
+    font-size: 48px;
+    font-weight: 700;
+    margin-bottom: 16px;
+}
+
+.home-subtitle {
+    color: #666;
+    font-size: 20px;
+    margin-bottom: 48px;
+}
+
+.home-logo {
+    width: 280px;
+    height: 80px;
+    background-image: url("./assets/image/home/after_vibe_sample.png");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+}
+
+.send-button {
+    background: #FF5FA2;
+    color: #fff;
+    border: none;
+    border-radius: 18px;
+    width: 120px;
+    height: 160px;
+    font-size: 20px;
+    font-weight: 500;
+    transition: .25s;
+    cursor: pointer;
+}
+
+.send-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 16px rgba(255, 111, 145, .3);
+}
+
+/*=========Screen Display===========*/
+.video-background{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+    z-index:-2;
+}
+
+.video-background iframe{
+    width:100vw;
+    height:100vh;
+    border:none;
+}
+
+.overlay{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    color:white;
+    z-index:2;
+}
+
+/*=========Gift Page===========*/
+
+.logout-button {
+    margin-top: 24px;
+    padding: 8px 24px;
+
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.7);
+
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 20px;
+
+    font-size: 14px;
+    font-weight: 500;
+
+    cursor: pointer;
+    transition: 0.25s;
+}
+
+.logout-button:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.interaction-image {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    display: block;
+    margin: 0 auto 6px;
+}
+
+/* =========================
+   Wallet Page
+========================= */
+
+.wallet-page {
+    padding: 0 16px 100px;
+}
+
+/* =========================
+   Wallet Summary
+========================= */
+
+.wallet-summary {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 16px 0 24px;
+}
+
+.wallet-card {
+    position: relative;
+    min-height: 125px;
+
+    padding: 18px;
+
+    border-radius: 20px;
+
+    background: rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.10);
+
+    overflow: hidden;
+}
+
+.wallet-card span {
+    display: block;
+
+    font-size: 11px;
+    font-weight: 700;
+
+    letter-spacing: 1px;
+
+    color: rgba(255, 255, 255, 0.65);
+}
+
+.wallet-card strong {
+    display: block;
+
+    margin-top: 10px;
+
+    font-size: 20px;
+    font-weight: 800;
+
+    color: #ffffff;
+
+    position: relative;
+    z-index: 2;
+}
+
+.wallet-card img {
+    position: absolute;
+
+    right: -8px;
+    bottom: -10px;
+
+    width: 65px;
+    height: 65px;
+
+    object-fit: contain;
+
+    opacity: 0.85;
+}
+
+/* =========================
+   Buy Coins
+========================= */
+
+.buy-coins-section {
+    margin-top: 10px;
+}
+
+.buy-coins-header {
+    margin-bottom: 16px;
+}
+
+.buy-coins-header h2 {
+    margin: 0;
+
+    color: #ffffff;
+
+    font-size: 20px;
+    font-weight: 800;
+
+    letter-spacing: 0.5px;
+}
+
+.buy-coins-header p {
+    margin: 5px 0 0;
+
+    color: rgba(255, 255, 255, 0.55);
+
+    font-size: 13px;
+}
+
+/* =========================
+   Coin Packages
+========================= */
+
+.coin-packages {
+    display: grid;
+
+    grid-template-columns: repeat(2, 1fr);
+
+    gap: 12px;
+
+    margin-bottom: 98px;
+}
+
+.coin-package {
+    position: relative;
+
+    min-height: 145px;
+
+    padding: 18px 12px;
+
+    border: 1px solid rgba(255, 255, 255, 0.10);
+    border-radius: 20px;
+
+    background: rgba(255, 255, 255, 0.08);
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        background 0.2s ease,
+        border-color 0.2s ease;
+}
+
+.coin-package:hover {
+    transform: translateY(-3px);
+
+    background: rgba(255, 255, 255, 0.13);
+
+    border-color: rgba(255, 255, 255, 0.22);
+}
+
+.coin-package:active {
+    transform: scale(0.97);
+}
+
+.coin-package:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* =========================
+   Coin Icon
+========================= */
+
+.coin-icon {
+    width: 64px;
+    height: 64px;
+
+    margin: 0 auto 8px;
+}
+
+.coin-icon img {
+    width: 100%;
+    height: 100%;
+
+    object-fit: contain;
+}
+
+/* =========================
+   Coin Amount
+========================= */
+
+.coin-amount {
+    color: #ffffff;
+
+    font-size: 24px;
+    font-weight: 800;
+
+    line-height: 1;
+}
+
+.coin-label {
+    margin-top: 5px;
+
+    color: rgba(255, 255, 255, 0.55);
+
+    font-size: 10px;
+    font-weight: 700;
+
+    letter-spacing: 1px;
+}
+
+.coin-price{
+    background: #2B1D46;
+    box-shadow: 0 3px 15px rgba(255, 95, 162, .25);
+    border: 0.5px solid rgba(255, 95, 162, 0.5);
+    border-radius: 12px;
+    width: 88px;
+    color:rgba(255, 95, 162); 
+    padding: 6px 12px;
+    font-size: 12px;
+    text-align: center;
+    font-weight: 800;
+    line-height: 1;
+}
+
+/* =========================
+   Message
+========================= */
+
+.wallet-success-message {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    z-index: 9999;
+
+    width: 320px;
+    height: 80px;
+    padding: 12px 18px;
+    border-radius: 20px;
+
+    background: rgba(43, 29, 70, 0.95);
+    border: 1px solid #FF5FA2;
+
+    color: #fff;
+    font-size: 16px;
+    font-weight: 800;
+
+    white-space: nowrap;
+}
