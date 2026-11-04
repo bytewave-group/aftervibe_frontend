@@ -1,3 +1,4 @@
+@use "sass:color";
 // Theme Colors
 $quaternary-color: #f1ebeb;
 $shadow-color: #e0e0e0;
@@ -167,7 +168,7 @@ textarea,
 }
 
 .page {
-  // background: linear-gradient(135deg, $black 0%, darken($black, 5%) 100%);
+  // background: linear-gradient(135deg, $black 0%, color.adjust($black, $lightness: -5%) 100%);
   background: $black;
 }
 
@@ -569,7 +570,7 @@ input[type="number"] {
             box-shadow: 0 4px 12px rgba($primary-color, 0.4);
 
             &:hover:not(:disabled) {
-              background: lighten($primary-color, 5%);
+              background: color.adjust($primary-color, $lightness: 5%);
               transform: translateY(-2px);
               box-shadow: 0 6px 16px rgba($primary-color, 0.5);
             }
@@ -598,7 +599,7 @@ input[type="number"] {
       color: $black;
 
       &:hover:not(.disabled-state) {
-        background: lighten($primary-color, 5%);
+        background: color.adjust($primary-color, $lightness: 5%);
       }
     }
   }
@@ -761,7 +762,7 @@ input[type="number"] {
         transition: all 0.3s ease;
 
         &:hover {
-          color: lighten($primary-color, 10%);
+          color: color.adjust($primary-color, $lightness: 10%);
           transform: scale(1.1);
         }
 
@@ -1272,7 +1273,7 @@ input[type="number"] {
   margin-top: 20px;
 
   &:hover {
-    background: lighten($primary-color, 5%);
+    background: color.adjust($primary-color, $lightness: 5%);
     transform: translateY(-2px);
     box-shadow: 0 6px 16px rgba($primary-color, 0.5);
   }
@@ -1469,7 +1470,7 @@ input[type="number"] {
         transition: all 0.3s ease;
 
         // &:hover:not(.disabled-state) {
-        //   background: lighten($primary-color, 5%);
+        //   background: color.adjust($primary-color, $lightness: 5%);
         //   transform: translateY(-2px);
         //   box-shadow: 0 4px 12px rgba($primary-color, 0.4);
         // }
@@ -2830,7 +2831,7 @@ input[type="number"] {
         border-radius: 3px;
 
         &:hover {
-          background: lighten($primary-color, 5%);
+          background: color.adjust($primary-color, $lightness: 5%);
         }
       }
 
@@ -2873,7 +2874,7 @@ input[type="number"] {
         box-shadow: 0 4px 12px rgba($primary-color, 0.4);
 
         &:hover:not(.disabled) {
-          background: lighten($primary-color, 5%);
+          background: color.adjust($primary-color, $lightness: 5%);
           transform: translateY(-2px);
           box-shadow: 0 6px 16px rgba($primary-color, 0.5);
         }
@@ -3022,7 +3023,7 @@ input[type="number"] {
         transition: background 0.2s, border-color 0.2s;
         &:hover,
         &:focus {
-          background: darken($input-bg, 4%);
+          background: color.adjust($input-bg, $lightness: -4%);
           border-color: $primary-color;
         }
         .qr-scanner-mode-icon {
@@ -3590,7 +3591,7 @@ input[type="number"] {
                   border-radius: 3px;
 
                   &:hover {
-                    background: lighten($primary-color, 5%);
+                    background: color.adjust($primary-color, $lightness: 5%);
                   }
                 }
 
@@ -3691,7 +3692,7 @@ input[type="number"] {
           box-shadow: 0 4px 12px rgba($primary-color, 0.4);
 
           &:hover:not(.disabled-state) {
-            background: lighten($primary-color, 5%);
+            background: color.adjust($primary-color, $lightness: 5%);
             transform: translateY(-2px);
             box-shadow: 0 6px 16px rgba($primary-color, 0.5);
           }
@@ -4067,7 +4068,7 @@ input[type="number"] {
                   border-radius: 3px;
 
                   &:hover {
-                    background: lighten($primary-color, 5%);
+                    background: color.adjust($primary-color, $lightness: 5%);
                   }
                 }
 
@@ -4272,7 +4273,7 @@ input[type="number"] {
                   border-radius: 3px;
 
                   &:hover {
-                    background: lighten($primary-color, 5%);
+                    background: color.adjust($primary-color, $lightness: 5%);
                   }
                 }
 
@@ -4335,7 +4336,7 @@ input[type="number"] {
           box-shadow: 0 4px 12px rgba($primary-color, 0.4);
 
           &:hover:not(.disabled-state) {
-            background: lighten($primary-color, 5%);
+            background: color.adjust($primary-color, $lightness: 5%);
             transform: translateY(-2px);
             box-shadow: 0 6px 16px rgba($primary-color, 0.5);
           }
@@ -4701,7 +4702,7 @@ input[type="number"] {
                   border-radius: 3px;
 
                   &:hover {
-                    background: lighten($primary-color, 5%);
+                    background: color.adjust($primary-color, $lightness: 5%);
                   }
                 }
 
@@ -4764,7 +4765,7 @@ input[type="number"] {
           box-shadow: 0 4px 12px rgba($primary-color, 0.4);
 
           &:hover:not(.disabled-state) {
-            background: lighten($primary-color, 5%);
+            background: color.adjust($primary-color, $lightness: 5%);
             transform: translateY(-2px);
             box-shadow: 0 6px 16px rgba($primary-color, 0.5);
           }
@@ -5115,7 +5116,7 @@ input[type="number"] {
                   border: 1px solid $yes-button;
 
                   &:hover {
-                    background: darken($yes-button, 5%);
+                    background: color.adjust($yes-button, $lightness: -5%);
                     transform: scale(1.1);
                   }
 
@@ -5130,7 +5131,7 @@ input[type="number"] {
                   border: 1px solid $cancel-button;
 
                   &:hover {
-                    background: darken($cancel-button, 5%);
+                    background: color.adjust($cancel-button, $lightness: -5%);
                     transform: scale(1.1);
                   }
 
@@ -5186,7 +5187,7 @@ input[type="number"] {
                 font-size: 14px;
 
                 &:hover {
-                  color: lighten($primary-color, 10%);
+                  color: color.adjust($primary-color, $lightness: 10%);
                   transform: translateX(4px);
                 }
 
@@ -5602,7 +5603,7 @@ input[type="number"] {
                   border: 1px solid $yes-button;
 
                   &:hover {
-                    background: darken($yes-button, 5%);
+                    background: color.adjust($yes-button, $lightness: -5%);
                     transform: scale(1.1);
                   }
 
@@ -5617,7 +5618,7 @@ input[type="number"] {
                   border: 1px solid $cancel-button;
 
                   &:hover {
-                    background: darken($cancel-button, 5%);
+                    background: color.adjust($cancel-button, $lightness: -5%);
                     transform: scale(1.1);
                   }
 
@@ -6015,7 +6016,7 @@ input[type="number"] {
                   border: 1px solid $yes-button;
 
                   &:hover {
-                    background: darken($yes-button, 5%);
+                    background: color.adjust($yes-button, $lightness: -5%);
                     transform: scale(1.1);
                   }
 
@@ -6030,7 +6031,7 @@ input[type="number"] {
                   border: 1px solid $cancel-button;
 
                   &:hover {
-                    background: darken($cancel-button, 5%);
+                    background: color.adjust($cancel-button, $lightness: -5%);
                     transform: scale(1.1);
                   }
 
@@ -6361,7 +6362,7 @@ input[type="number"] {
                   border-radius: 3px;
 
                   &:hover {
-                    background: lighten($primary-color, 5%);
+                    background: color.adjust($primary-color, $lightness: 5%);
                   }
                 }
 
@@ -6596,7 +6597,7 @@ input[type="number"] {
                   border: 1px solid $cancel-button;
 
                   &:hover {
-                    background: darken($cancel-button, 5%);
+                    background: color.adjust($cancel-button, $lightness: -5%);
                     transform: scale(1.1);
                   }
 
@@ -7429,7 +7430,7 @@ input[type="number"] {
                   border: 1px solid $cancel-button;
 
                   &:hover {
-                    background: darken($cancel-button, 5%);
+                    background: color.adjust($cancel-button, $lightness: -5%);
                     transform: scale(1.1);
                   }
 
@@ -8236,7 +8237,7 @@ input[type="number"] {
             color: $black;
 
             &:hover {
-              background: lighten($primary-color, 5%);
+              background: color.adjust($primary-color, $lightness: 5%);
               transform: translateY(-2px);
               box-shadow: 0 4px 12px rgba($primary-color, 0.4);
             }
@@ -9881,7 +9882,7 @@ input[type="number"] {
                       border-radius: 3px;
 
                       &:hover {
-                        background: lighten($primary-color, 5%);
+                        background: color.adjust($primary-color, $lightness: 5%);
                       }
                     }
 
@@ -10088,7 +10089,7 @@ input[type="number"] {
               box-shadow: 0 4px 12px rgba($primary-color, 0.4);
 
               &:hover:not(.disabled-state) {
-                background: lighten($primary-color, 5%);
+                background: color.adjust($primary-color, $lightness: 5%);
                 transform: translateY(-2px);
                 box-shadow: 0 6px 16px rgba($primary-color, 0.5);
               }
@@ -10333,7 +10334,7 @@ input[type="number"] {
       box-shadow: 0 4px 12px rgba($primary-color, 0.35);
 
       &:hover:not(.disabled-state):not(:disabled) {
-        background: lighten($primary-color, 5%);
+        background: color.adjust($primary-color, $lightness: 5%);
       }
 
       &.button-disabled,
@@ -10514,7 +10515,7 @@ input[type="number"] {
       box-shadow: 0 4px 12px rgba($primary-color, 0.35);
 
       &:hover:not(.disabled-state):not(:disabled) {
-        background: lighten($primary-color, 5%);
+        background: color.adjust($primary-color, $lightness: 5%);
       }
     }
 
@@ -10538,7 +10539,7 @@ input[type="number"] {
     box-shadow: 0 4px 12px rgba($primary-color, 0.35);
 
     &:hover:not(.disabled-state):not(:disabled) {
-      background: lighten($primary-color, 5%);
+      background: color.adjust($primary-color, $lightness: 5%);
     }
   }
 
@@ -11827,13 +11828,13 @@ input[type="number"] {
               &--completed {
                 background: rgba($yes-button, 0.1);
                 border-color: rgba($yes-button, 0.42);
-                color: lighten($yes-button, 6%);
+                color: color.adjust($yes-button, $lightness: 6%);
               }
 
               &--cancelled {
                 background: rgba($cancel-button, 0.12);
                 border-color: rgba($cancel-button, 0.45);
-                color: lighten($cancel-button, 22%);
+                color: color.adjust($cancel-button, $lightness: 22%);
               }
 
               &--pending {
@@ -12244,7 +12245,7 @@ input[type="number"] {
           transition: background 0.2s, border-color 0.2s;
           &:hover,
           &:focus {
-            background: darken($input-bg, 4%);
+            background: color.adjust($input-bg, $lightness: -4%);
             border-color: $primary-color;
           }
           .qr-scanner-mode-icon {
@@ -12455,7 +12456,7 @@ input[type="number"] {
             color: $black;
 
             &:hover:not(.disabled-state) {
-              background: lighten($primary-color, 5%);
+              background: color.adjust($primary-color, $lightness: 5%);
               transform: translateY(-2px);
               box-shadow: 0 4px 12px rgba($primary-color, 0.4);
             }
@@ -12662,7 +12663,7 @@ input[type="number"] {
                   border-radius: 3px;
 
                   &:hover {
-                    background: lighten($primary-color, 5%);
+                    background: color.adjust($primary-color, $lightness: 5%);
                   }
                 }
 
@@ -12958,7 +12959,7 @@ input[type="number"] {
           box-shadow: 0 4px 12px rgba($primary-color, 0.4);
 
           &:hover:not(.disabled-state) {
-            background: lighten($primary-color, 5%);
+            background: color.adjust($primary-color, $lightness: 5%);
             transform: translateY(-2px);
             box-shadow: 0 6px 16px rgba($primary-color, 0.5);
           }
@@ -13071,7 +13072,7 @@ input[type="number"] {
           transition: background 0.2s, border-color 0.2s;
           &:hover,
           &:focus {
-            background: darken($input-bg, 4%);
+            background: color.adjust($input-bg, $lightness: -4%);
             border-color: $primary-color;
           }
           .qr-scanner-mode-icon {
@@ -13252,7 +13253,7 @@ input[type="number"] {
                   border-radius: 3px;
 
                   &:hover {
-                    background: lighten($primary-color, 5%);
+                    background: color.adjust($primary-color, $lightness: 5%);
                   }
                 }
 
@@ -13543,7 +13544,7 @@ input[type="number"] {
           box-shadow: 0 4px 12px rgba($primary-color, 0.4);
 
           &:hover:not(.disabled-state) {
-            background: lighten($primary-color, 5%);
+            background: color.adjust($primary-color, $lightness: 5%);
             transform: translateY(-2px);
             box-shadow: 0 6px 16px rgba($primary-color, 0.5);
           }
@@ -13656,7 +13657,7 @@ input[type="number"] {
           transition: background 0.2s, border-color 0.2s;
           &:hover,
           &:focus {
-            background: darken($input-bg, 4%);
+            background: color.adjust($input-bg, $lightness: -4%);
             border-color: $primary-color;
           }
           .qr-scanner-mode-icon {
@@ -13869,7 +13870,7 @@ input[type="number"] {
                   border-radius: 3px;
 
                   &:hover {
-                    background: lighten($primary-color, 5%);
+                    background: color.adjust($primary-color, $lightness: 5%);
                   }
                 }
 
@@ -14389,7 +14390,7 @@ input[type="number"] {
             }
 
             &:hover:not(.disabled-state) {
-              background: lighten($primary-color, 5%);
+              background: color.adjust($primary-color, $lightness: 5%);
               transform: translateY(-2px);
               box-shadow: 0 6px 16px rgba($primary-color, 0.5);
             }
@@ -14934,7 +14935,7 @@ input[type="number"] {
           background: linear-gradient(
             135deg,
             $primary-color 0%,
-            darken($primary-color, 10%) 100%
+            color.adjust($primary-color, $lightness: -10%) 100%
           );
           display: flex;
           align-items: center;
@@ -15243,7 +15244,7 @@ input[type="number"] {
             }
 
             &:hover:not(:disabled) {
-              background: darken($primary-color, 5%);
+              background: color.adjust($primary-color, $lightness: -5%);
               box-shadow: 0 6px 16px rgba($primary-color, 0.4);
               transform: translateY(-2px);
             }
@@ -15996,7 +15997,7 @@ input[type="number"] {
           }
 
           &:hover:not(:disabled) {
-            background: lighten($primary-color, 5%) !important;
+            background: color.adjust($primary-color, $lightness: 5%) !important;
             transform: translateY(-2px);
             box-shadow: 0 6px 16px rgba($primary-color, 0.5);
           }
@@ -16043,7 +16044,7 @@ input[type="number"] {
         &.expired {
           background: rgba($cancel-button, 0.15);
           border: 2px solid rgba($cancel-button, 0.4);
-          color: lighten($cancel-button, 10%);
+          color: color.adjust($cancel-button, $lightness: 10%);
           display: flex;
           flex-direction: column;
           gap: 8px;
@@ -16108,7 +16109,7 @@ input[type="number"] {
           }
 
           &:hover:not(:disabled) {
-            background: lighten($primary-color, 5%) !important;
+            background: color.adjust($primary-color, $lightness: 5%) !important;
             transform: translateY(-2px);
             box-shadow: 0 6px 16px rgba($primary-color, 0.5);
           }
@@ -16604,6 +16605,14 @@ input[type="number"] {
             word-break: break-word;
           }
         }
+
+        .profile-update-button {
+          margin-top: 12px;
+          height: 44px;
+          border-radius: 12px;
+          background: $primary-color;
+          color: $black;
+        }
       }
 
       .qr-code-container {
@@ -16624,6 +16633,34 @@ input[type="number"] {
         }
       }
     }
+  }
+}
+
+.update-dialog {
+  .update-dialog-content {
+    text-align: left;
+  }
+
+  .update-dialog-version {
+    margin-bottom: 4px;
+  }
+
+  .update-dialog-mandatory {
+    margin-top: 8px;
+    color: $cancel-button;
+    font-weight: 600;
+  }
+
+  .update-dialog-notes-title {
+    margin-top: 12px;
+    font-weight: 600;
+  }
+
+  .update-dialog-notes {
+    margin-top: 4px;
+    max-height: 200px;
+    overflow-y: auto;
+    white-space: pre-line;
   }
 }
 
@@ -16927,7 +16964,7 @@ input[type="number"] {
           }
 
           &:hover:not(:disabled) {
-            background: darken($primary-color, 5%);
+            background: color.adjust($primary-color, $lightness: -5%);
             box-shadow: 0 6px 20px rgba($primary-color, 0.25);
             transform: translateY(-1px);
           }

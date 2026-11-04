@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Page, f7 } from "framework7-react";
+import { Page, Button, f7 } from "framework7-react";
 import QRCode from "react-qr-code";
 import Header from "../components/header";
 import { loadUser, preferencesEmitter } from "../components/action/preferences";
@@ -7,11 +7,33 @@ import { useTranslation } from "../services/useTranslation";
 import { PushNotifications } from "@capacitor/push-notifications";
 import { Haptics } from "@capacitor/haptics";
 import useCommon from "../components/action/Common";
+import {
+    UPDATE_STATUS,
+    checkForUpdate,
+    getAppVersionInfo,
+    openDownloadUrl,
+} from "../services/updateService";
+
+const escapeHtml = (text) =>
+    String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
 
 const Profile = () => {
     const { t, i18n } = useTranslation();
     const { navigate } = useCommon();
     const [user, setUser] = useState(null);
+    const [appVersion, setAppVersion] = useState("");
+    const [isCheckingUpdate, setIsCheckingUpdate] = useState(false);
+
+    useEffect(() => {
+        getAppVersionInfo().then(({ version, build }) => {
+            setAppVersion(build ? `${version} (${build})` : version);
+        });
+    }, []);
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -154,6 +176,73 @@ const Profile = () => {
         return localeMap[locale] || locale || "-";
     };
 
+    const showUpdateDialog = (update) => {
+        const lines = [
+            `<div class="update-dialog-version">${escapeHtml(t("New version: {{version}}", { version: update.targetVersion }))}</div>`,
+            `<div class="update-dialog-version">${escapeHtml(t("Current version: {{version}}", { version: update.currentVersion }))}</div>`,
+        ];
+        if (update.isForceUpdate) {
+            lines.push(`<div class="update-dialog-mandatory">${escapeHtml(t("This is a mandatory update. Please update to continue using the app."))}</div>`);
+        }
+        if (update.releaseNotes) {
+            lines.push(`<div class="update-dialog-notes-title">${escapeHtml(t("Release notes"))}</div>`);
+            lines.push(`<div class="update-dialog-notes">${escapeHtml(update.releaseNotes)}</div>`);
+        }
+        if (!update.downloadUrl) {
+            lines.push(`<div class="update-dialog-mandatory">${escapeHtml(t("Download link is not available"))}</div>`);
+        }
+
+        const buttons = [];
+        if (!update.isForceUpdate) {
+            buttons.push({ text: t("Later") });
+        }
+        if (update.downloadUrl) {
+            buttons.push({
+                text: t("Download"),
+                bold: true,
+                close: !update.isForceUpdate,
+                onClick: () => openDownloadUrl(update.downloadUrl),
+            });
+        }
+        if (buttons.length === 0) {
+            buttons.push({ text: t("OK") });
+        }
+
+        f7.dialog
+            .create({
+                title: t("Update available"),
+                text: `<div class="update-dialog-content">${lines.join("")}</div>`,
+                buttons,
+                cssClass: "update-dialog",
+                closeByBackdropClick: !update.isForceUpdate,
+            })
+            .open();
+    };
+
+    const handleCheckForUpdate = async () => {
+        if (isCheckingUpdate) {
+            return;
+        }
+
+        setIsCheckingUpdate(true);
+        f7.preloader.show();
+        const update = await checkForUpdate();
+        f7.preloader.hide();
+        setIsCheckingUpdate(false);
+
+        if (update.status === UPDATE_STATUS.UPGRADE) {
+            showUpdateDialog(update);
+            return;
+        }
+
+        const messages = {
+            [UPDATE_STATUS.LATEST]: t("You are on the latest version"),
+            [UPDATE_STATUS.NOT_CONFIGURED]: t("Update service not configured"),
+            [UPDATE_STATUS.ERROR]: t("Unable to check for update. Please try again later."),
+        };
+        f7.dialog.alert(messages[update.status] || messages[UPDATE_STATUS.ERROR], t("Check for update"));
+    };
+
     if (!user) {
         return (
             <Page className="profile-page">
@@ -215,6 +304,24 @@ const Profile = () => {
                                 {formatLastLogin(user?.last_login_at)}
                             </div>
                         </div> */}
+                    </div>
+                    <div className="profile-info-card profile-update-card">
+                        <div className="profile-info-item">
+                            <div className="profile-info-label font-medium font-bold">
+                                {t("App Version")}:
+                            </div>
+                            <div className="profile-info-value font-medium">
+                                {appVersion || "-"}
+                            </div>
+                        </div>
+                        <Button
+                            className="profile-update-button font-bold"
+                            fill
+                            onClick={handleCheckForUpdate}
+                            disabled={isCheckingUpdate}
+                        >
+                            {isCheckingUpdate ? t("Checking for update...") : t("Check for update")}
+                        </Button>
                     </div>
                     {user.qr && (
                         <div className="qr-code-container">

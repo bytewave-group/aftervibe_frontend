@@ -1,5 +1,5 @@
 import axios from "axios";
-import { BARS_URL } from "../config/barConfig";
+import { BARS_URL, UNLOCK_URL } from "../config/barConfig";
 
 /**
  * Normalise a typed bar address into a base URL (no trailing slash, no /api).
@@ -26,6 +26,20 @@ export const normaliseBarUrl = (value) => {
     return `${parsed.origin}${parsed.pathname.replace(/\/+$/, "")}`;
   } catch {
     return null;
+  }
+};
+
+/** Check the admin unlock PIN with the central API. Resolves to { success, message }. */
+export const unlockBarChoice = async (pin) => {
+  try {
+    const res = await axios.post(
+      UNLOCK_URL,
+      { pin },
+      { headers: { Accept: "application/json" } }
+    );
+    return { success: !!res.data?.success, message: res.data?.message || "" };
+  } catch (error) {
+    return { success: false, message: error.response?.data?.message || "" };
   }
 };
 

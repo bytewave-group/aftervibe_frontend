@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Page, Button, Icon, f7 } from "framework7-react";
 import { useTranslation } from "../services/useTranslation";
 import useAuthenticate from "../actions/Authenticate";
@@ -19,8 +19,11 @@ import LanguageSelector from "../components/LanguageSelector";
 import Tools from "../components/tools";
 import env from "../../environment.json";
 import { useTenantName } from "../hooks/useTenantName";
-import { fetchBars } from "../services/barService";
+import { fetchBars, unlockBarChoice } from "../services/barService";
 import { FIXED_BAR } from "../config/barConfig";
+
+const LOGO_TAPS_TO_UNLOCK = 5;
+const LOGO_TAP_WINDOW_MS = 2000;
 
 const LoginPage = () => {
     const { t } = useTranslation();
@@ -37,6 +40,8 @@ const LoginPage = () => {
     const [bars, setBars] = useState([]);
     const [isLoadingBars, setIsLoadingBars] = useState(true);
     const [barsLoadFailed, setBarsLoadFailed] = useState(false);
+    const logoTaps = useRef(0);
+    const lastLogoTap = useRef(0);
     // const [showRoleSelection, setShowRoleSelection] = useState(true);
     // const [selectedRole, setSelectedRole] = useState(null);
 
@@ -189,6 +194,39 @@ const LoginPage = () => {
         setShowPassword(false);
     };
 
+    // A chosen bar stays locked; an admin taps the logo 5 times and enters the central unlock PIN to choose again.
+    const handleLogoTap = () => {
+        if (FIXED_BAR || !selectedBar) {
+            return;
+        }
+
+        const now = Date.now();
+        logoTaps.current = now - lastLogoTap.current > LOGO_TAP_WINDOW_MS ? 1 : logoTaps.current + 1;
+        lastLogoTap.current = now;
+
+        if (logoTaps.current < LOGO_TAPS_TO_UNLOCK) {
+            return;
+        }
+
+        logoTaps.current = 0;
+        f7.dialog.password(t("Enter unlock PIN"), t("Unlock Bar"), async (pin) => {
+            f7.preloader.show();
+            const result = await unlockBarChoice(pin);
+            f7.preloader.hide();
+
+            if (!result.success) {
+                showMessage(
+                    result.message.includes("not configured")
+                        ? t("Unlock PIN is not configured")
+                        : t("Incorrect PIN")
+                );
+                return;
+            }
+
+            await handleChangeBar();
+        });
+    };
+
     const handleLogin = (e) => {
         if (e && e.preventDefault) {
             e.preventDefault();
@@ -270,6 +308,7 @@ const LoginPage = () => {
                         src="/images/nightclub_app_logo.webp"
                         className="company-logo"
                         alt="Logo"
+                        onClick={handleLogoTap}
                     />
                     <div className="login-header-text">
                         <h1>{t("Welcome to {{name}}", { name: selectedBar?.name || tenantName })}</h1>
@@ -322,28 +361,6 @@ const LoginPage = () => {
                         </div>
                     ) : selectedBar ? (
                     <div className="login-form">
-                        {!FIXED_BAR && (
-                            <div className="selected-role-header">
-                                <Button
-                                    className="back-button"
-                                    onClick={handleChangeBar}
-                                    iconOnly
-                                    iconF7="chevron_left"
-                                />
-                                <div className="selected-bar-info">
-                                    <span className="selected-role-text">{selectedBar.name}</span>
-                                    <span className="selected-bar-url">{selectedBar.url}</span>
-                                </div>
-                                <Button
-                                    className="change-bar-button"
-                                    small
-                                    onClick={handleChangeBar}
-                                >
-                                    {t("Change Bar")}
-                                </Button>
-                            </div>
-                        )}
-
                         {/* {selectedRole && (
                                 <div className="selected-role-header">
                                     <Button
