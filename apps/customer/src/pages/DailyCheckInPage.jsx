@@ -7,12 +7,15 @@ import "../css/Main.css";
 
 import { useEffect, useState } from "react";
 import { getApiUrl } from "../config/api";
+import { customerFetch } from "../config/customerApi";
 
 function DailyCheckinPage() {
     const [checkedIn, setCheckedIn] = useState(false);
     const [currentDay, setCurrentDay] = useState(1);
     const [loading, setLoading] = useState(true);
     const [coins, setCoins] = useState(0);
+    const [rewards, setRewards] = useState([]);
+    const [points, setPoints] = useState(0);
 
     useEffect(() => {
         checkinStatus();
@@ -40,6 +43,7 @@ function DailyCheckinPage() {
             if (checkinData.success) {
                 setCheckedIn(checkinData.checked_in);
                 setCurrentDay(checkinData.current_day);
+                setRewards(checkinData.rewards || []);
             }
     
             // Customer balance / coins
@@ -59,6 +63,12 @@ function DailyCheckinPage() {
     
             if (balanceData.success) {
                 setCoins(balanceData.balance);
+            }
+
+            const { ok, data: meData } = await customerFetch("/customer/me");
+
+            if (ok) {
+                setPoints(Number(meData.customer?.reward_points ?? 0));
             }
     
         } catch (error) {
@@ -106,60 +116,20 @@ function DailyCheckinPage() {
         }
     };
 
+    // Visual style per streak day; the coin amounts come from the check-in status API
     const days = [
-        {
-            day: "DAY 1",
-            points: "5 COINS",
-            image: "/assets/image/daily_checkin/coin.png",
-            type: "coin",
-            color: "yellow",
-        },
-        {
-            day: "DAY 2",
-            points: "5 COINS",
-            image: "/assets/image/daily_checkin/coin.png",
-            type: "coin",
-            color: "yellow",
-        },
-        {
-            day: "DAY 3",
-            points: "5 COINS",
-            image: "/assets/image/daily_checkin/coin.png",
-            type: "coin",
-            color: "yellow",
-        },
-        {
-            day: "DAY 4",
-            points: "10 COINS",
-            image: "/assets/image/daily_checkin/crown.png",
-            type: "crown",
-            color: "red",
-        },
-        {
-            day: "DAY 5",
-            points: "10 COINS",
-            image: "/assets/image/daily_checkin/coin.png",
-            type: "coin",
-            color: "yellow",
-        },
-        {
-            day: "DAY 6",
-            points: "15 COINS",
-            image: "/assets/image/daily_checkin/coin.png",
-            type: "coin",
-            color: "yellow",
-        },
-        {
-            day: "DAY 7",
-            points: "20 COINS",
-            image: "/assets/image/daily_checkin/crown.png",
-            type: "crown",
-            color: "red",
-        },
+        { day: "DAY 1", image: "/assets/image/daily_checkin/coin.png", type: "coin", color: "yellow" },
+        { day: "DAY 2", image: "/assets/image/daily_checkin/coin.png", type: "coin", color: "yellow" },
+        { day: "DAY 3", image: "/assets/image/daily_checkin/coin.png", type: "coin", color: "yellow" },
+        { day: "DAY 4", image: "/assets/image/daily_checkin/crown.png", type: "crown", color: "red" },
+        { day: "DAY 5", image: "/assets/image/daily_checkin/coin.png", type: "coin", color: "yellow" },
+        { day: "DAY 6", image: "/assets/image/daily_checkin/coin.png", type: "coin", color: "yellow" },
+        { day: "DAY 7", image: "/assets/image/daily_checkin/crown.png", type: "crown", color: "red" },
     ];
 
     const displayDays = days.map((item, index) => {
         const dayNumber = index + 1;
+        const reward = rewards[index];
     
         let status = "normal";
     
@@ -179,6 +149,7 @@ function DailyCheckinPage() {
     
         return {
             ...item,
+            points: reward != null ? `${reward} COINS` : "-",
             status,
         };
     });
@@ -213,11 +184,11 @@ function DailyCheckinPage() {
                 <div className="mb-4">
                     <section className="daily-balance mx-4 my-3">
                         <div className="daily-balance-card">
-                            <span>MAIN WALLET</span>
-                            <strong>RM 100.00</strong>
+                            <span>REWARD POINTS</span>
+                            <strong>{points.toLocaleString()} PTS</strong>
                             <img
                             src="/assets/image/home/wallet_3d.png"
-                            alt="Wallet"
+                            alt="Reward points"
                             />
                         </div>
                         <div className="daily-balance-card">

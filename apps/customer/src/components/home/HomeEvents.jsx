@@ -1,43 +1,33 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import EventCard from "../events/EventCard";
+import { customerFetch } from "../../config/customerApi";
 import "../../css/Global.css";
+
+const HOME_EVENT_LIMIT = 4;
 
 function HomeEvents() {
     const navigate = useNavigate();
+    const [events, setEvents] = useState([]);
+    const [loaded, setLoaded] = useState(false);
 
-    const events = [
-        {
-            key: "ladies-night",
-            title: "LADIES NIGHT",
-            date: "EVERY FRIDAY 9 - 11PM",
-            image: "/assets/image/home/speaker.png",
-            icon: "/assets/image/home/fire.png",
-            path: "/events/ladies-night",
-        },
-        {
-            key: "dance-all-night",
-            title: "DANCE ALL NIGHT",
-            date: "AUGUST 1 9PM",
-            image: "/assets/image/home/speaker.png",
-            icon: "",
-            path: "/events/dance-all-night",
-        },
-        {
-            key: "ladies-night",
-            title: "LADIES NIGHT",
-            date: "EVERY FRIDAY 9 - 11PM",
-            image: "/assets/image/home/speaker.png",
-            icon: "/assets/image/home/fire.png",
-            path: "/events/ladies-night",
-        },
-        {
-            key: "dance-all-night",
-            title: "DANCE ALL NIGHT",
-            date: "AUGUST 1 9PM",
-            image: "/assets/image/home/speaker.png",
-            icon: "",
-            path: "/events/dance-all-night",
-        },
-    ];
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const { ok, data } = await customerFetch("/customer/events");
+
+                if (ok) {
+                    setEvents((data.events || []).slice(0, HOME_EVENT_LIMIT));
+                }
+            } catch (error) {
+                console.error("HOME EVENTS ERROR =", error);
+            } finally {
+                setLoaded(true);
+            }
+        };
+
+        load();
+    }, []);
 
     return (
         <section className="home-events ">
@@ -55,32 +45,12 @@ function HomeEvents() {
 
             <div className="home-events-list">
                 {events.map((event) => (
-                    <button
-                        key={event.key}
-                        type="button"
-                        className="home-event-card purple-pink-border"
-                        onClick={() => navigate(event.path)}
-                    >
-                        <div className="home-event-icon">
-                            <img
-                                src={event.image}
-                                alt={event.title}
-                            />
-                        </div>
-
-                        <div className="home-event-info">
-                            <h3>{event.title}</h3>
-                            <p>{event.date}</p>
-                        </div>
-
-                        {event.icon && (
-                            <div className="home-event-decoration">
-                                <img src={event.icon}/>
-                                
-                            </div>
-                        )}
-                    </button>
+                    <EventCard key={event.id} event={event} />
                 ))}
+
+                {loaded && events.length === 0 && (
+                    <div className="mall-empty">No upcoming events.</div>
+                )}
             </div>
 
         </section>

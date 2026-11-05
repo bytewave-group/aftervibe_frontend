@@ -5,123 +5,193 @@ import NavigationBar from "../components/common/NavigationBar";
 import "../css/Global.css";
 import "../css/Main.css";
 
-import { useEffect, useState } from "react";
-import { getApiUrl } from "../config/api";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { apiErrorMessage, customerFetch } from "../config/customerApi";
+
+const SOURCE_LABELS = {
+    coin_package: "Coin purchase",
+    daily_checkin: "Daily check-in",
+    admin_adjustment: "Adjustment",
+    gift: "Gift sent",
+    spin_wheel: "Spin wheel",
+};
+
+const ORDER_POLL_MS = 3000;
+const ORDER_POLL_LIMIT = 20;
+
+function formatDateTime(value) {
+    if (!value) return "";
+
+    const date = new Date(String(value).replace(" ", "T"));
+
+    return Number.isNaN(date.getTime())
+        ? value
+        : date.toLocaleString(undefined, { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
+}
 
 function WalletPage() {
+    const [searchParams, setSearchParams] = useSearchParams();
+
     const [coins, setCoins] = useState(0);
-    const [balance] = useState(100.00);
-    const [loading, setLoading] = useState(false);
+    const [points, setPoints] = useState(0);
+    const [coinPackages, setCoinPackages] = useState([]);
+    const [paymentAvailable, setPaymentAvailable] = useState(true);
+    const [buyingId, setBuyingId] = useState(null);
     const [message, setMessage] = useState("");
 
-    const [coinPackages, setCoinPackages] = useState([]);
+    const [transactions, setTransactions] = useState([]);
+    const [page, setPage] = useState(1);
+    const [lastPage, setLastPage] = useState(1);
+    const [loadingTransactions, setLoadingTransactions] = useState(false);
 
-    // Get current customer coin balance
-    const fetchBalance = async () => {
-        try {
-            const token = localStorage.getItem("customer_token");
+    const pollTimer = useRef(null);
+    const returnedOrderNo = useRef(searchParams.get("coin_order"));
 
-            const response = await fetch(
-                `${getApiUrl()}/customer/balance`,
-                {
-                    headers: {
-                        "Authorization": `Bearer ${token}`,
-                        "Accept": "application/json",
-                    },
-                }
-            );
+    const showMessage = useCallback((text, duration = 2500) => {
+        setMessage(text);
 
-            const data = await response.json();
-
-            console.log("WALLET BALANCE:", data);
-
-            if (response.ok && data.success) {
-                setCoins(Number(data.balance));
-            }
-        } catch (error) {
-            console.error("Wallet balance error:", error);
+        if (duration) {
+            setTimeout(() => setMessage(""), duration);
         }
-    };
-
-    // Get coin packages from backend
-    const fetchCoinPackages = async () => {
-        try {
-            const token = localStorage.getItem("customer_token");
-
-            const response = await fetch(
-                `${getApiUrl()}/customer/coin-packages`,
-                {
-                    headers: {
-                        "Authorization": `Bearer ${token}`,
-                        "Accept": "application/json",
-                    },
-                }
-            );
-
-            const data = await response.json();
-
-            console.log("COIN PACKAGES:", data);
-
-            if (response.ok && data.success) {
-                setCoinPackages(data.packages || []);
-            }
-        } catch (error) {
-            console.error("Coin packages error:", error);
-        }
-    };
-
-    useEffect(() => {
-        fetchBalance();
-        fetchCoinPackages();
     }, []);
 
-    // Buy Coins
-    const buyCoins = async (packageId, amount) => {
-        setLoading(true);
-        setMessage("");
+    const fetchBalance = useCallback(async () => {
+        const [balance, me] = await Promise.all([
+            customerFetch("/customer/balance"),
+            customerFetch("/customer/me"),
+        ]);
+
+        if (balance.ok) {
+            setCoins(Number(balance.data.balance));
+        }
+
+        if (me.ok) {
+            setPoints(Number(me.data.customer?.reward_points ?? 0));
+        }
+    }, []);
+
+    const fetchTransactions = useCallback(async (pageToLoad = 1) => {
+        setLoadingTransactions(true);
 
         try {
-            const token = localStorage.getItem("customer_token");
+            const { ok, data } = await customerFetch(`/customer/balance/transactions?page=${pageToLoad}`);
 
-            const response = await fetch(
-                `${getApiUrl()}/customer/balance/topup`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${token}`,
-                        "Accept": "application/json",
-                    },
-                    body: JSON.stringify({
-                        amount: amount, 
-                        package_id: packageId,
-                    }),
+            if (ok) {
+                const paginator = data.transactions || {};
+
+                setTransactions((items) => (pageToLoad === 1
+                    ? paginator.data || []
+                    : [...items, ...(paginator.data || [])]));
+                setPage(paginator.current_page || pageToLoad);
+                setLastPage(paginator.last_page || 1);
+            }
+        } catch (error) {
+            console.error("WALLET TRANSACTIONS ERROR =", error);
+        } finally {
+            setLoadingTransactions(false);
+        }
+    }, []);
+
+    useEffect(() => {
+        const load = async () => {
+            try {
+                const [packages, orders] = await Promise.all([
+                    customerFetch("/customer/coin-packages"),
+                    customerFetch("/customer/coin-orders"),
+                ]);
+
+                if (packages.ok) {
+                    setCoinPackages(packages.data.packages || []);
                 }
-            );
 
-            const data = await response.json();
+                if (orders.ok) {
+                    setPaymentAvailable(orders.data.payment_available !== false);
+                }
+            } catch (error) {
+                console.error("WALLET LOAD ERROR =", error);
+            }
+        };
 
-            console.log("BUY COINS:", data);
+        load();
+        fetchBalance();
+        fetchTransactions(1);
+    }, [fetchBalance, fetchTransactions]);
 
-            if (!response.ok) {
-                throw new Error(data.message || "Purchase failed.");
+    // Back from the payment page: the gateway confirms the order asynchronously, so poll it
+    useEffect(() => {
+        const orderNo = returnedOrderNo.current;
+
+        if (!orderNo) return;
+
+        returnedOrderNo.current = null;
+        setSearchParams({}, { replace: true });
+
+        let attempts = 0;
+
+        const check = async () => {
+            attempts++;
+
+            try {
+                const { ok, data } = await customerFetch(`/customer/coin-orders/${encodeURIComponent(orderNo)}`);
+
+                if (!ok) {
+                    showMessage(apiErrorMessage(data, "Unable to check your payment."));
+                    return;
+                }
+
+                const order = data.order;
+
+                if (order.status === "paid") {
+                    setCoins(Number(data.balance));
+                    showMessage(`${Number(order.coins).toLocaleString()} coins added successfully.`);
+                    fetchTransactions(1);
+                    return;
+                }
+
+                if (order.status === "pending" && attempts < ORDER_POLL_LIMIT) {
+                    showMessage("Confirming your payment...", 0);
+                    pollTimer.current = setTimeout(check, ORDER_POLL_MS);
+                    return;
+                }
+
+                showMessage(order.status === "pending"
+                    ? "Payment is still processing. Coins will be added once it is confirmed."
+                    : "Payment was not completed. No coins were added.", 4000);
+            } catch (error) {
+                console.error("COIN ORDER CHECK ERROR =", error);
+            }
+        };
+
+        check();
+    }, [setSearchParams, showMessage, fetchTransactions]);
+
+    useEffect(() => () => clearTimeout(pollTimer.current), []);
+
+    const buyCoins = async (pkg) => {
+        if (buyingId) return;
+
+        setBuyingId(pkg.id);
+
+        try {
+            const returnUrl = `${window.location.origin}${window.location.pathname}#/wallet`;
+
+            const { ok, data } = await customerFetch("/customer/coin-orders", {
+                method: "POST",
+                body: { package_id: pkg.id, return_url: returnUrl },
+            });
+
+            if (!ok || !data.order?.payment_url) {
+                showMessage(apiErrorMessage(data, "Unable to start the payment."));
+                return;
             }
 
-            setMessage(
-                `${data.package?.coins ?? amount} coins added successfully.`
-            );
-            
-            setCoins(Number(data.balance));
-            
-            setTimeout(() => {
-                setMessage("");
-            }, 2000);
-
+            window.location.assign(data.order.payment_url);
         } catch (error) {
-            console.error(error);
-            setMessage(error.message);
+            console.error("BUY COINS ERROR =", error);
+            showMessage("Unable to start the payment.");
         } finally {
-            setLoading(false);
+            setBuyingId(null);
         }
     };
 
@@ -133,7 +203,7 @@ function WalletPage() {
 
                 {message && (
                     <div className="wallet-success-message">
-                        ✓ {message}
+                        {message}
                     </div>
                 )}
 
@@ -141,19 +211,7 @@ function WalletPage() {
 
                 <div className="mb-4">
 
-                    {/* Original Wallet Cards */}
                     <section className="daily-balance mt-3 m-4">
-
-                        <div className="daily-balance-card">
-                            <span>MAIN WALLET</span>
-                            <strong>
-                                RM {balance.toFixed(2)}
-                            </strong>
-                            <img
-                                src="/assets/image/home/wallet_3d.png"
-                                alt="Wallet"
-                            />
-                        </div>
 
                         <div className="daily-balance-card">
                             <span>MY COINS</span>
@@ -166,6 +224,17 @@ function WalletPage() {
                             />
                         </div>
 
+                        <div className="daily-balance-card">
+                            <span>REWARD POINTS</span>
+                            <strong>
+                                {points.toLocaleString()} PTS
+                            </strong>
+                            <img
+                                src="/assets/image/home/wallet_3d.png"
+                                alt="Reward points"
+                            />
+                        </div>
+
                     </section>
 
                     {/* Buy Coins */}
@@ -174,7 +243,9 @@ function WalletPage() {
                         <div className="buy-coins-header">
                             <h2>BUY COINS</h2>
                             <p>
-                                Choose a coin package to continue
+                                {paymentAvailable
+                                    ? "Choose a coin package to continue"
+                                    : "Online top-up is coming soon"}
                             </p>
                         </div>
 
@@ -184,8 +255,8 @@ function WalletPage() {
                                 <button
                                     key={pkg.id}
                                     className="coin-package"
-                                    onClick={() => buyCoins(pkg.id, pkg.coins)}
-                                    disabled={loading}
+                                    onClick={() => buyCoins(pkg)}
+                                    disabled={!paymentAvailable || buyingId !== null}
                                 >
                                     <div className="coin-icon">
                                         <img
@@ -199,7 +270,7 @@ function WalletPage() {
                                     </div>
 
                                     <div className="coin-label">
-                                        COINS
+                                        {buyingId === pkg.id ? "OPENING..." : "COINS"}
                                     </div>
 
                                     <div className="d-flex justify-content-center mt-3">
@@ -214,10 +285,58 @@ function WalletPage() {
 
                     </section>
 
+                    {/* Coin History */}
+                    <section className="wallet-history mx-4">
+                        <div className="buy-coins-header">
+                            <h2>COIN HISTORY</h2>
+                        </div>
+
+                        {transactions.length === 0 && !loadingTransactions && (
+                            <div className="mall-empty">No coin activity yet.</div>
+                        )}
+
+                        {transactions.map((transaction) => {
+                            const isCredit = transaction.type === "credit";
+
+                            return (
+                                <div
+                                    key={transaction.id}
+                                    className={`wallet-history-item ${transaction.status}`}
+                                >
+                                    <div className="wallet-history-info">
+                                        <div className="wallet-history-title">
+                                            {SOURCE_LABELS[transaction.source] || transaction.description || transaction.source}
+                                        </div>
+                                        <div className="wallet-history-meta">
+                                            {formatDateTime(transaction.created_at)}
+                                            {transaction.status !== "completed" && ` · ${transaction.status.toUpperCase()}`}
+                                        </div>
+                                    </div>
+
+                                    <div className={`wallet-history-amount ${isCredit ? "credit" : "debit"}`}>
+                                        {isCredit ? "+" : "-"}{Number(transaction.amount).toLocaleString()}
+                                    </div>
+                                </div>
+                            );
+                        })}
+
+                        {page < lastPage && (
+                            <div className="d-flex justify-content-center mt-2">
+                                <button
+                                    className="mall-category"
+                                    disabled={loadingTransactions}
+                                    onClick={() => fetchTransactions(page + 1)}
+                                >
+                                    {loadingTransactions ? "LOADING..." : "LOAD MORE"}
+                                </button>
+                            </div>
+                        )}
+                    </section>
+
                 </div>
             </div>
 
-            <NavigationBar active="home" />
+            <NavigationBar active="wallet" />
         </div>
     );
 }

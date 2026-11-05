@@ -1,9 +1,30 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { clearCustomerSession } from "../../config/bar";
+import { customerFetch } from "../../config/customerApi";
 import "../../css/Global.css";
 
 function Header({ showBack = false, showEmpty = false, backTo = "/home" }) {
     const navigate = useNavigate();
+    const [unreadCount, setUnreadCount] = useState(0);
+
+    useEffect(() => {
+        if (showEmpty || !localStorage.getItem("customer_token")) return;
+
+        let cancelled = false;
+
+        customerFetch("/customer/notifications/unread-count")
+            .then(({ ok, data }) => {
+                if (ok && !cancelled) {
+                    setUnreadCount(Number(data.unread_count) || 0);
+                }
+            })
+            .catch((error) => console.error("UNREAD COUNT ERROR =", error));
+
+        return () => {
+            cancelled = true;
+        };
+    }, [showEmpty]);
 
     const handleLogout = () => {
         clearCustomerSession();
@@ -54,8 +75,15 @@ function Header({ showBack = false, showEmpty = false, backTo = "/home" }) {
                 <button
                     type="button"
                     className="header-notification"
+                    style={showEmpty ? { visibility: "hidden" } : undefined}
+                    onClick={() => navigate("/notifications")}
                 >
                     <i className="fa-regular fa-bell"></i>
+                    {unreadCount > 0 && (
+                        <span className="header-notification-badge">
+                            {unreadCount > 99 ? "99+" : unreadCount}
+                        </span>
+                    )}
                 </button>
             </div>
 

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import RankPage from "./RankPage";
+import VisualEffect from "./VisualEffect";
 
 export default function OverlayScreen() {
     const [searchParams] = useSearchParams();
@@ -42,6 +43,7 @@ export default function OverlayScreen() {
             }}
         >
             <RankPage displayId={displayId} />
+            <VisualEffect />
         </div>
     );
 }

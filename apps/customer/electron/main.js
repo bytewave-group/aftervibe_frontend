@@ -12,6 +12,7 @@ let reconnectTimer = null;
 let reconnectDelay = 2000;
 let pendingQueueFinished = null;
 let lastDefaultData = null;
+let currentBarId = null;
 
 let activePlaybackMode = "default";
 let screenContentReady = false;
@@ -249,6 +250,7 @@ function loadAllRankSettings() {
 function publishScreenContent(barId) {
     const send = () => {
         loadDefault(barId);
+        loadVisualEffect();
         loadRankBoards();
         loadAllRankSettings();
         loadScreenSettings();
@@ -271,6 +273,7 @@ function handleResolumeDisplays(barId, displays) {
 
         if (addedDisplayIds.length > 0) {
             loadDefault(barId, addedDisplayIds);
+            loadVisualEffect();
             loadRankBoards();
             addedDisplayIds.forEach((displayId) => {
                 loadRankBoardSettings(displayId);
@@ -466,6 +469,7 @@ function loadDisplays(barId) {
                                             .map(Number);
 
                                         loadDefault(barId, newDisplayIds);
+                                        loadVisualEffect();
                                         loadRankBoards();
 
                                         newWindows.forEach((window) => {
@@ -648,6 +652,67 @@ function loadDefault(barId, targetDisplayIds = null) {
 
     req.on("error", (err) => {
         console.error(`${config.name} API ERROR =`, err);
+    });
+}
+
+// Gift card (sender / gift / receiver) comes from the display API, the WS play-layout does not carry it
+function loadVisualEffect() {
+    console.log(`========== GET ${config.name} VISUAL EFFECT ==========`);
+
+    const token = getBarToken();
+
+    if (!token || currentBarId == null) {
+        console.error("BAR TOKEN OR BAR ID NOT FOUND FOR VISUAL EFFECT");
+        return;
+    }
+
+    const url = `${config.displayApi}?bar_id=${currentBarId}`;
+    const client = url.startsWith("https") ? require("https") : require("http");
+
+    const req = client.get(
+        url,
+        {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                Accept: "application/json",
+            },
+        },
+        (res) => {
+            console.log(`VISUAL EFFECT API STATUS = ${res.statusCode}`);
+
+            let body = "";
+
+            res.on("data", chunk => {
+                body += chunk;
+            });
+
+            res.on("end", () => {
+                try {
+                    const data = JSON.parse(body);
+
+                    if (!data.success) {
+                        console.error("VISUAL EFFECT FAILED =", data);
+                        return;
+                    }
+
+                    console.log(
+                        "VISUAL EFFECT MODE =",
+                        data.mode,
+                        "PLAYLIST =",
+                        data.playlist_id ?? null
+                    );
+
+                    sendToAllScreens("visual-effect-update", data);
+                } catch (error) {
+                    console.error("VISUAL EFFECT JSON ERROR =", error);
+                    console.error(body);
+                }
+            });
+        }
+    );
+
+    req.on("error", (err) => {
+        console.error("VISUAL EFFECT API ERROR =", err);
     });
 }
 
@@ -939,6 +1004,8 @@ function connectWebSocket() {
                     });
                
                 });
+
+                loadVisualEffect();
             }
         } catch (err) {
             console.error(
@@ -972,6 +1039,7 @@ function scheduleReconnect() {
 function startMain(barId, options = {}) {
     console.log("MAIN BAR ID =", barId);
 
+    currentBarId = barId;
     resolumeMode = !!options.resolume;
 
     if (resolumeMode) {
@@ -986,6 +1054,7 @@ function startMain(barId, options = {}) {
 
     setInterval(() => {
         loadDefault(barId);
+        loadVisualEffect();
     }, DEFAULT_POLL_MS);
 
     setInterval(() => {

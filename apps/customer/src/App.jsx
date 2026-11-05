@@ -18,6 +18,10 @@ import SpinWheelPage from "./pages/SpinWheelPage";
 import MallPage from "./pages/MallPage";
 import WalletPage from "./pages/WalletPage";
 import JoinPage from "./pages/JoinPage";
+import EventsPage from "./pages/EventsPage";
+import EventDetailPage from "./pages/EventDetailPage";
+import ProfilePage from "./pages/ProfilePage";
+import NotificationsPage from "./pages/NotificationsPage";
 import VisualEffect from "./components/home/VisualEffect";
 
 function App() {
@@ -98,6 +102,38 @@ function App() {
                     element={
                         <ProtectedRoute>
                             <WalletPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/events"
+                    element={
+                        <ProtectedRoute>
+                            <EventsPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/events/:eventId"
+                    element={
+                        <ProtectedRoute>
+                            <EventDetailPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/profile"
+                    element={
+                        <ProtectedRoute>
+                            <ProfilePage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/notifications"
+                    element={
+                        <ProtectedRoute>
+                            <NotificationsPage />
                         </ProtectedRoute>
                     }
                 />

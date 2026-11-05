@@ -187,20 +187,16 @@ export default function VisualEffect() {
                 {renderUser(sender, "Sender")}
 
                 <div className="visual-effect-gift">
-                    <div className="visual-effect-media">
-                        {imageUrl ? (
+                    {imageUrl && (
+                        <div className="visual-effect-media">
                             <img
                                 key={data?.playlist_id || imageUrl}
                                 src={imageUrl}
                                 alt={interaction?.name || "Visual effect"}
                                 className="visual-effect-gift-image"
                             />
-                        ) : (
-                            <div className="visual-effect-media-empty">
-                                No image available
-                            </div>
-                        )}
-                    </div>
+                        </div>
+                    )}
 
                     <div className="visual-effect-gift-name">
                         {interaction?.name || "No active interaction"}
