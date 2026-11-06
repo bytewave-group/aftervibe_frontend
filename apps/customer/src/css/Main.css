@@ -843,3 +843,121 @@
     line-height: 1.6;
     white-space: pre-line;
 }
+
+/* =========================
+   My storage
+========================= */
+
+.storage-qr-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.storage-qr-code {
+    padding: 4px;
+    border-radius: 12px;
+    background: #fff;
+    line-height: 0;
+}
+
+.storage-qr-hint {
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.storage-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.storage-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-bottom: 110px;
+}
+
+.storage-item {
+    color: #fff;
+}
+
+.storage-item.expired,
+.storage-item.finished {
+    opacity: 0.6;
+}
+
+.storage-item-head {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px;
+    color: inherit;
+    text-align: left;
+    background: transparent;
+    border: 0;
+}
+
+.storage-item-info {
+    min-width: 0;
+}
+
+.storage-item-name {
+    font-size: 14px;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+.storage-item-meta {
+    margin-top: 2px;
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 11px;
+}
+
+.storage-item-side {
+    flex-shrink: 0;
+    text-align: right;
+}
+
+.storage-item-qty {
+    font-size: 20px;
+    font-weight: 900;
+}
+
+.storage-item-qty span {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.storage-item-status {
+    margin-top: 2px;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.storage-item-status.active {
+    color: #4ff0c6;
+}
+
+.storage-item-status.expired {
+    color: #ff5fa2;
+}
+
+.storage-item-status.finished {
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.storage-history {
+    padding: 0 12px 10px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}

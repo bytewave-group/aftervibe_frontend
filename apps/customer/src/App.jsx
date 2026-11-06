@@ -22,6 +22,7 @@ import EventsPage from "./pages/EventsPage";
 import EventDetailPage from "./pages/EventDetailPage";
 import ProfilePage from "./pages/ProfilePage";
 import NotificationsPage from "./pages/NotificationsPage";
+import MyStoragePage from "./pages/MyStoragePage";
 import VisualEffect from "./components/home/VisualEffect";
 
 function App() {
@@ -134,6 +135,14 @@ function App() {
                     element={
                         <ProtectedRoute>
                             <NotificationsPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/storage"
+                    element={
+                        <ProtectedRoute>
+                            <MyStoragePage />
                         </ProtectedRoute>
                     }
                 />

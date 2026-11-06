@@ -23,5 +23,6 @@ repositories {
 dependencies {
     implementation project(':capacitor-android')
     implementation "androidx.appcompat:appcompat:$androidxAppCompatVersion"
-    implementation files('../../android/app/src/main/libs/printer-lib-3.1.4.aar')
+    // Library modules can't bundle a local .aar in release builds; :app packages it instead.
+    compileOnly files('../../android/app/src/main/libs/printer-lib-3.1.4.aar')
 }

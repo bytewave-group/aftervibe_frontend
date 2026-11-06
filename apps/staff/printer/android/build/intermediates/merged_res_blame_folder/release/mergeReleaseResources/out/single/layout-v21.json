@@ -1,0 +1,18 @@
+[
+    {
+        "merged": "com.nightmanagement.plugins.printer-release-4:/layout-v21/notification_template_icon_group.xml",
+        "source": "com.nightmanagement.plugins.printer-core-1.15.0-15:/layout-v21/notification_template_icon_group.xml"
+    },
+    {
+        "merged": "com.nightmanagement.plugins.printer-release-4:/layout-v21/notification_template_custom_big.xml",
+        "source": "com.nightmanagement.plugins.printer-core-1.15.0-15:/layout-v21/notification_template_custom_big.xml"
+    },
+    {
+        "merged": "com.nightmanagement.plugins.printer-release-4:/layout-v21/notification_action.xml",
+        "source": "com.nightmanagement.plugins.printer-core-1.15.0-15:/layout-v21/notification_action.xml"
+    },
+    {
+        "merged": "com.nightmanagement.plugins.printer-release-4:/layout-v21/notification_action_tombstone.xml",
+        "source": "com.nightmanagement.plugins.printer-core-1.15.0-15:/layout-v21/notification_action_tombstone.xml"
+    }
+]

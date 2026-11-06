@@ -340,6 +340,9 @@ function ProfilePage() {
                                 <button type="button" className="profile-action purple-pink-border" onClick={() => setChangingPassword(true)}>
                                     <i className="fa-solid fa-lock"></i> Change password
                                 </button>
+                                <button type="button" className="profile-action purple-pink-border" onClick={() => navigate("/storage")}>
+                                    <i className="fa-solid fa-wine-bottle"></i> My storage
+                                </button>
                                 <button type="button" className="profile-action purple-pink-border" onClick={() => navigate("/notifications")}>
                                     <i className="fa-regular fa-bell"></i> Notifications
                                 </button>
