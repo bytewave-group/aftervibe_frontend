@@ -486,5 +486,18 @@
   "Download": "Tải xuống",
   "Later": "Để sau",
   "Update service not configured": "Dịch vụ cập nhật chưa được cấu hình",
-  "Unable to check for update. Please try again later.": "Không thể kiểm tra cập nhật. Vui lòng thử lại sau."
+  "Unable to check for update. Please try again later.": "Không thể kiểm tra cập nhật. Vui lòng thử lại sau.",
+  "Flower Tracking": "Ghi nhận tặng hoa",
+  "In service": "Đang mở cửa",
+  "Step 1: Select Staff": "Bước 1: Chọn nhân viên",
+  "Step 2: Select Mummy": "Bước 2: Chọn mummy",
+  "Step 3: Enter amount": "Bước 3: Nhập số tiền",
+  "Confirm flower registration": "Xác nhận ghi nhận tặng hoa",
+  "Step 1: Select Mummy": "Bước 1: Chọn mummy",
+  "Step 2: Select Staff": "Bước 2: Chọn nhân viên",
+  "Please select a mummy first": "Vui lòng chọn mummy trước",
+  "Invalid QR code - staff only": "Mã QR không hợp lệ - chỉ dành cho nhân viên",
+  "Scan QR to confirm": "Quét QR để xác nhận",
+  "QR code does not match the selected mummy": "Mã QR không khớp với mummy đã chọn",
+  "QR code does not match the selected staff": "Mã QR không khớp với nhân viên đã chọn"
 }

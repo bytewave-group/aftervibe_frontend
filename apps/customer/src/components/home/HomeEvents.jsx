@@ -12,6 +12,10 @@ function HomeEvents() {
     const [loaded, setLoaded] = useState(false);
 
     useEffect(() => {
+        if (!localStorage.getItem("customer_token")) {
+            return;
+        }
+
         const load = async () => {
             try {
                 const { ok, data } = await customerFetch("/customer/events");

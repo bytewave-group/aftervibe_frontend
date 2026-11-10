@@ -6,6 +6,7 @@ import ProfilePage from '../pages/profile.jsx';
 //manager pages
 import OrderFlowerPage from '../pages/orderFlower.jsx';
 import ClaimFlowerPage from '../pages/claimFlower.jsx';
+import FlowerTrackingPage from '../pages/flowerTracking.jsx';
 import ReturnFlowerPage from '../pages/returnFlower.jsx';
 import McRequestPage from '../pages/mcRequest.jsx';
 import PenaltyPage from '../pages/penalty.jsx';
@@ -81,6 +82,10 @@ var routes = [
   {
     path: '/claim-flower',
     component: ClaimFlowerPage,
+  },
+  {
+    path: '/flower-tracking',
+    component: FlowerTrackingPage,
   },
   {
     path: '/return-flower',

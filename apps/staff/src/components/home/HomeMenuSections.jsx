@@ -98,7 +98,7 @@ export default function HomeMenuSections({
 
             const displayText = t(item.text);
 
-            const itemKey = item.permission || `${section.title}-${index}`;
+            const itemKey = item.route || item.permission || `${section.title}-${index}`;
 
             return (
               <div key={itemKey} className={itemClass} onClick={!item.onClick ? handleClick : undefined}>

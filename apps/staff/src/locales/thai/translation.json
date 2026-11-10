@@ -486,5 +486,18 @@
   "Download": "ดาวน์โหลด",
   "Later": "ภายหลัง",
   "Update service not configured": "ยังไม่ได้ตั้งค่าบริการอัปเดต",
-  "Unable to check for update. Please try again later.": "ไม่สามารถตรวจสอบการอัปเดตได้ กรุณาลองใหม่ภายหลัง"
+  "Unable to check for update. Please try again later.": "ไม่สามารถตรวจสอบการอัปเดตได้ กรุณาลองใหม่ภายหลัง",
+  "Flower Tracking": "บันทึกการส่งดอกไม้",
+  "In service": "เปิดให้บริการ",
+  "Step 1: Select Staff": "ขั้นตอนที่ 1: เลือกพนักงาน",
+  "Step 2: Select Mummy": "ขั้นตอนที่ 2: เลือกมัมมี่",
+  "Step 3: Enter amount": "ขั้นตอนที่ 3: กรอกจำนวนเงิน",
+  "Confirm flower registration": "ยืนยันบันทึกการส่งดอกไม้",
+  "Step 1: Select Mummy": "ขั้นตอนที่ 1: เลือกมัมมี่",
+  "Step 2: Select Staff": "ขั้นตอนที่ 2: เลือกพนักงาน",
+  "Please select a mummy first": "กรุณาเลือกมัมมี่ก่อน",
+  "Invalid QR code - staff only": "QR code ไม่ถูกต้อง - เฉพาะพนักงานเท่านั้น",
+  "Scan QR to confirm": "สแกน QR เพื่อยืนยัน",
+  "QR code does not match the selected mummy": "QR code ไม่ตรงกับมัมมี่ที่เลือก",
+  "QR code does not match the selected staff": "QR code ไม่ตรงกับพนักงานที่เลือก"
 }

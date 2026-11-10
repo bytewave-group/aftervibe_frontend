@@ -26,6 +26,12 @@ export function getHomeRoleMenuConfig({
             route: "/claim-flower",
           },
           {
+            permission: "flower_tracking",
+            icon: "money_dollar_circle",
+            text: "Flower Tracking",
+            route: "/flower-tracking",
+          },
+          {
             permission: "return_flower",
             icon: "money_dollar_circle",
             text: "Return Flower",

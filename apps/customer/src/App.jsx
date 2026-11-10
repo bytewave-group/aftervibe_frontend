@@ -1,9 +1,5 @@
 import { HashRouter, Routes, Route } from "react-router-dom";
 
-import Main from "./components/main";
-// Fixed inconsistent import case for Header
-import Header from "./components/header/Header";
-
 import Screen from "./components/home/Screen";
 import OverlayScreen from "./components/home/OverlayScreen";
 import RankPage from "./components/home/RankPage";
@@ -24,21 +20,18 @@ import ProfilePage from "./pages/ProfilePage";
 import NotificationsPage from "./pages/NotificationsPage";
 import MyStoragePage from "./pages/MyStoragePage";
 import VisualEffect from "./components/home/VisualEffect";
+import HomePage from "./pages/HomePage";
+import ChatPage from "./pages/ChatPage";
 
+// Venue links are `{site}/#/?tenant={id}` and open the home page.
+// A guest can look at that page; any click sends them to login.
 function App() {
     return (
         <HashRouter>
             <Routes>
                 {/* Main Routes */}
-                <Route path="/" element={<LoginPage />} />
-                <Route
-                    path="/home"
-                    element={
-                        <ProtectedRoute>
-                            <Main />
-                        </ProtectedRoute>
-                    }
-                />
+                <Route path="/" element={<HomePage />} />
+                <Route path="/home" element={<HomePage />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
                 <Route path="/join" element={<JoinPage />} />
@@ -119,6 +112,14 @@ function App() {
                     element={
                         <ProtectedRoute>
                             <EventDetailPage />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/chat"
+                    element={
+                        <ProtectedRoute>
+                            <ChatPage />
                         </ProtectedRoute>
                     }
                 />

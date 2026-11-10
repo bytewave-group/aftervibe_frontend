@@ -2,6 +2,7 @@
 // Every bar has its own domain; customer tokens are only valid on the bar that issued them.
 
 const CURRENT_BAR_KEY = "current_bar";
+const BAR_LOCKED_KEY = "bar_locked";
 const CUSTOMER_TOKEN_KEY = "customer_token";
 const CUSTOMER_KEY = "customer";
 const CUSTOMER_TOKEN_BAR_URL_KEY = "customer_token_bar_url";
@@ -101,12 +102,92 @@ export function setCurrentBar({ id = null, name = null, url }) {
     return bar;
 }
 
+export function isBarLocked() {
+    return localStorage.getItem(BAR_LOCKED_KEY) === "1" && Boolean(getCurrentBar());
+}
+
 export function clearCurrentBar() {
     clearCustomerSession();
     clearPendingJoinToken();
     localStorage.removeItem(CURRENT_BAR_KEY);
+    localStorage.removeItem(BAR_LOCKED_KEY);
     localStorage.removeItem("bar_id");
     localStorage.removeItem("bar_name");
+}
+
+// Venue link is `{site}/#/?tenant=<tenant id>`. Also accept `?tenant=` before the hash.
+export function tenantFromLocation() {
+    const search = new URLSearchParams(window.location.search).get("tenant");
+
+    if (search) {
+        return search.trim();
+    }
+
+    const hashQuery = window.location.hash.split("?")[1] || "";
+
+    return new URLSearchParams(hashQuery).get("tenant")?.trim() || null;
+}
+
+// Login keeps the venue query so a guest who opens `{site}/#/?tenant=` still lands on that bar.
+export function loginRoute(search = "") {
+    const params = new URLSearchParams(search);
+
+    if (!params.get("tenant")) {
+        const tenant = tenantFromLocation();
+
+        if (tenant) {
+            params.set("tenant", tenant);
+        }
+    }
+
+    const query = params.toString();
+
+    return {
+        pathname: "/login",
+        search: query ? `?${query}` : "",
+    };
+}
+
+// A venue link fixes the bar so the website does not ask the customer to choose one.
+export async function applyTenantFromLocation(barsUrl) {
+    const tenant = tenantFromLocation();
+
+    if (!tenant) {
+        return { bar: getCurrentBar(), locked: isBarLocked(), missing: false };
+    }
+
+    const response = await fetch(barsUrl, {
+        headers: { Accept: "application/json" },
+    });
+    const data = await response.json();
+
+    if (!response.ok || !data.success) {
+        throw new Error("Unable to load bars.");
+    }
+
+    const match = (data.bars ?? []).find(
+        (item) =>
+            String(item.tenant_id ?? "") === String(tenant) ||
+            String(item.id) === String(tenant)
+    );
+
+    if (!match) {
+        return { bar: null, locked: false, missing: true };
+    }
+
+    const bar = setCurrentBar({
+        id: match.id,
+        name: match.name,
+        url: match.url || match.domain,
+    });
+
+    if (!bar) {
+        return { bar: null, locked: false, missing: true };
+    }
+
+    localStorage.setItem(BAR_LOCKED_KEY, "1");
+
+    return { bar, locked: true, missing: false };
 }
 
 function getCustomerTokenBarUrl() {

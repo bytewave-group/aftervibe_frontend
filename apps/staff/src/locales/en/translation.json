@@ -490,5 +490,18 @@
   "Download": "Download",
   "Later": "Later",
   "Update service not configured": "Update service not configured",
-  "Unable to check for update. Please try again later.": "Unable to check for update. Please try again later."
+  "Unable to check for update. Please try again later.": "Unable to check for update. Please try again later.",
+  "Flower Tracking": "Flower Tracking",
+  "In service": "Open",
+  "Step 1: Select Staff": "Step 1: Select Staff",
+  "Step 2: Select Mummy": "Step 2: Select Mummy",
+  "Step 3: Enter amount": "Step 3: Enter amount",
+  "Confirm flower registration": "Confirm flower registration",
+  "Step 1: Select Mummy": "Step 1: Select Mummy",
+  "Step 2: Select Staff": "Step 2: Select Staff",
+  "Please select a mummy first": "Please select a mummy first",
+  "Invalid QR code - staff only": "Invalid QR code - staff only",
+  "Scan QR to confirm": "Scan QR to confirm",
+  "QR code does not match the selected mummy": "QR code does not match the selected mummy",
+  "QR code does not match the selected staff": "QR code does not match the selected staff"
 }
