@@ -1,0 +1,15 @@
+<svg width="280" height="56" viewBox="0 0 280 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M18 10H262L278 0L270 28L278 56L262 46H18L2 56L10 28L2 0L18 10Z" fill="#D01F25"/>
+  <path d="M18 10H262L270 8.5V47.5L262 46H18L10 47.5V8.5L18 10Z" fill="url(#ribbonShine)"/>
+  <path d="M2 0L18 10L10 28L2 0Z" fill="#9A1218"/>
+  <path d="M278 0L262 10L270 28L278 0Z" fill="#9A1218"/>
+  <path d="M2 56L18 46L10 28L2 56Z" fill="#7A0E14"/>
+  <path d="M278 56L262 46L270 28L278 56Z" fill="#7A0E14"/>
+  <defs>
+    <linearGradient id="ribbonShine" x1="140" y1="8" x2="140" y2="48" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F0454A"/>
+      <stop offset="0.48" stop-color="#D01F25"/>
+      <stop offset="1" stop-color="#B0151A"/>
+    </linearGradient>
+  </defs>
+</svg>

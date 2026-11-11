@@ -9,6 +9,9 @@
     "build:staff": "npm --prefix apps/staff run build",
     "build:customer": "npm --prefix apps/customer run build",
     "electron": "npm --prefix apps/customer run electron",
-    "electron:resolume": "npm --prefix apps/customer run electron-resolume"
+    "electron:resolume": "npm --prefix apps/customer run electron-resolume",
+    "dev:web": "npm --prefix web run dev",
+    "build:web": "npm --prefix web run build",
+    "install:web": "npm --prefix web install"
   }
 }
