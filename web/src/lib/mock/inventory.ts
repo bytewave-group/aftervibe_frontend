@@ -2,9 +2,9 @@
  * Static stand-in for the customer's item inventory.
  *
  * Maps primarily to GET /api/customer/storage (bottle / item storage:
- * product_name, quantity, remaining_qty, stored_at, last_redeem_at,
- * is_active, is_expired, branch_name). Redeemed mall rewards can also
- * appear here later via GET /api/customer/reward-redemptions.
+ * product_name, product_image_url, product_code, quantity, remaining_qty,
+ * stored_at, last_redeem_at, expired_date, is_active, is_expired, branch_name).
+ * Redeemed mall rewards can also appear later via GET /api/customer/reward-redemptions.
  */
 
 export type InventoryStatus = "active" | "finished" | "expired";
@@ -19,6 +19,8 @@ export interface InventoryItem {
   storedAt: string;
   expiresAt: string | null;
   branchName: string | null;
+  /** Item number shown as 编号 in the Figma card. Maps from product_code when POS sends it. */
+  code?: string | null;
   status: InventoryStatus;
 }
 

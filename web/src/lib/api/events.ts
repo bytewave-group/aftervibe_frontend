@@ -9,6 +9,7 @@ import {
   mockEvents,
   type EventItem,
 } from "@/lib/mock/events";
+import { devMockIfEmpty, devMockOnError } from "@/lib/mock/devFallback";
 
 export type EventsSource = "api" | "mock";
 
@@ -29,32 +30,43 @@ function mapEvent(event: EventDto): EventItem {
     endsAt: event.ends_at,
     location: event.location,
     isHot: Boolean(event.is_hot),
+    likesCount: event.likes_count ?? 0,
+    commentsCount: event.comments_count ?? 0,
+    likedByMe: Boolean(event.liked_by_me),
   };
 }
 
 /**
  * GET /api/customer/events is public (token optional). Guests and logged-in
- * users get the same published list. Mock data is used only when the request fails.
+ * users get the same published list. Mock data is dev-only (src/lib/mock/devFallback.ts).
  */
 export async function loadEvents(): Promise<LoadedEvents> {
   try {
     const payload = await apiGet<EventsResponse>("/api/customer/events", "optional");
     const events = (payload.events ?? []).map(mapEvent).slice(0, HOME_EVENT_LIMIT);
-    return { events, source: "api" };
+    return devMockIfEmpty<LoadedEvents>("events", { events, source: "api" }, events.length === 0, () => ({
+      events: structuredClone(mockEvents.slice(0, HOME_EVENT_LIMIT)),
+      source: "mock",
+    }));
   } catch (error) {
     console.warn(
-      "[events] GET /api/customer/events failed; falling back to mock events",
+      "[events] GET /api/customer/events failed",
       error instanceof ApiError
         ? { status: error.status, message: error.message }
         : error,
     );
-    return { events: mockEvents.slice(0, HOME_EVENT_LIMIT), source: "mock" };
+    return devMockOnError<LoadedEvents>(
+      "events",
+      error,
+      () => ({ events: structuredClone(mockEvents.slice(0, HOME_EVENT_LIMIT)), source: "mock" }),
+      () => ({ events: [], source: "api" }),
+    );
   }
 }
 
 /**
  * GET /api/customer/events/{id} requires a customer token.
- * 404 returns null. Other failures fall back to the mock for that id, if any.
+ * 404 returns null. Other failures return null (dev: the mock for that id, if any).
  */
 export async function getEvent(id: number): Promise<EventDetail | null> {
   try {
@@ -72,9 +84,9 @@ export async function getEvent(id: number): Promise<EventDetail | null> {
       return null;
     }
     logApiFallback(
-      `[events] GET /api/customer/events/${id} failed; falling back to mock event detail`,
+      `[events] GET /api/customer/events/${id} failed`,
       error,
     );
-    return findMockEventDetail(id);
+    return devMockOnError(`event ${id}`, error, () => findMockEventDetail(id), () => null);
   }
 }

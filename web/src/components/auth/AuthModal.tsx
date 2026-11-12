@@ -4,6 +4,7 @@ import { AuthLoginForm } from "@/components/auth/AuthLoginForm";
 import { AuthRegisterForm } from "@/components/auth/AuthRegisterForm";
 import { useTranslations } from "@/i18n/locale-provider";
 import { useEffect, useId, useRef } from "react";
+import { FIGMA_AUTH_BG } from "@/lib/figma-backgrounds";
 
 export type AuthMode = "login" | "register";
 
@@ -45,10 +46,9 @@ export function AuthModal({ mode, redirectTo, onClose, onSwitch, exiting = false
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className={`anim-sheet relative w-full max-w-[327px] overflow-hidden rounded-[16px] bg-[#1e1e1e] px-5 pt-5 pb-6 ${exiting ? "is-exit" : ""}`}
+        className={`anim-sheet relative w-full max-w-[327px] overflow-hidden rounded-[16px] px-5 pt-5 pb-6 ${exiting ? "is-exit" : ""}`}
         style={{
-          backgroundImage:
-            "linear-gradient(180deg, #1e1e1e 0%, #1e1e1e 45%, #6b1519 100%)",
+          background: FIGMA_AUTH_BG,
         }}
         onClick={(event) => event.stopPropagation()}
       >

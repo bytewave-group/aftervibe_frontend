@@ -4,13 +4,17 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { EditProfileBodySkeleton } from "@/components/navigation/PageSkeletons";
 import { loadProfileForEdit } from "@/lib/api/profile-edit";
 import { Suspense } from "react";
+import { DevMockBadge } from "@/components/dev/DevMockBadge";
 
 async function EditContent() {
   const profile = await loadProfileForEdit();
   return (
-    <div className="anim-content-fade">
-      <EditProfileForm initial={profile} />
-    </div>
+    <>
+      <div className="anim-content-fade">
+        <EditProfileForm initial={profile} />
+      </div>
+      <DevMockBadge />
+    </>
   );
 }
 

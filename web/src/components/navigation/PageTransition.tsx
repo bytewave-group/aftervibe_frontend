@@ -1,5 +1,6 @@
 "use client";
 
+import { BACK_HIT_COVER_STYLE } from "@/components/navigation/back-hit";
 import { useTranslations } from "@/i18n/locale-provider";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
@@ -452,7 +453,11 @@ export function PageTransition({ children }: { children: ReactNode }) {
         return;
       }
 
-      if (existing) clearAnimations();
+      // A mid-slide pointerup can hit a neighboring link once the outgoing
+      // layer has translated (e.g. 转盘 → 商城). Keep the original destination.
+      if (existing) {
+        return;
+      }
 
       const originCrumb: Crumb = {
         path: fromPath,
@@ -554,7 +559,6 @@ export function PageTransition({ children }: { children: ReactNode }) {
     },
     [
       attachTo,
-      clearAnimations,
       finishPending,
       router,
       runSlide,
@@ -719,6 +723,15 @@ export function PageTransition({ children }: { children: ReactNode }) {
   }, [pending, hookKey, pathname, scheduleCapture]);
 
   useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+    stage.setAttribute("data-nav-ready", "1");
+    return () => {
+      stage.removeAttribute("data-nav-ready");
+    };
+  }, []);
+
+  useEffect(() => {
     if (process.env.NODE_ENV === "production") return;
     const api = {
       begin,
@@ -836,7 +849,13 @@ export function PageTransition({ children }: { children: ReactNode }) {
       const canPop = pendingRef.current != null || origin != null || pathname !== "/";
       if (!canPop) return;
       const target = event.target as Element | null;
-      if (target?.closest("input, textarea, select, [data-nav-no-swipe]")) return;
+      if (
+        target?.closest(
+          "a, button, input, textarea, select, [data-nav-back], [data-nav-no-swipe]",
+        )
+      ) {
+        return;
+      }
 
       if (pendingRef.current && pendingRef.current.dir !== NAV_BACK) {
         event.preventDefault();
@@ -1035,14 +1054,11 @@ export function PageTransition({ children }: { children: ReactNode }) {
         {covering ? (
           <button
             type="button"
-            className="anim-press absolute z-40 flex h-[24px] w-[24px] items-center justify-center"
-            style={{
-              top: "calc(max(16px, env(safe-area-inset-top)) + 4px)",
-              left: "24px",
-              pointerEvents: "auto",
-            }}
+            className="anim-press back-hit"
+            style={BACK_HIT_COVER_STYLE}
             aria-label={t("common.back")}
             data-nav-back="1"
+            data-nav-no-swipe=""
             onPointerDown={(event) => {
               event.stopPropagation();
               goBack();

@@ -61,14 +61,15 @@
     "title": "Profile",
     "userId": "User ID: {id}",
     "qrAria": "My QR code",
+    "qrTitle": "My QR code",
+    "qrHint": "Show this code at the counter",
+    "qrUnavailable": "A QR code is not available yet",
     "balance": "Balance",
     "recharge": "Top up",
     "other": "Other",
     "history": "History",
     "editProfile": "Edit profile",
-    "notifications": "Notifications",
     "language": "Language",
-    "giftConfirm": "Gift confirmation",
     "logout": "Log out",
     "loadError": "Could not load your profile. Please try again shortly."
   },
@@ -102,7 +103,18 @@
     "loadError": "Could not load check-in status. Please try again shortly.",
     "claimedAria": "Day {n}, claimed",
     "todayAria": "Day {n}, tap to claim",
-    "lockedAria": "Day {n}, locked"
+    "lockedAria": "Day {n}, locked",
+    "subtitleWeekly": "Check in any days during the cycle to claim rewards. Skips are allowed.",
+    "subtitleStreak": "Check in every day to keep your streak. A missed day starts again at day 1.",
+    "campaignClosed": "Check-in is not available right now.",
+    "cycleStatus": "Day {current} of {length}",
+    "streakStatus": "Current streak: {n} day",
+    "streakStatusPlural": "Current streak: {n} days",
+    "bonusOn": "Day {n} bonus: {reward}",
+    "rewardCoins": "{n} diamonds",
+    "rewardPoints": "{n} points",
+    "rewardSpinChances": "{n} spins",
+    "rewardNone": "Thank you"
   },
   "register": {
     "title": "Register",
@@ -135,6 +147,8 @@
     "title": "Lucky Spin",
     "chances": "{n} free spins left today",
     "chancesZero": "No free spins left today",
+    "chancesWeekly": "{n} free spins left this week",
+    "chancesZeroWeekly": "No free spins left this week",
     "nextFree": "Next free spin",
     "now": "Now",
     "paid": "Paid",
@@ -152,7 +166,20 @@
     "prizePoints": "{n} points",
     "resultTitle": "You won",
     "resultClose": "Nice",
-    "error": "Could not spin. Please try again shortly."
+    "error": "Could not spin. Please try again shortly.",
+    "prizeNone": "Thank you",
+    "prizePackage": "{name}",
+    "prizeSpinChances": "{n} spins",
+    "prizeRangeCoins": "{min}–{max} diamonds",
+    "prizeRangePoints": "{min}–{max} points",
+    "paidCap": "{n} paid spins left today",
+    "tagline": "Lucky spin, surprises await",
+    "go": "Spin",
+    "hub": "GO",
+    "costPoints": "{n} points per spin",
+    "costCoins": "{n} diamonds per spin",
+    "freeDaily": "{n} free spins every day",
+    "freeWeekly": "{n} free spins every week"
   },
   "mall": {
     "title": "Mall",
@@ -182,11 +209,16 @@
       "discount": "10% off your bill.",
       "voucher": "Covers one entry.",
       "bottle": "Redeem a house bottle into your inventory."
-    }
+    },
+    "remainingPoints": "Remaining points",
+    "tabAll": "All",
+    "tabDrinks": "Drinks",
+    "tabGoods": "Goods"
   },
   "inventory": {
     "title": "Inventory",
     "empty": "You have no items yet.",
+    "emptySection": "No items",
     "emptyPast": "No past items yet.",
     "qty": "{remaining}/{total} left",
     "storedAt": "Stored {date}",
@@ -202,7 +234,15 @@
       "beer": "Free beer voucher",
       "voucher": "Entry voucher",
       "snack": "Bar snack"
-    }
+    },
+    "inStock": "In stock",
+    "expiredSection": "Expired",
+    "emptyInStock": "No items in stock.",
+    "emptyExpired": "No expired items.",
+    "usedUp": "Used up",
+    "emptyUsedUp": "No used-up items.",
+    "code": "No. {code}",
+    "qtyShort": "x{n}"
   },
   "history": {
     "title": "History",
@@ -215,7 +255,19 @@
     "giftQty": "x{n}",
     "retention": "Records are kept for 30 days only.",
     "methodBank": "Bank ( {name} )",
-    "methodEwallet": "E-wallet ( {name} )"
+    "methodEwallet": "E-wallet ( {name} )",
+    "detailTitle": "Details",
+    "transactionType": "Transaction type",
+    "paymentMethod": "Payment method",
+    "dateTime": "Date/Time",
+    "transactionNo": "Transaction no.",
+    "transactionAmount": "Amount",
+    "typeRecharge": "Top-up",
+    "categoryBank": "Bank",
+    "categoryEwallet": "E-wallet",
+    "categoryCard": "Card",
+    "dash": "—",
+    "detailNotFound": "This record is no longer available."
   },
   "profileEdit": {
     "title": "Edit profile",
@@ -275,7 +327,18 @@
       "djNight": "Resident and guest DJs take over the main hall. Doors open at 9 PM, peak set from 11 PM till late. Dress to impress.",
       "ladies": "Every Friday, ladies drink free from 9 to 11 PM. Claim the offer at the bar with a valid ID.",
       "liveBand": "Live band on the floor with a mix of pop, R&B and classics. Arrive early for a better view of the stage."
-    }
+    },
+    "comments": "Comments",
+    "likes": "Likes",
+    "commentPlaceholder": "Say something…",
+    "postComment": "Send",
+    "deleteComment": "Delete",
+    "noComments": "No comments yet",
+    "commentTooLong": "Comments can be at most 500 characters",
+    "loadMore": "Load more",
+    "actionFailed": "Something went wrong. Please try again.",
+    "commentPosted": "Comment posted",
+    "close": "Close"
   },
   "gifts": {
     "staffTitle": "Select staff",
@@ -285,6 +348,9 @@
     "history": "Recent",
     "searchStaff": "All staff",
     "doubleTap": "Double-tap",
+    "comboLabel": "Combo",
+    "comboHint": "Tap again to combo",
+    "comboSent": "Combo ×{n} sent",
     "doubleTapConfirm": "Double-tap to send",
     "confirmRequest": "Gift confirmation",
     "confirmTooltip": "High-value gifts (for example, 588 diamonds and above, such as New Crown or Rebirth) require a confirmation popup to prevent accidental taps and refund disputes.",
@@ -303,15 +369,22 @@
     "errorGeneric": "Couldn't send this gift. Please try again.",
     "emptyStaff": "No staff available",
     "emptyGifts": "No gifts available",
-    "staffMissing": "This staff member couldn't be found. Go back and choose again."
+    "staffMissing": "This staff member couldn't be found. Go back and choose again.",
+    "tabStaff": "Staff",
+    "tabCustomer": "Guests",
+    "customerTitle": "Select a guest",
+    "searchCustomer": "Search by name",
+    "searchCustomers": "All guests",
+    "emptyCustomers": "No guests available",
+    "customerMissing": "This guest couldn't be found. Go back and choose again."
   },
   "recharge": {
-    "title": "Top up",
+    "title": "Top-up details",
     "packages": "Diamond packages",
     "diamonds": "diamonds",
-    "pay": "Top up now",
+    "pay": "Top up",
     "starting": "Opening payment…",
-    "shortfallHint": "You need {n} more diamonds. The smallest package that covers this is preselected.",
+    "shortfallHint": "You need {n} more diamonds. An amount that covers this is prefilled.",
     "unavailable": "Online top-up is coming soon.",
     "empty": "No packages available",
     "paid": "{n} diamonds have been added.",
@@ -319,6 +392,14 @@
     "stillPending": "Payment is still processing. Diamonds will be added once it is confirmed.",
     "notCompleted": "Payment was not completed. No diamonds were added.",
     "errorStart": "Couldn't start the payment. Please try again.",
-    "errorCheck": "Couldn't check the payment. Please try again."
+    "errorCheck": "Couldn't check the payment. Please try again.",
+    "amountLabel": "Deposit amount ({symbol}1 = {n} diamonds)",
+    "amountPlaceholder": "Enter an amount, {symbol}{min}–{symbol}{max} per deposit",
+    "amountError": "Enter a whole amount between {symbol}{min} and {symbol}{max}",
+    "bonus": "+{n}",
+    "youReceive": "You'll get {n} diamonds",
+    "youReceiveBonus": "You'll get {n} diamonds (includes {bonus} bonus)",
+    "customUnsupported": "This amount can't be paid online yet.",
+    "loadError": "Couldn't load top-up packages. Please try again."
   }
 }

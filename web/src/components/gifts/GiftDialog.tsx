@@ -2,6 +2,7 @@
 
 import { usePresence } from "@/components/ui/usePresence";
 import { useEffect, useId, type ReactNode } from "react";
+import { FIGMA_SHEET_BG } from "@/lib/figma-backgrounds";
 
 export function GiftDialog({
   open,
@@ -50,10 +51,9 @@ export function GiftDialog({
       onClick={onClose}
     >
       <div
-        className={`anim-sheet w-full max-w-[320px] overflow-hidden rounded-[16px] bg-[#1e1e1e] p-5 ${exiting ? "is-exit" : ""}`}
+        className={`anim-sheet w-full max-w-[320px] overflow-hidden rounded-[16px] p-5 ${exiting ? "is-exit" : ""}`}
         style={{
-          backgroundImage:
-            "linear-gradient(180deg, #1e1e1e 0%, #1e1e1e 45%, #6b1519 100%)",
+          background: FIGMA_SHEET_BG,
         }}
         onClick={(event) => event.stopPropagation()}
       >

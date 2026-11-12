@@ -66,19 +66,18 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${notoSansSC.variable} h-full antialiased`}
     >
       <body className={`${notoSansSC.className} min-h-full bg-black text-white`}>
-        <Suspense
-          fallback={
-            <Providers
-              locale={defaultLocale}
-              messages={getMessages(defaultLocale)}
-              isAuthed={false}
-            >
-              {children}
-            </Providers>
-          }
+        {/* Keep a static provider shell so prerendered page segments (e.g.
+            /?auth=login after a guest redirect) can call useLocale/useAuth
+            even while async LocaleRoot is still resolving. */}
+        <Providers
+          locale={defaultLocale}
+          messages={getMessages(defaultLocale)}
+          isAuthed={false}
         >
-          <LocaleRoot>{children}</LocaleRoot>
-        </Suspense>
+          <Suspense fallback={children}>
+            <LocaleRoot>{children}</LocaleRoot>
+          </Suspense>
+        </Providers>
       </body>
     </html>
   );

@@ -1,3 +1,4 @@
+import { ProfileQrButton } from "@/components/profile/ProfileQrButton";
 import { getT } from "@/i18n/get-locale";
 import { SafeImage } from "@/components/media/SafeImage";
 import type { ProfileData } from "@/lib/mock/profile";
@@ -40,14 +41,7 @@ export async function ProfileIdentity({ profile }: { profile: ProfileData }) {
         </p>
       </div>
 
-      <button
-        type="button"
-        aria-label={t("profile.qrAria")}
-        className="anim-press ml-3 flex size-[25px] shrink-0 items-center justify-center"
-      >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/images/icon-qr.svg" alt="" width={25} height={25} />
-      </button>
+      <ProfileQrButton customerId={profile.foodcourtCustomerId} />
     </section>
   );
 }

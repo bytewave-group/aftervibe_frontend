@@ -13,6 +13,9 @@ export interface EventItem {
   endsAt: string | null;
   location: string | null;
   isHot: boolean;
+  likesCount: number;
+  commentsCount: number;
+  likedByMe: boolean;
 }
 
 export const EVENT_PLACEHOLDER_IMAGE = "/images/banner-dj-night.png";
@@ -27,6 +30,9 @@ export const mockEvents: EventItem[] = [
     endsAt: "2026-11-15 02:00:00",
     location: "Main Hall",
     isHot: true,
+    likesCount: 0,
+    commentsCount: 0,
+    likedByMe: false,
   },
   {
     id: 2,
@@ -37,6 +43,9 @@ export const mockEvents: EventItem[] = [
     endsAt: null,
     location: null,
     isHot: true,
+    likesCount: 0,
+    commentsCount: 0,
+    likedByMe: false,
   },
   {
     id: 3,
@@ -47,5 +56,8 @@ export const mockEvents: EventItem[] = [
     endsAt: "2026-11-15 23:00:00",
     location: null,
     isHot: false,
+    likesCount: 0,
+    commentsCount: 0,
+    likedByMe: false,
   },
 ];

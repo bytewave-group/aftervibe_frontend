@@ -503,5 +503,9 @@
   "Invalid QR code - staff only": "Invalid QR code - staff only",
   "Scan QR to confirm": "Scan QR to confirm",
   "QR code does not match the selected mummy": "QR code does not match the selected mummy",
-  "QR code does not match the selected staff": "QR code does not match the selected staff"
+  "QR code does not match the selected staff": "QR code does not match the selected staff",
+  "Search staff": "Search staff",
+  "Submitting...": "Submitting...",
+  "Complete the steps above to continue": "Complete the steps above to continue",
+  "Frequently used": "Frequently used"
 }

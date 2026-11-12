@@ -6,11 +6,17 @@ import type { CoinOrderDto, CoinOrdersResponse, MeResponse } from "@/lib/api/typ
 import { safeRedirectPath } from "@/lib/auth/redirect";
 import {
   RECHARGE_CURRENCY,
+  emptyRechargeData,
   mockRechargeData,
+  normalizeAmountBound,
+  normalizeCoinRate,
+  RECHARGE_MAX_AMOUNT,
+  RECHARGE_MIN_AMOUNT,
   type RechargeBalance,
   type RechargeData,
   type RechargePackage,
 } from "@/lib/mock/recharge";
+import { devMockIfEmpty, devMockOnError } from "@/lib/mock/devFallback";
 
 export type { RechargeBalance, RechargeData, RechargePackage };
 
@@ -25,10 +31,16 @@ type CoinPackageDto = {
   id: number;
   coins?: number | string;
   price?: number | string;
+  bonus_coins?: number | string;
+  bonus?: number | string;
 };
 
 type CoinPackagesResponse = {
   success?: boolean;
+  coin_rate?: number | string;
+  currency?: string;
+  min_amount?: number | string;
+  max_amount?: number | string;
   packages?: CoinPackageDto[];
 };
 
@@ -51,6 +63,7 @@ export type CreateCoinOrderResult =
 export type CoinOrderStatusResult = {
   status: string;
   coins: number;
+  bonusCoins: number;
   balance: number | null;
 };
 
@@ -68,6 +81,8 @@ function mapPackage(dto: CoinPackageDto): RechargePackage | null {
     id,
     coins: asNumber(dto.coins, 0),
     price: asNumber(dto.price, 0),
+    bonus: Math.max(0, asNumber(dto.bonus_coins ?? dto.bonus, 0)),
+    backendId: id,
   };
 }
 
@@ -115,19 +130,21 @@ export async function loadRecharge(): Promise<RechargeData> {
       .map(mapPackage)
       .filter((item): item is RechargePackage => item !== null)
       .sort((a, b) => a.coins - b.coins);
-    return {
+    const currency = (packages.currency ?? "").trim() || RECHARGE_CURRENCY;
+    return devMockIfEmpty("recharge.packages", {
       balance,
       packages: list,
       paymentAvailable: orders.payment_available !== false,
-      currency: orders.orders?.[0]?.currency === "MYR" ? "RM" : RECHARGE_CURRENCY,
-    };
+      currency,
+      coinRate: normalizeCoinRate(packages.coin_rate),
+      minAmount: normalizeAmountBound(packages.min_amount, RECHARGE_MIN_AMOUNT),
+      maxAmount: normalizeAmountBound(packages.max_amount, RECHARGE_MAX_AMOUNT),
+      loadError: false,
+    }, list.length === 0, () => ({ ...mockRechargeData(), balance }));
   } catch (error) {
     redirectIfUnauthorized(error, "/recharge");
-    logApiFallback(
-      "[recharge] coin package/balance APIs failed; falling back to mock recharge data",
-      error,
-    );
-    return structuredClone(mockRechargeData);
+    logApiFallback("[recharge] coin package/balance APIs failed; showing empty error state", error);
+    return devMockOnError("recharge", error, mockRechargeData, () => emptyRechargeData({ loadError: true }));
   }
 }
 
@@ -143,11 +160,29 @@ function isSafeReturnUrl(value: string): boolean {
   }
 }
 
+export type CreateCoinOrderInput =
+  | { packageId: number; amount?: undefined }
+  | { amount: number; packageId?: undefined };
+
+/**
+ * Starts a gateway payment for a backend package or a custom currency amount.
+ */
 export async function createCoinOrderAction(
-  packageId: number,
+  input: CreateCoinOrderInput,
   returnUrl: string,
 ): Promise<CreateCoinOrderResult> {
-  if (!Number.isFinite(packageId) || packageId <= 0) {
+  const body: Record<string, unknown> = { return_url: returnUrl };
+  if ("packageId" in input && input.packageId != null) {
+    if (!Number.isFinite(input.packageId) || input.packageId <= 0) {
+      return { ok: false, reason: "error", message: "Invalid package." };
+    }
+    body.package_id = input.packageId;
+  } else if ("amount" in input && input.amount != null) {
+    if (!Number.isFinite(input.amount) || input.amount < RECHARGE_MIN_AMOUNT || input.amount > RECHARGE_MAX_AMOUNT) {
+      return { ok: false, reason: "error", message: "Invalid amount." };
+    }
+    body.amount = input.amount;
+  } else {
     return { ok: false, reason: "error", message: "Invalid package." };
   }
   if (!isSafeReturnUrl(returnUrl)) {
@@ -156,7 +191,7 @@ export async function createCoinOrderAction(
   try {
     const payload = await apiPost<CreateOrderResponse>(
       "/api/customer/coin-orders",
-      { package_id: packageId, return_url: returnUrl },
+      body,
       "required",
     );
     const paymentUrl = payload.order?.payment_url;
@@ -194,6 +229,7 @@ export async function checkCoinOrderAction(
     return {
       status: payload.order?.status || "unknown",
       coins: asNumber(payload.order?.coins, 0),
+      bonusCoins: asNumber(payload.order?.bonus_coins, 0),
       balance: payload.balance == null ? null : asNumber(payload.balance, 0),
     };
   } catch (error) {

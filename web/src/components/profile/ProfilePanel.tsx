@@ -1,6 +1,7 @@
 import { PageMain } from "@/components/layout/AppShell";
 import { ProfileBodySkeleton } from "@/components/navigation/PageSkeletons";
 import { BalanceCard } from "@/components/profile/BalanceCard";
+import { DevMockBadge } from "@/components/dev/DevMockBadge";
 import { LogoutButton } from "@/components/profile/LogoutButton";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileIdentity } from "@/components/profile/ProfileIdentity";
@@ -40,8 +41,9 @@ async function ProfilePanelContent() {
     <div className="anim-content-fade">
       <ProfileIdentity profile={profile} />
       <BalanceCard balance={profile.balance} />
-      <ProfileSettings profile={profile} />
+      <ProfileSettings />
       <LogoutButton />
+      <DevMockBadge />
     </div>
   );
 }

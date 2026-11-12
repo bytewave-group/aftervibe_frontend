@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useRequireAuth } from "@/components/auth/useRequireAuth";
+import { ProfileQrButton } from "@/components/profile/ProfileQrButton";
 import { useNavTrigger, usePrefetch } from "@/components/navigation/instant-nav";
 import { NAV_FORWARD } from "@/components/navigation/nav-direction";
 import { useNavDirection } from "@/components/navigation/NavDirectionProvider";
@@ -12,6 +13,7 @@ import type { ReactNode } from "react";
 
 interface TopBarProps {
   balance: string;
+  foodcourtCustomerId: string | null;
 }
 
 function NavIconButton({
@@ -48,7 +50,7 @@ function NavIconButton({
   );
 }
 
-export function TopBar({ balance }: TopBarProps) {
+export function TopBar({ balance, foodcourtCustomerId }: TopBarProps) {
   const t = useTranslations();
   const parsedBalance = parseBalanceValue(balance);
 
@@ -90,14 +92,11 @@ export function TopBar({ balance }: TopBarProps) {
         />
 
         <div className="mb-[3px] flex items-center gap-[27px] pr-[10px]">
-          <NavIconButton
-            href="/scan"
-            ariaLabel={t("common.scan")}
+          <ProfileQrButton
+            customerId={foodcourtCustomerId}
             className="anim-press flex size-[25px] items-center justify-center"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/icon-qr.svg" alt="" width={25} height={25} />
-          </NavIconButton>
+            authTarget="/"
+          />
           <NavIconButton
             href="/notifications"
             ariaLabel={t("common.notifications")}

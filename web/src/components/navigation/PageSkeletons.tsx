@@ -96,13 +96,18 @@ export function SpinBodySkeleton() {
 export function MallBodySkeleton() {
   return (
     <div className="px-6 pb-8">
-      <Bone className="mt-4 h-[20px] w-[120px] rounded-full" />
-      <div className="mt-5 grid grid-cols-2 gap-3">
+      <Bone className="mt-[36px] h-[50px] w-full rounded-[10px]" />
+      <div className="mt-[25px] flex gap-4">
+        <Bone className="h-[50px] flex-1 rounded-[5px]" />
+        <Bone className="h-[50px] flex-1 rounded-[5px]" />
+        <Bone className="h-[50px] flex-1 rounded-[5px]" />
+      </div>
+      <div className="mt-[25px] grid grid-cols-3 gap-x-4 gap-y-2.5">
         {Array.from({ length: 6 }, (_, i) => (
-          <div key={i} className="overflow-hidden rounded-[12px] bg-[#242424] p-3">
-            <Bone className="h-[96px] w-full rounded-[8px]" />
-            <Bone className="mt-3 h-[14px] w-[80%] rounded-full" />
-            <Bone className="mt-2 h-[12px] w-[50%] rounded-full" />
+          <div key={i}>
+            <Bone className="aspect-square w-full rounded-[10px]" />
+            <Bone className="mt-2.5 h-[18px] w-[70%] rounded-full" />
+            <Bone className="mt-[5px] h-[18px] w-[50%] rounded-full" />
           </div>
         ))}
       </div>
@@ -111,29 +116,29 @@ export function MallBodySkeleton() {
 }
 
 export function InventoryBodySkeleton() {
-  const t = useTranslations();
   return (
     <div className="px-6 pb-8">
-      <div className="mt-4 flex gap-2">
-        <div className="flex h-[34px] flex-1 items-center justify-center rounded-full bg-[#d01f25] text-[13px] font-bold text-white">
-          {t("inventory.tabActive")}
-        </div>
-        <div className="flex h-[34px] flex-1 items-center justify-center rounded-full bg-white/10 text-[13px] font-bold text-white/70">
-          {t("inventory.tabPast")}
-        </div>
-      </div>
-      <ul className="mt-5 flex flex-col gap-3">
-        {Array.from({ length: 4 }, (_, i) => (
-          <li key={i} className="flex items-center rounded-[12px] bg-[#242424] px-3 py-3">
-            <Bone className="size-[64px] shrink-0 rounded-[8px]" />
-            <div className="ml-3 min-w-0 flex-1">
-              <Bone className="h-[14px] w-[60%] rounded-full" />
-              <Bone className="mt-2 h-[11px] w-[40%] rounded-full" />
-              <Bone className="mt-2 h-[10px] w-[50%] rounded-full" />
-            </div>
-          </li>
-        ))}
-      </ul>
+      {Array.from({ length: 2 }, (_, section) => (
+        <section key={section} className={section === 0 ? "mt-[36px]" : "mt-[25px]"}>
+          <Bone className="ml-[11px] h-[23px] w-[80px] rounded-full" />
+          <div className="mt-[15px] h-px w-full bg-[#565656]" />
+          <ul className="mt-[15px] flex flex-col gap-2.5">
+            {Array.from({ length: 2 }, (_, i) => (
+              <li
+                key={i}
+                className="flex h-[93px] items-center rounded-[10px] border border-[#565656] bg-[#1F1F1F] pr-6 pl-1.5"
+              >
+                <Bone className="size-20 shrink-0 rounded-[5px]" />
+                <div className="ml-5 min-w-0 flex-1">
+                  <Bone className="h-4 w-[50%] rounded-full" />
+                  <Bone className="mt-2.5 h-[11px] w-[70%] rounded-full" />
+                </div>
+                <Bone className="ml-3 h-[23px] w-10 rounded-full" />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
     </div>
   );
 }
@@ -497,28 +502,34 @@ export function GiftSelectSkeleton({ framed = true }: { framed?: boolean } = {})
 
 export function RechargeBodySkeleton() {
   return (
-    <>
+    <div className="flex min-h-0 flex-1 flex-col bg-[#1F1F1F]">
       <header className="relative z-20 px-6 pt-[16px] pb-[8px] [padding-top:max(16px,env(safe-area-inset-top))]">
         <div className="relative flex h-[32px] items-center">
           <Bone className="h-[24px] w-[14px] rounded-full" />
-          <Bone className="mx-auto h-[20px] w-[72px] rounded-full" />
-          <Bone className="absolute right-0 h-[16px] w-[48px] rounded-full" />
+          <Bone className="mx-auto h-[20px] w-[88px] rounded-full" />
+          <Bone className="absolute right-0 h-[12px] w-[36px] rounded-full" />
         </div>
       </header>
-      <div className="px-6 pt-4 pb-8">
-        <Bone className="mb-3 h-[14px] w-[80px] rounded-full" />
-        <div className="grid grid-cols-2 gap-3">
-          {Array.from({ length: 4 }, (_, i) => (
-            <div key={i} className="flex flex-col items-center rounded-[14px] bg-[#242424] px-3 py-4">
+      <div className="flex-1 px-6 pt-5 pb-4">
+        <Bone className="h-[14px] w-[180px] rounded-full" />
+        <Bone className="mt-3 h-[48px] w-full rounded-[14px]" />
+        <div className="mt-5 grid grid-cols-3 gap-2.5">
+          {Array.from({ length: 6 }, (_, i) => (
+            <div
+              key={i}
+              className="flex min-h-[108px] flex-col items-center justify-center rounded-[14px] border border-[#5a5a5a] bg-[#252525] px-1.5 py-3"
+            >
               <Bone className="size-7 rounded-full" />
-              <Bone className="mt-2 h-[20px] w-[48px] rounded-full" />
-              <Bone className="mt-3 h-[28px] w-[64px] rounded-full" />
+              <Bone className="mt-1.5 h-[16px] w-[48px] rounded-full" />
+              <Bone className="mt-1.5 h-[11px] w-[36px] rounded-full" />
             </div>
           ))}
         </div>
-        <Bone className="mt-6 h-[48px] w-full rounded-[12px]" />
       </div>
-    </>
+      <div className="px-6 pt-2 pb-2">
+        <Bone className="h-[48px] w-full rounded-full" />
+      </div>
+    </div>
   );
 }
 

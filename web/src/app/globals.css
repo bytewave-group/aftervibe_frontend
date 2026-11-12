@@ -38,8 +38,13 @@
   --duration-slow: 420ms;
 }
 
+html,
 body {
-  background: var(--background);
+  background: #000;
+}
+
+body {
+  background: var(--background, #000);
   color: var(--foreground);
   font-family: var(--font-noto-sans-sc), "PingFang SC", "Noto Sans SC",
     "Microsoft YaHei", sans-serif;
@@ -262,6 +267,25 @@ body::-webkit-scrollbar,
 .anim-press:disabled,
 .anim-press[aria-disabled="true"] {
   scale: 1;
+}
+
+/*
+ * 48×48 back-button hit area. Negative margin keeps the 14×24 chevron
+ * where it sat in the 32px header row (px-6), so the icon does not shift.
+ */
+.back-hit {
+  position: relative;
+  z-index: 30;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  margin: -8px -17px;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  pointer-events: auto;
 }
 
 .anim-shimmer {
@@ -595,6 +619,7 @@ body::-webkit-scrollbar,
   overflow: hidden;
   isolation: isolate;
   touch-action: pan-y;
+  background: #000;
 }
 
 .pt-layer {
@@ -644,6 +669,7 @@ body::-webkit-scrollbar,
   min-height: 0;
   visibility: visible;
   will-change: transform;
+  pointer-events: none;
 }
 
 .pt-live {
@@ -751,5 +777,42 @@ body::-webkit-scrollbar,
     ::view-transition-new(*) {
       animation: none !important;
     }
+  }
+}
+
+/* Combo gifting: countdown ring + ×N pop on the gift tile (GiftSelectClient). */
+@keyframes av-combo-ring {
+  from {
+    stroke-dashoffset: 0;
+  }
+  to {
+    stroke-dashoffset: 100;
+  }
+}
+
+@keyframes av-combo-pop {
+  0% {
+    transform: scale(0.6);
+  }
+  55% {
+    transform: scale(1.35);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.av-combo-ring {
+  animation: av-combo-ring var(--av-combo-ms, 4000ms) linear forwards;
+}
+
+.av-combo-pop {
+  animation: av-combo-pop 260ms var(--ease-motion, ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .av-combo-ring,
+  .av-combo-pop {
+    animation: none;
   }
 }

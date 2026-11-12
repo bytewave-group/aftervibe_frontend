@@ -3,6 +3,8 @@
 import { ApiError, fetchCheckinStatus, postCheckin } from "@/lib/api/checkin";
 import { mapCheckinStatus, markDayClaimed, type CheckinStatus } from "@/lib/checkin";
 import { redirectToLogin } from "@/lib/auth/unauthorized";
+import { devMockOnError } from "@/lib/mock/devFallback";
+import { mockCheckinStatus } from "@/lib/mock/checkin";
 
 export type CheckinStatusResult =
   | { ok: true; status: CheckinStatus }
@@ -25,7 +27,12 @@ export async function loadCheckinStatusAction(): Promise<CheckinStatusResult> {
   } catch (error) {
     handleAuth(error);
     console.error("Failed to load check-in status", error);
-    return { ok: false, reason: "error" };
+    return devMockOnError<CheckinStatusResult>(
+      "checkin",
+      error,
+      () => ({ ok: true, status: structuredClone(mockCheckinStatus) }),
+      () => ({ ok: false, reason: "error" }),
+    );
   }
 }
 
@@ -34,15 +41,11 @@ export async function claimCheckinAction(
 ): Promise<CheckinClaimResult> {
   try {
     const payload = await postCheckin();
+    const status = mapCheckinStatus(payload);
     return {
       ok: true,
       reward: payload.reward,
-      status: mapCheckinStatus({
-        checked_in: true,
-        current_day: payload.current_day,
-        reward: payload.reward,
-        rewards: current.days.map((day) => day.reward),
-      }),
+      status,
     };
   } catch (error) {
     handleAuth(error);

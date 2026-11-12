@@ -2,6 +2,7 @@ import { useCallback, useSyncExternalStore } from "react";
 import type { GiftStaff } from "@/lib/mock/gifts";
 
 export const RECENT_STAFF_KEY = "av_recent_gift_staff";
+export const RECENT_CUSTOMER_KEY = "av_recent_gift_customers";
 export const CONFIRM_TOGGLE_KEY = "av_gift_confirm_enabled";
 
 const recentListeners = new Set<() => void>();
@@ -169,4 +170,67 @@ export function useConfirmToggle(fallback = true): [boolean, (enabled: boolean) 
     writeConfirmToggle(value);
   }, []);
   return [enabled, setEnabled];
+}
+
+const EMPTY_CUSTOMER_RECENTS: GiftStaff[] = [];
+let recentCustomerRaw = "__init__";
+let recentCustomerCache: GiftStaff[] = EMPTY_CUSTOMER_RECENTS;
+const recentCustomerListeners = new Set<() => void>();
+
+function emitRecentCustomers() {
+  recentCustomerListeners.forEach((listener) => listener());
+}
+
+export function readRecentCustomers(): GiftStaff[] {
+  if (typeof window === "undefined") {
+    return EMPTY_CUSTOMER_RECENTS;
+  }
+  const raw = window.localStorage.getItem(RECENT_CUSTOMER_KEY);
+  if (raw === recentCustomerRaw) {
+    return recentCustomerCache;
+  }
+  recentCustomerRaw = raw ?? "";
+  recentCustomerCache = parseRecents(raw);
+  return recentCustomerCache;
+}
+
+export function rememberRecentCustomer(customer: GiftStaff): GiftStaff[] {
+  const next = [customer, ...readRecentCustomers().filter((item) => item.id !== customer.id)].slice(0, 4);
+  try {
+    const raw = JSON.stringify(next);
+    window.localStorage.setItem(RECENT_CUSTOMER_KEY, raw);
+    recentCustomerRaw = raw;
+    recentCustomerCache = next;
+  } catch {
+    recentCustomerCache = next;
+  }
+  emitRecentCustomers();
+  return next;
+}
+
+export function mergeRecentCustomers(server: GiftStaff[], local: GiftStaff[]): GiftStaff[] {
+  return mergeRecentStaff(server, local);
+}
+
+function subscribeRecentCustomers(onChange: () => void) {
+  recentCustomerListeners.add(onChange);
+  const onStorage = (event: StorageEvent) => {
+    if (event.key === RECENT_CUSTOMER_KEY || event.key === null) {
+      recentCustomerRaw = "__init__";
+      onChange();
+    }
+  };
+  window.addEventListener("storage", onStorage);
+  return () => {
+    recentCustomerListeners.delete(onChange);
+    window.removeEventListener("storage", onStorage);
+  };
+}
+
+export function useRecentCustomers(): GiftStaff[] {
+  return useSyncExternalStore(
+    subscribeRecentCustomers,
+    readRecentCustomers,
+    () => EMPTY_CUSTOMER_RECENTS,
+  );
 }

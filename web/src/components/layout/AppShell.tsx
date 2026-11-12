@@ -4,6 +4,7 @@ import { BottomNav } from "@/components/layout/BottomNav";
 import { HomeTabProvider } from "@/components/layout/HomeTabProvider";
 import { NavDirectionProvider } from "@/components/navigation/NavDirectionProvider";
 import { PageTransition } from "@/components/navigation/PageTransition";
+import { FIGMA_SHELL_BG, FIGMA_SOLID_PAGE_BG, isSolidPageBg } from "@/lib/figma-backgrounds";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
@@ -18,13 +19,12 @@ function ShellFrame({ children }: { children: ReactNode }) {
       <div
         className="relative flex h-dvh w-full max-w-[440px] flex-col overflow-hidden"
         style={{
-          backgroundImage:
-            "linear-gradient(180deg, rgba(0, 0, 0, 0.15) 0%, rgba(208, 31, 37, 0.15) 100%), linear-gradient(90deg, #000 0%, #000 100%)",
+          backgroundImage: FIGMA_SHELL_BG,
         }}
       >
         <div className="pointer-events-none absolute top-[156px] left-1/2 size-[441px] -translate-x-1/2 opacity-25">
           <Image
-            src="/images/bg-glow.png"
+            src="/images/bg-glow.webp"
             alt=""
             fill
             sizes="441px"
@@ -41,10 +41,18 @@ function ShellFrame({ children }: { children: ReactNode }) {
 function ShellContent({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const showNav = pathname === "/";
+  const solidBg = isSolidPageBg(pathname);
 
   return (
     <HomeTabProvider>
       <NavDirectionProvider>
+        {solidBg ? (
+          <div
+            className="pointer-events-none absolute inset-0 z-[1]"
+            style={{ background: FIGMA_SOLID_PAGE_BG }}
+            aria-hidden="true"
+          />
+        ) : null}
         <div className="relative z-10 flex h-full min-h-0 flex-1 flex-col overflow-hidden">
           <PageTransition>
             <div

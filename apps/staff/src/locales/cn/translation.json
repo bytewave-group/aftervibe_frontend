@@ -500,5 +500,9 @@
   "Invalid QR code - staff only": "无效的二维码 - 仅限员工",
   "Scan QR to confirm": "扫码确认",
   "QR code does not match the selected mummy": "二维码与所选妈咪不符",
-  "QR code does not match the selected staff": "二维码与所选员工不符"
+  "QR code does not match the selected staff": "二维码与所选员工不符",
+  "Search staff": "搜索员工",
+  "Submitting...": "提交中...",
+  "Complete the steps above to continue": "完成以上步骤后即可确认",
+  "Frequently used": "常用"
 }

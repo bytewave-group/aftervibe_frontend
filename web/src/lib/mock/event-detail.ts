@@ -5,6 +5,7 @@
  * the fallback used by src/lib/api/event-detail.ts.
  */
 
+import type { EventCommentsPage } from "@/lib/api/types";
 import { mockEvents, type EventItem } from "@/lib/mock/events";
 
 export interface EventDetail extends EventItem {
@@ -38,4 +39,25 @@ export const mockEventDetails: EventDetail[] = mockEvents.map((event) => ({
 
 export function findMockEventDetail(id: number): EventDetail | null {
   return mockEventDetails.find((event) => event.id === id) ?? null;
+}
+
+/** Dev-only stand-in comments (src/lib/mock/devFallback.ts); fixed timestamps keep renders stable. */
+export function mockEventCommentsPage(eventId: number): EventCommentsPage {
+  const rows = [
+    { name: "Alicia", body: "Can't wait for this one!" },
+    { name: "Jason", body: "Last week was amazing, see you there." },
+    { name: "Mei", body: "Is there a dress code?" },
+  ];
+  return {
+    data: rows.map((row, index) => ({
+      id: eventId * 100 + index + 1,
+      body: row.body,
+      created_at: `2026-11-0${index + 1}T12:00:00+08:00`,
+      mine: false,
+      customer: { id: 9000 + index, name: row.name, avatar_url: null },
+    })),
+    current_page: 1,
+    last_page: 1,
+    total: rows.length,
+  };
 }

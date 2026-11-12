@@ -1,5 +1,6 @@
 import { AUTH_COOKIE_NAME } from "@/lib/auth/cookies";
 import { safeRedirectPath } from "@/lib/auth/redirect";
+import { DEV_MOCK_LOGIN_COOKIE } from "@/lib/mock/devMode";
 import { NextResponse } from "next/server";
 
 /**
@@ -17,5 +18,6 @@ export async function GET(request: Request) {
     path: "/",
     maxAge: 0,
   });
+  response.cookies.delete(DEV_MOCK_LOGIN_COOKIE);
   return response;
 }

@@ -87,6 +87,11 @@ export function useNavTrigger(
   const onPointerDown = useCallback(
     (event: PointerEvent<HTMLElement>) => {
       if (!enabled || isModifiedClick(event)) return;
+      try {
+        event.currentTarget.setPointerCapture(event.pointerId);
+      } catch {
+        /* capture is best-effort */
+      }
       prefetch();
       begin(href, direction);
     },

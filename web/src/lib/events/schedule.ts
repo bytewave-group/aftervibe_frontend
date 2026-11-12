@@ -1,39 +1,15 @@
 import type { Locale } from "@/i18n/config";
 import type { EventItem } from "@/lib/mock/events";
-
-const TIME_ZONE = "Asia/Kuala_Lumpur";
-
-function parseEventDate(value: string | null | undefined): Date | null {
-  if (!value) {
-    return null;
-  }
-
-  const raw = value.trim();
-  if (!raw) {
-    return null;
-  }
-
-  const iso = raw.includes("T") ? raw : raw.replace(" ", "T");
-  const hasZone = /Z|[+-]\d{2}:?\d{2}$/.test(iso);
-  const date = new Date(hasZone ? iso : `${iso}+08:00`);
-  return Number.isNaN(date.getTime()) ? null : date;
-}
+import { formatZonedDate, formatZonedTime, parseDateTime, zonedParts } from "@/lib/format/datetime";
 
 function dateLabel(date: Date, locale: Locale): string {
-  return new Intl.DateTimeFormat(locale === "zh" ? "zh-CN" : "en-US", {
-    timeZone: TIME_ZONE,
-    month: "short",
-    day: "numeric",
-  }).format(date);
+  const parts = zonedParts(date);
+  return parts ? formatZonedDate(parts, locale) : "";
 }
 
 function timeLabel(date: Date, locale: Locale): string {
-  return new Intl.DateTimeFormat(locale === "zh" ? "zh-CN" : "en-US", {
-    timeZone: TIME_ZONE,
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: locale !== "zh",
-  }).format(date);
+  const parts = zonedParts(date);
+  return parts ? formatZonedTime(parts, locale) : "";
 }
 
 /** Admin `schedule_text` when set; otherwise starts/ends in Malaysia time. */
@@ -45,17 +21,29 @@ export function formatEventSchedule(
     return event.scheduleText.trim();
   }
 
-  const start = parseEventDate(event.startsAt);
-  const end = parseEventDate(event.endsAt);
+  const start = parseDateTime(event.startsAt);
+  const end = parseDateTime(event.endsAt);
   if (!start) {
     return "";
   }
 
-  if (!end) {
-    return `${dateLabel(start, locale)} ${timeLabel(start, locale)}`;
+  const startDate = dateLabel(start, locale);
+  const startTime = timeLabel(start, locale);
+  if (!startDate || !startTime) {
+    return "";
   }
 
-  return dateLabel(start, locale) === dateLabel(end, locale)
-    ? `${dateLabel(start, locale)} ${timeLabel(start, locale)} – ${timeLabel(end, locale)}`
-    : `${dateLabel(start, locale)} ${timeLabel(start, locale)} – ${dateLabel(end, locale)} ${timeLabel(end, locale)}`;
+  if (!end) {
+    return `${startDate} ${startTime}`;
+  }
+
+  const endDate = dateLabel(end, locale);
+  const endTime = timeLabel(end, locale);
+  if (!endDate || !endTime) {
+    return `${startDate} ${startTime}`;
+  }
+
+  return startDate === endDate
+    ? `${startDate} ${startTime} – ${endTime}`
+    : `${startDate} ${startTime} – ${endDate} ${endTime}`;
 }

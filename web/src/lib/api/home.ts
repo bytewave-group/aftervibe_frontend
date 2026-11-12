@@ -11,6 +11,7 @@ import {
   type RankingListData,
 } from "@/lib/mock/home";
 import { formatBalance } from "@/lib/mock/profile";
+import { devMockIfEmpty, devMockOnError } from "@/lib/mock/devFallback";
 
 export type HomeSource = "api" | "mock";
 
@@ -70,9 +71,11 @@ function mapArtist(artist: HomeArtistDto, index: number): RankingEntry {
   };
 }
 
+const HOME_RANK_LIMIT = 3;
+
 function mapHomeResponse(payload: HomeResponse): HomeData {
-  const spenders = (payload.spenders ?? []).map(mapSpender);
-  const artists = (payload.artists ?? []).map(mapArtist);
+  const spenders = (payload.spenders ?? []).slice(0, HOME_RANK_LIMIT).map(mapSpender);
+  const artists = (payload.artists ?? []).slice(0, HOME_RANK_LIMIT).map(mapArtist);
 
   const marqueeItems: MarqueeItem[] = [];
   if (spenders[0]) {
@@ -112,11 +115,12 @@ function mapHomeResponse(payload: HomeResponse): HomeData {
     },
   ];
 
-  const balance =
-    payload.balance == null ? "0.00" : formatBalance(Number(payload.balance));
+  const amount = payload.available_balance ?? payload.balance;
+  const balance = amount == null ? "0.00" : formatBalance(Number(amount));
 
   return {
     balance,
+    foodcourtCustomerId: payload.foodcourt_customer_uuid ?? null,
     banners,
     marqueeItems,
     quickActions: homeData.quickActions,
@@ -129,6 +133,32 @@ function guestMockHome(): HomeData {
     ...homeData,
     balance: "0.00",
   };
+}
+
+/** Production fallback when the home API fails: real chrome, no fake content. */
+function emptyHome(): HomeData {
+  return {
+    ...homeData,
+    balance: "0.00",
+    foodcourtCustomerId: null,
+    banners: [],
+    marqueeItems: [],
+    rankings: homeData.rankings.map((ranking) => ({ ...ranking, entries: [] })),
+  };
+}
+
+/** Dev only: fill sections the backend returned empty with mock content. */
+function withDevMockSections(data: HomeData): HomeData {
+  const banners = devMockIfEmpty("home.banners", data.banners, data.banners.length === 0, () =>
+    structuredClone(homeData.banners),
+  );
+  const noRankings = data.rankings.every((ranking) => ranking.entries.length === 0);
+  const rankings = devMockIfEmpty("home.rankings", data.rankings, noRankings, () =>
+    structuredClone(homeData.rankings),
+  );
+  const marqueeItems =
+    rankings === data.rankings ? data.marqueeItems : structuredClone(homeData.marqueeItems);
+  return { ...data, banners, rankings, marqueeItems };
 }
 
 export async function loadHome(): Promise<LoadedHome> {
@@ -151,21 +181,22 @@ export async function loadHome(): Promise<LoadedHome> {
       });
     }
     return {
-      data: mapHomeResponse(payload),
+      data: withDevMockSections(mapHomeResponse(payload)),
       isAuthed,
       source: "api",
     };
   } catch (error) {
     console.warn(
-      "[home] GET /api/customer/home failed; falling back to mock home data",
+      "[home] GET /api/customer/home failed",
       error instanceof ApiError
         ? { status: error.status, message: error.message }
         : error,
     );
-    return {
-      data: isAuthed ? homeData : guestMockHome(),
-      isAuthed,
-      source: "mock",
-    };
+    return devMockOnError<LoadedHome>(
+      "home",
+      error,
+      () => ({ data: isAuthed ? structuredClone(homeData) : guestMockHome(), isAuthed, source: "mock" }),
+      () => ({ data: emptyHome(), isAuthed, source: "api" }),
+    );
   }
 }

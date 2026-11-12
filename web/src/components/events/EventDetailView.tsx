@@ -1,5 +1,6 @@
 "use client";
 
+import { EventSocialBar } from "@/components/events/EventSocialBar";
 import { SafeImage } from "@/components/media/SafeImage";
 import { useLocale } from "@/i18n/locale-provider";
 import { formatEventSchedule } from "@/lib/events/schedule";
@@ -53,6 +54,8 @@ export function EventDetailView({ event }: { event: EventDetail }) {
           {description}
         </p>
       ) : null}
+
+      <EventSocialBar event={event} />
     </article>
   );
 }

@@ -15,6 +15,7 @@ import {
   type NotificationType,
   type NotificationsData,
 } from "@/lib/mock/notifications";
+import { devMockIfEmpty, devMockOnError } from "@/lib/mock/devFallback";
 import { revalidatePath } from "next/cache";
 
 export type { NotificationItem, NotificationsData };
@@ -59,14 +60,15 @@ async function fetchAllNotifications(): Promise<NotificationItem[]> {
 export async function loadNotifications(): Promise<NotificationsData> {
   try {
     const items = await fetchAllNotifications();
-    return buildNotificationsData(items);
+    return buildNotificationsData(
+      devMockIfEmpty("notifications", items, items.length === 0, () => structuredClone(mockNotifications)),
+    );
   } catch (error) {
     redirectIfUnauthorized(error, "/notifications");
-    logApiFallback(
-      "[notifications] GET /api/customer/notifications failed; falling back to mock notifications",
-      error,
+    logApiFallback("[notifications] GET /api/customer/notifications failed", error);
+    return buildNotificationsData(
+      devMockOnError("notifications", error, () => structuredClone(mockNotifications), () => []),
     );
-    return buildNotificationsData(structuredClone(mockNotifications));
   }
 }
 

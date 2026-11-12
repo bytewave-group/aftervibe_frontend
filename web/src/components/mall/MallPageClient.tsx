@@ -2,14 +2,42 @@
 
 import { AppDialog } from "@/components/ui/AppDialog";
 import { SafeImage } from "@/components/media/SafeImage";
-import { useTranslations } from "@/i18n/locale-provider";
+import { useLocale } from "@/i18n/locale-provider";
 import { redeemMallPackage } from "@/lib/api/mall";
-import type { MallData, MallPackage } from "@/lib/mock/mall";
-import { useState } from "react";
+import type { MallData, MallPackage, MallPackageType } from "@/lib/mock/mall";
+import { formatInteger } from "@/lib/format/datetime";
+import { useMemo, useState } from "react";
+
+type MallTab = "all" | "drinks" | "goods";
+
+const TABS: { id: MallTab; labelKey: "mall.tabAll" | "mall.tabDrinks" | "mall.tabGoods" }[] = [
+  { id: "all", labelKey: "mall.tabAll" },
+  { id: "drinks", labelKey: "mall.tabDrinks" },
+  { id: "goods", labelKey: "mall.tabGoods" },
+];
+
+function isDrink(type: MallPackageType): boolean {
+  return type === "free_drink";
+}
+
+function matchesTab(pkg: MallPackage, tab: MallTab): boolean {
+  if (tab === "all") {
+    return true;
+  }
+  if (tab === "drinks") {
+    return isDrink(pkg.type);
+  }
+  return !isDrink(pkg.type);
+}
+
+function formatPoints(value: number): string {
+  return formatInteger(value);
+}
 
 export function MallPageClient({ initialData }: { initialData: MallData }) {
-  const t = useTranslations();
+  const { t } = useLocale();
   const [data, setData] = useState(initialData);
+  const [tab, setTab] = useState<MallTab>("all");
   const [selected, setSelected] = useState<MallPackage | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -19,6 +47,11 @@ export function MallPageClient({ initialData }: { initialData: MallData }) {
     setHeldSelected(selected);
   }
   const dialogItem = selected ?? heldSelected;
+
+  const visible = useMemo(
+    () => data.packages.filter((pkg) => matchesTab(pkg, tab)),
+    [data.packages, tab],
+  );
 
   const nameOf = (pkg: MallPackage) =>
     pkg.nameKey ? t(`mall.items.${pkg.nameKey}`) : pkg.name;
@@ -59,13 +92,19 @@ export function MallPageClient({ initialData }: { initialData: MallData }) {
 
   return (
     <div className="px-6 pb-8">
-      <section className="anim-fade-up relative mt-4 overflow-hidden rounded-[12px] bg-gradient-to-l from-[#fd54b1] to-[#fda565] px-5 py-4">
-        <p className="text-[14px] leading-none font-bold text-white/90">
-          {t("mall.myPoints")}
+      <section className="mt-[36px] flex h-[50px] items-center rounded-[10px] bg-[#1F1F1F] px-8">
+        <p className="text-[12px] leading-[14px] text-white">{t("mall.remainingPoints")}</p>
+        <p className="ml-auto text-[24px] leading-none font-bold text-white tabular-nums">
+          {formatPoints(data.points)}
         </p>
-        <p className="mt-2 text-[32px] leading-none font-bold text-white tabular-nums">
-          {t("mall.pointsUnit", { n: data.points })}
-        </p>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/images/mall-coin.webp"
+          alt=""
+          width={26}
+          height={26}
+          className="ml-5 size-[26px] shrink-0 object-contain"
+        />
       </section>
 
       {message ? (
@@ -74,53 +113,56 @@ export function MallPageClient({ initialData }: { initialData: MallData }) {
         </p>
       ) : null}
 
-      {data.packages.length === 0 ? (
+      <div className="mt-[25px] flex gap-4">
+        {TABS.map((item) => {
+          const active = tab === item.id;
+          return (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setTab(item.id)}
+              className={`anim-press h-[50px] flex-1 rounded-[5px] text-[16px] leading-[18px] font-bold text-white transition-colors duration-[var(--motion-base)] ease-[var(--ease-motion)] motion-reduce:transition-none ${
+                active ? "bg-[#d01f25]" : "bg-[#1F1F1F]"
+              }`}
+            >
+              {t(item.labelKey)}
+            </button>
+          );
+        })}
+      </div>
+
+      {visible.length === 0 ? (
         <p className="py-10 text-center text-[13px] text-white/50">{t("mall.empty")}</p>
       ) : (
-        <ul className="anim-stagger mt-5 grid grid-cols-2 gap-3">
-          {data.packages.map((pkg) => {
-            const notEnough = data.points < pkg.pointsRequired;
-            return (
-              <li key={pkg.id}>
-                <button
-                  type="button"
-                  className="anim-press flex w-full flex-col items-center rounded-[12px] bg-[#242424] px-3 pt-3 pb-3 text-left"
-                  onClick={() => {
-                    setError(null);
-                    setSelected(pkg);
-                  }}
-                >
-                  <div className="relative size-[88px] overflow-hidden rounded-[10px] bg-[#3a3a3a]">
-                    <SafeImage
-                      src={pkg.image}
-                      alt=""
-                      fill
-                      sizes="88px"
-                      className="object-contain p-2"
-                    />
-                  </div>
-                  <p className="mt-3 w-full truncate text-center text-[14px] leading-none font-bold text-white">
-                    {nameOf(pkg)}
-                  </p>
-                  <p className="mt-2 text-[12px] leading-none font-bold text-[#fda565]">
-                    {t("mall.pointsUnit", { n: pkg.pointsRequired })}
-                  </p>
-                  {pkg.stock != null ? (
-                    <p className="mt-1 text-[11px] leading-none text-white/45">
-                      {t("mall.stock", { n: pkg.stock })}
-                    </p>
-                  ) : null}
-                  <span
-                    className={`mt-3 flex h-[32px] w-full items-center justify-center rounded-[8px] text-[13px] leading-none font-bold ${
-                      notEnough ? "bg-white/10 text-white/40" : "bg-[#d01f25] text-white"
-                    }`}
-                  >
-                    {notEnough ? t("mall.notEnough") : t("mall.redeem")}
-                  </span>
-                </button>
-              </li>
-            );
-          })}
+        <ul className="anim-stagger mt-[25px] grid grid-cols-3 gap-x-4 gap-y-2.5">
+          {visible.map((pkg) => (
+            <li key={pkg.id}>
+              <button
+                type="button"
+                className="anim-press flex w-full flex-col items-start text-left"
+                onClick={() => {
+                  setError(null);
+                  setSelected(pkg);
+                }}
+              >
+                <div className="relative aspect-square w-full overflow-hidden rounded-[10px] bg-[#1F1F1F]">
+                  <SafeImage
+                    src={pkg.image}
+                    alt=""
+                    fill
+                    sizes="120px"
+                    className="object-cover"
+                  />
+                </div>
+                <p className="mt-2.5 w-full truncate text-[16px] leading-[18px] font-bold text-white">
+                  {nameOf(pkg)}
+                </p>
+                <p className="mt-[5px] text-[16px] leading-[18px] text-white">
+                  {t("mall.pointsUnit", { n: pkg.pointsRequired })}
+                </p>
+              </button>
+            </li>
+          ))}
         </ul>
       )}
 

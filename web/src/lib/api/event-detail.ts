@@ -26,6 +26,9 @@ function mapEvent(event: EventDto): EventDetail {
     endsAt: event.ends_at,
     location: event.location,
     isHot: Boolean(event.is_hot),
+    likesCount: event.likes_count ?? 0,
+    commentsCount: event.comments_count ?? 0,
+    likedByMe: Boolean(event.liked_by_me),
     description: event.description,
     descriptionKey: null,
   };

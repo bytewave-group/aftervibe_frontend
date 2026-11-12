@@ -1,0 +1,20 @@
+/* /display/* pages are captured offscreen by Electron and sent to Resolume over Syphon: keep the page transparent
+   and hide the Next.js dev indicator so neither ends up on the LED. Scoped to pages rendering .av-display-root. */
+html:has(.av-display-root),
+html:has(.av-display-root) body {
+  background: transparent !important;
+  min-height: 0;
+  overflow: hidden;
+}
+
+html:has(.av-display-root) nextjs-portal {
+  display: none !important;
+}
+
+.av-display-root {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans", "Liberation Sans", Arial,
+    sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #fff;
+}

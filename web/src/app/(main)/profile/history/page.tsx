@@ -4,13 +4,17 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { HistoryBodySkeleton } from "@/components/navigation/PageSkeletons";
 import { loadHistory } from "@/lib/api/history";
 import { Suspense } from "react";
+import { DevMockBadge } from "@/components/dev/DevMockBadge";
 
 async function HistoryContent() {
   const { gifts, recharges } = await loadHistory();
   return (
-    <div className="anim-content-fade">
-      <HistoryPageClient gifts={gifts} recharges={recharges} />
-    </div>
+    <>
+      <div className="anim-content-fade">
+        <HistoryPageClient gifts={gifts} recharges={recharges} />
+      </div>
+      <DevMockBadge />
+    </>
   );
 }
 

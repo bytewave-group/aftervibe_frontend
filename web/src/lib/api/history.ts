@@ -7,8 +7,10 @@
  *
  * Recharge list:
  *   GET /api/customer/coin-orders  (CoinOrderApiController::index, auth required)
- *   Returns the latest 20 orders (not a paginator). Payment method/gateway
- *   is stored on CoinOrder but is not included in CoinOrderService::toPayload.
+ *   Returns the latest 20 orders (not a paginator), including payment_method
+ *   when the gateway payload has a category/provider.
+ * Recharge detail:
+ *   GET /api/customer/coin-orders/{id|orderNo}
  */
 import { displayImageUrl } from "@/lib/api/images";
 import {
@@ -16,9 +18,11 @@ import {
   logApiFallback,
   redirectIfUnauthorized,
 } from "@/lib/api/paginate";
-import { apiGet } from "@/lib/api/server";
+import { ApiError, apiGet } from "@/lib/api/server";
 import type {
   CoinOrderDto,
+  CoinOrderPaymentMethodDto,
+  CoinOrderShowResponse,
   CoinOrdersResponse,
   CustomerGiftDto,
   CustomerGiftsResponse,
@@ -32,16 +36,9 @@ import {
   type RechargeMethod,
   type RechargeRecord,
 } from "@/lib/mock/history";
+import { devMockIfEmpty, devMockOnError } from "@/lib/mock/devFallback";
 
 export type { GiftRecord, HistoryData, RechargeRecord };
-
-function stableOrderId(orderNo: string, index: number): number {
-  let hash = 0;
-  for (let i = 0; i < orderNo.length; i += 1) {
-    hash = (hash * 31 + orderNo.charCodeAt(i)) | 0;
-  }
-  return Math.abs(hash) || index + 1;
-}
 
 function displayCurrency(currency: string | undefined): string {
   const value = (currency ?? "").trim();
@@ -51,45 +48,31 @@ function displayCurrency(currency: string | undefined): string {
   return value;
 }
 
-function mapPaymentMethod(gateway: string | null | undefined): {
-  method: RechargeMethod;
-  provider: string;
+function mapPaymentMethod(
+  payment: CoinOrderPaymentMethodDto | null | undefined,
+): {
+  category: RechargeRecord["category"];
+  method: RechargeMethod | null;
+  provider: string | null;
 } {
-  const name = (gateway ?? "").trim();
-  const lower = name.toLowerCase();
-  const bankHints = [
-    "bank",
-    "fpx",
-    "maybank",
-    "cimb",
-    "rhb",
-    "public",
-    "hong leong",
-    "islam",
-  ];
-  const ewalletHints = [
-    "tng",
-    "touch",
-    "grab",
-    "boost",
-    "shopee",
-    "ewallet",
-    "e-wallet",
-    "wallet",
-  ];
-  if (bankHints.some((hint) => lower.includes(hint))) {
-    return { method: "bank", provider: name };
+  if (!payment) {
+    return { category: null, method: null, provider: null };
   }
-  if (ewalletHints.some((hint) => lower.includes(hint))) {
-    return { method: "ewallet", provider: name };
-  }
-  return { method: "ewallet", provider: name || "Online payment" };
+  const raw = payment.category;
+  const category = raw === "bank" || raw === "ewallet" || raw === "card" ? raw : null;
+  const method: RechargeMethod | null =
+    category === "bank" || category === "ewallet" ? category : null;
+  const provider = payment.provider?.trim() || null;
+  return { category, method, provider };
 }
 
-function mapRecharge(order: CoinOrderDto, index: number): RechargeRecord {
-  const payment = mapPaymentMethod(order.gateway);
+export function mapRecharge(order: CoinOrderDto, index = 0): RechargeRecord {
+  const payment = mapPaymentMethod(order.payment_method);
+  const orderNo = (order.order_no || String(order.id || index + 1)).trim();
   return {
-    id: stableOrderId(order.order_no || String(index + 1), index),
+    id: orderNo,
+    orderNo,
+    category: payment.category,
     method: payment.method,
     provider: payment.provider,
     amount: Number(order.amount) || 0,
@@ -105,8 +88,19 @@ function mapGift(item: CustomerGiftDto): GiftRecord {
     recipientName: item.recipient_name || "",
     giftName: item.gift_name || "",
     quantity: Number(item.quantity) || 1,
+    totalAmount:
+      item.total_amount == null || !Number.isFinite(Number(item.total_amount))
+        ? null
+        : Number(item.total_amount),
     image: displayImageUrl(item.image, GIFT_PLACEHOLDER_IMAGE),
   };
+}
+
+function mockGifts(): GiftRecord[] {
+  return structuredClone(mockGiftRecords).map((item) => ({
+    ...item,
+    image: displayImageUrl(item.image, GIFT_PLACEHOLDER_IMAGE),
+  }));
 }
 
 async function loadGiftRecords(): Promise<GiftRecord[]> {
@@ -118,17 +112,12 @@ async function loadGiftRecords(): Promise<GiftRecord[]> {
       );
       return payload.gifts ?? {};
     });
-    return rows.map(mapGift);
+    const records = rows.map(mapGift);
+    return devMockIfEmpty("history.gifts", records, records.length === 0, mockGifts);
   } catch (error) {
     redirectIfUnauthorized(error, "/profile/history");
-    logApiFallback(
-      "[history] GET /api/customer/gifts failed; falling back to mock gift records",
-      error,
-    );
-    return structuredClone(mockGiftRecords).map((item) => ({
-      ...item,
-      image: displayImageUrl(item.image, GIFT_PLACEHOLDER_IMAGE),
-    }));
+    logApiFallback("[history] GET /api/customer/gifts failed", error);
+    return devMockOnError("history.gifts", error, mockGifts, () => []);
   }
 }
 
@@ -138,16 +127,16 @@ async function loadRechargeRecords(): Promise<RechargeRecord[]> {
       "/api/customer/coin-orders",
       "required",
     );
-    return (payload.orders ?? [])
+    const records = (payload.orders ?? [])
       .filter((order) => order.status === "paid")
       .map(mapRecharge);
+    return devMockIfEmpty("history.recharges", records, records.length === 0, () =>
+      structuredClone(mockRechargeRecords),
+    );
   } catch (error) {
     redirectIfUnauthorized(error, "/profile/history");
-    logApiFallback(
-      "[history] GET /api/customer/coin-orders failed; falling back to mock recharge records",
-      error,
-    );
-    return structuredClone(mockRechargeRecords);
+    logApiFallback("[history] GET /api/customer/coin-orders failed", error);
+    return devMockOnError("history.recharges", error, () => structuredClone(mockRechargeRecords), () => []);
   }
 }
 
@@ -157,4 +146,36 @@ export async function loadHistory(): Promise<HistoryData> {
     loadRechargeRecords(),
   ]);
   return { gifts, recharges };
+}
+
+export async function loadCoinOrder(orderNoOrId: string): Promise<RechargeRecord | null> {
+  const trimmed = orderNoOrId.trim();
+  if (!trimmed) {
+    return null;
+  }
+  try {
+    const payload = await apiGet<CoinOrderShowResponse>(
+      `/api/customer/coin-orders/${encodeURIComponent(trimmed)}`,
+      "required",
+    );
+    if (!payload.order) {
+      return null;
+    }
+    return mapRecharge(payload.order);
+  } catch (error) {
+    redirectIfUnauthorized(error, "/profile/history?tab=recharge");
+    if (error instanceof ApiError && error.status === 404) {
+      return null;
+    }
+    logApiFallback(
+      "[history] GET /api/customer/coin-orders/{id} failed",
+      error,
+    );
+    return devMockOnError(
+      "history.recharge",
+      error,
+      () => structuredClone(mockRechargeRecords.find((item) => item.id === trimmed) ?? null),
+      () => null,
+    );
+  }
 }

@@ -499,5 +499,9 @@
   "Invalid QR code - staff only": "Mã QR không hợp lệ - chỉ dành cho nhân viên",
   "Scan QR to confirm": "Quét QR để xác nhận",
   "QR code does not match the selected mummy": "Mã QR không khớp với mummy đã chọn",
-  "QR code does not match the selected staff": "Mã QR không khớp với nhân viên đã chọn"
+  "QR code does not match the selected staff": "Mã QR không khớp với nhân viên đã chọn",
+  "Search staff": "Tìm nhân viên",
+  "Submitting...": "Đang gửi...",
+  "Complete the steps above to continue": "Hoàn tất các bước trên để tiếp tục",
+  "Frequently used": "Thường dùng"
 }

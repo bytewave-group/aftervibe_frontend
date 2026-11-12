@@ -17,6 +17,10 @@ const config = isLive
         appApi: "https://api.after-vibe.com",
         displayApi: "https://api.after-vibe.com/animations/display",
         websocket: "wss://client.after-vibe.com/ws",
+        // TODO(prod URL): set to the deployed Next.js web, e.g. "https://<web-host>/display/rank".
+        // Not known yet (web/ is not deployed); null = use AFTERVIBE_RANK_OVERLAY_URL / resolume-map.json
+        // `rankOverlayUrl`, else the bundled dist page.
+        rankOverlayUrl: null,
         barId: null,
     }
     : {
@@ -28,6 +32,8 @@ const config = isLive
         appApi: "https://aftervibe_backend.test/api",
         displayApi: "https://aftervibe_backend.test/api/animations/display",
         websocket: "ws://127.0.0.1:8080",
+        // Rank overlay page served by the Next.js web dev server (web/src/app/display/rank).
+        rankOverlayUrl: "http://localhost:3000/display/rank",
         barId: null,
     };
 

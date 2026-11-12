@@ -4,13 +4,17 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { MallBodySkeleton } from "@/components/navigation/PageSkeletons";
 import { loadMall } from "@/lib/api/mall";
 import { Suspense } from "react";
+import { DevMockBadge } from "@/components/dev/DevMockBadge";
 
 async function MallContent() {
   const data = await loadMall();
   return (
-    <div className="anim-content-fade">
-      <MallPageClient initialData={data} />
-    </div>
+    <>
+      <div className="anim-content-fade">
+        <MallPageClient initialData={data} />
+      </div>
+      <DevMockBadge />
+    </>
   );
 }
 

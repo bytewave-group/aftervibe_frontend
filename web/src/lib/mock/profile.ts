@@ -22,12 +22,11 @@ export interface ProfileData {
   name: string;
   phone: string;
   memberCode: string | null;
+  foodcourtCustomerId: string | null;
   avatar: string;
   balance: number;
   rewardPoints: number;
   membership: string | null;
-  notificationsEnabled: boolean;
-  giftConfirmEnabled: boolean;
 }
 
 export const profileData: ProfileData = {
@@ -36,12 +35,11 @@ export const profileData: ProfileData = {
   name: "Kongfuben88",
   phone: "0123456789",
   memberCode: "65514151165",
+  foodcourtCustomerId: null,
   avatar: "/images/avatar-profile.png",
   balance: 10,
   rewardPoints: 0,
   membership: null,
-  notificationsEnabled: true,
-  giftConfirmEnabled: true,
 };
 
 export function formatBalance(balance: number): string {

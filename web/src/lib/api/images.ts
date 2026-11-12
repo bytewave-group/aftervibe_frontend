@@ -96,3 +96,55 @@ export function bannerUrl(url: string | null | undefined): string {
 }
 
 export { PLACEHOLDER_AVATAR, PLACEHOLDER_BANNER };
+
+function posAssetOrigin(): string {
+  return trimTrailingSlashes((process.env.NEXT_PUBLIC_POS_ASSET_BASE_URL ?? "").trim());
+}
+
+/**
+ * Resolve a POS media value (typically product_image_url) for the browser.
+ * - absolute http(s) URLs pass through
+ * - `/uploads/...` and other non-app relative paths use NEXT_PUBLIC_POS_ASSET_BASE_URL
+ * - Next public assets such as `/images/...` are left as-is
+ */
+export function resolvePosAssetUrl(url: string | null | undefined): string | null {
+  if (!url || !url.trim()) {
+    return null;
+  }
+
+  const value = url.trim();
+
+  if (value.startsWith("//")) {
+    return `https:${value}`;
+  }
+
+  if (value.startsWith("http://") || value.startsWith("https://")) {
+    return value;
+  }
+
+  const isAppAsset =
+    value.startsWith("/images/") ||
+    value.startsWith("/_next/") ||
+    value === "/favicon.ico";
+  if (isAppAsset) {
+    return value;
+  }
+
+  const origin = posAssetOrigin();
+  if (!origin) {
+    return value;
+  }
+
+  if (value.startsWith("/")) {
+    return `${origin}${value}`;
+  }
+
+  return `${origin}/${trimLeadingSlashes(value)}`;
+}
+
+export function displayPosAssetUrl(
+  url: string | null | undefined,
+  fallback: string,
+): string {
+  return resolvePosAssetUrl(url) ?? fallback;
+}

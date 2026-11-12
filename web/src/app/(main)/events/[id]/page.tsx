@@ -5,6 +5,7 @@ import { EventDetailBodySkeleton } from "@/components/navigation/PageSkeletons";
 import { getT } from "@/i18n/get-locale";
 import { getEvent } from "@/lib/api/events";
 import { cache, Suspense } from "react";
+import { DevMockBadge } from "@/components/dev/DevMockBadge";
 
 const loadEvent = cache(getEvent);
 
@@ -22,15 +23,18 @@ async function EventDetailContent({ params }: { params: Promise<{ id: string }> 
   const event = Number.isFinite(numericId) ? await loadEvent(numericId) : null;
 
   return (
-    <div className="anim-content-fade">
-      {event ? (
-        <EventDetailView event={event} />
-      ) : (
-        <p className="px-6 pt-10 text-center text-[14px] text-white/60">
-          {t("eventDetail.notFound")}
-        </p>
-      )}
-    </div>
+    <>
+      <div className="anim-content-fade">
+        {event ? (
+          <EventDetailView event={event} />
+        ) : (
+          <p className="px-6 pt-10 text-center text-[14px] text-white/60">
+            {t("eventDetail.notFound")}
+          </p>
+        )}
+      </div>
+      <DevMockBadge />
+    </>
   );
 }
 

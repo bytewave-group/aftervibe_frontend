@@ -16,6 +16,7 @@ import {
   type MallPackageType,
   type RedeemResult,
 } from "@/lib/mock/mall";
+import { devMockIfEmpty, devMockOnError } from "@/lib/mock/devFallback";
 import { revalidatePath } from "next/cache";
 
 export type { MallData, RedeemResult };
@@ -36,7 +37,8 @@ function asPackageType(value: string | undefined): MallPackageType {
 }
 
 function mapPackage(pkg: RewardPackageDto): MallPackage {
-  const mediaPath = pkg.media?.file_path || pkg.media?.url || null;
+  const mediaPath =
+    pkg.image_url || pkg.image_path || pkg.media?.file_path || pkg.media?.url || null;
   return {
     id: pkg.id,
     name: pkg.name,
@@ -54,18 +56,23 @@ export async function loadMall(): Promise<MallData> {
       apiGet<RewardsResponse>("/api/customer/rewards", "required"),
       apiGet<MeResponse>("/api/customer/me", "required"),
     ]);
-    return {
+    const data: MallData = {
       enabled: rewards.enabled !== false,
       points: Number(me.customer?.reward_points) || 0,
       packages: (rewards.packages ?? []).map(mapPackage),
     };
+    return devMockIfEmpty("mall", data, data.enabled && data.packages.length === 0, () => ({
+      ...structuredClone(mockMallData),
+      points: data.points,
+    }));
   } catch (error) {
     redirectIfUnauthorized(error, "/mall");
-    logApiFallback(
-      "[mall] GET /api/customer/rewards failed; falling back to mock mall data",
-      error,
-    );
-    return structuredClone(mockMallData);
+    logApiFallback("[mall] GET /api/customer/rewards failed", error);
+    return devMockOnError("mall", error, () => structuredClone(mockMallData), () => ({
+      enabled: true,
+      points: 0,
+      packages: [],
+    }));
   }
 }
 

@@ -1,5 +1,6 @@
 "use server";
 
+import { resolveMediaUrl } from "@/lib/api/images";
 import { apiGet, apiPost, ApiError } from "@/lib/api/server";
 import { logApiFallback, redirectIfUnauthorized } from "@/lib/api/paginate";
 import type {
@@ -10,23 +11,31 @@ import type {
 import {
   mockSpinStatus,
   type SpinPrize,
-  type SpinPrizeType,
   type SpinPayWith,
   type SpinResult,
   type SpinStatus,
 } from "@/lib/mock/spin";
+import { devMockIfEmpty, devMockOnError } from "@/lib/mock/devFallback";
 import { revalidatePath } from "next/cache";
 
 export type { SpinResult, SpinStatus };
 
-function asPrizeType(value: string | undefined): SpinPrizeType {
-  return value === "coins" ? "coins" : "points";
-}
-
 function mapPrize(prize: SpinPrizeDto): SpinPrize {
+  const type = typeof prize.type === "string" && prize.type ? prize.type : "none";
+  const min = prize.amount_min == null ? null : Number(prize.amount_min);
+  const max = prize.amount_max == null ? null : Number(prize.amount_max);
   return {
-    type: asPrizeType(prize.type),
+    type,
     amount: Number(prize.amount) || 0,
+    amountMin: min != null && Number.isFinite(min) ? min : null,
+    amountMax: max != null && Number.isFinite(max) ? max : null,
+    label: prize.label,
+    package: prize.package
+      ? {
+          ...prize.package,
+          image: resolveMediaUrl(prize.package.image),
+        }
+      : null,
   };
 }
 
@@ -34,15 +43,25 @@ function mapStatus(payload: SpinWheelResponse): SpinStatus {
   return {
     chances: Number(payload.chances) || 0,
     dailyChances: Number(payload.daily_chances) || 0,
+    freeSpinPeriod: payload.free_spin_period === "weekly" ? "weekly" : "daily",
     nextSpinSeconds: Number(payload.next_spin_seconds) || 0,
     cost: {
       coins: payload.cost?.coins ?? null,
       points: payload.cost?.points ?? null,
     },
-    balance: Number(payload.balance) || 0,
+    balance: spendableBalance(payload),
     rewardPoints: Number(payload.reward_points) || 0,
+    paidSpinsRemaining:
+      payload.paid_spins_remaining === undefined
+        ? null
+        : payload.paid_spins_remaining,
     prizes: (payload.prizes ?? []).map(mapPrize),
   };
+}
+
+function spendableBalance(payload: { balance: number; available_balance?: number | null }): number {
+  const amount = payload.available_balance ?? payload.balance;
+  return Number(amount) || 0;
 }
 
 function mapPaidWith(value: string | undefined): SpinPayWith {
@@ -58,14 +77,21 @@ export async function loadSpinStatus(): Promise<SpinStatus> {
       "/api/customer/spin-wheel",
       "required",
     );
-    return mapStatus(payload);
+    const status = mapStatus(payload);
+    return devMockIfEmpty("spin", status, status.prizes.length === 0, () => structuredClone(mockSpinStatus));
   } catch (error) {
     redirectIfUnauthorized(error, "/spin");
-    logApiFallback(
-      "[spin] GET /api/customer/spin-wheel failed; falling back to mock spin data",
-      error,
-    );
-    return structuredClone(mockSpinStatus);
+    logApiFallback("[spin] GET /api/customer/spin-wheel failed", error);
+    return devMockOnError("spin", error, () => structuredClone(mockSpinStatus), () => ({
+      chances: 0,
+      dailyChances: 0,
+      nextSpinSeconds: 0,
+      cost: { coins: null, points: null },
+      balance: 0,
+      rewardPoints: 0,
+      paidSpinsRemaining: null,
+      prizes: [],
+    }));
   }
 }
 
@@ -87,9 +113,13 @@ export async function performSpin(
       prize: mapPrize(payload.prize),
       paidWith: mapPaidWith(payload.paid_with),
       costAmount: Number(payload.cost_amount) || 0,
-      balance: Number(payload.balance) || 0,
+      balance: spendableBalance(payload),
       rewardPoints: Number(payload.reward_points) || 0,
       chances: Number(payload.chances) || 0,
+      paidSpinsRemaining:
+        payload.paid_spins_remaining === undefined
+          ? null
+          : payload.paid_spins_remaining,
     };
   } catch (error) {
     redirectIfUnauthorized(error, "/spin");

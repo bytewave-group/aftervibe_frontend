@@ -2,6 +2,7 @@
 
 import { loginAction, type LoginState } from "@/lib/auth/actions";
 import { useTranslations } from "@/i18n/locale-provider";
+import { isDevMockEnabled } from "@/lib/mock/devMode";
 import { useActionState } from "react";
 
 const ERROR_KEYS: Record<string, string> = {
@@ -76,6 +77,20 @@ export function AuthLoginForm({ redirectTo }: { redirectTo: string }) {
       >
         {pending ? t("login.submitting") : t("login.submit")}
       </button>
+
+      {isDevMockEnabled() ? (
+        <button
+          type="submit"
+          name="intent"
+          value="dev-mock"
+          formNoValidate
+          disabled={pending}
+          data-dev-mock-login
+          className="anim-press mt-3 flex h-[36px] w-full items-center justify-center rounded-[10px] border border-dashed border-amber-400/70 text-[13px] leading-none font-bold text-amber-300 disabled:opacity-70"
+        >
+          Dev: mock login
+        </button>
+      ) : null}
     </form>
   );
 }

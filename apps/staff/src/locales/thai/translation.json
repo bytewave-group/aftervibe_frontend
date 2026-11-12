@@ -499,5 +499,9 @@
   "Invalid QR code - staff only": "QR code ไม่ถูกต้อง - เฉพาะพนักงานเท่านั้น",
   "Scan QR to confirm": "สแกน QR เพื่อยืนยัน",
   "QR code does not match the selected mummy": "QR code ไม่ตรงกับมัมมี่ที่เลือก",
-  "QR code does not match the selected staff": "QR code ไม่ตรงกับพนักงานที่เลือก"
+  "QR code does not match the selected staff": "QR code ไม่ตรงกับพนักงานที่เลือก",
+  "Search staff": "ค้นหาพนักงาน",
+  "Submitting...": "กำลังส่ง...",
+  "Complete the steps above to continue": "ทำขั้นตอนด้านบนให้ครบเพื่อดำเนินการต่อ",
+  "Frequently used": "ใช้บ่อย"
 }

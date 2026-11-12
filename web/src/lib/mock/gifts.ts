@@ -3,12 +3,14 @@
  *
  * Real endpoints (use these first):
  *   GET  /api/customer/staff     — active staff a customer can gift
+ *   GET  /api/customer/customers — other active customers (optional ?q= / ?search=)
  *   GET  /api/display/gift       — gift catalog (display + interaction)
  *   GET  /api/customer/balance   — { balance, available_balance, reserved_coins }
- *   GET  /api/customer/gifts     — sent-gift history (staff_id / staff_number when present)
- *   POST /api/playlists/start    — queue a gift for a staff member
+ *   GET  /api/customer/gifts     — sent-gift history (staff or customer recipient)
+ *   POST /api/playlists/start    — queue a gift for staff or another customer
  *
  * There is no staff-search endpoint (filter client-side by username / name).
+ * Customer search can also be filtered server-side with `q`.
  * Confirm threshold comes from GET /api/display/gift (`confirm_threshold`,
  * per-gift `requires_confirmation`); CONFIRM_THRESHOLD is the fallback.
  */
@@ -18,6 +20,8 @@ export const STAFF_PLACEHOLDER_AVATAR = "/images/avatar-profile.png";
 
 /** Fallback when the catalog response has no confirm_threshold. */
 export const CONFIRM_THRESHOLD = 588;
+
+export type GiftRecipientType = "staff" | "customer";
 
 export type GiftStaff = {
   id: number;
@@ -54,6 +58,15 @@ export const mockGiftStaff: GiftStaff[] = [
 ];
 
 export const mockRecentGiftStaff: GiftStaff[] = mockGiftStaff.slice(0, 4);
+
+export const mockGiftCustomers: GiftStaff[] = [
+  { id: 101, name: "Alex", number: "alex", avatar: "/images/avatar-profile.png" },
+  { id: 102, name: "Jamie", number: "jamie", avatar: "/images/avatar-1.png" },
+  { id: 103, name: "Sam", number: "sam", avatar: "/images/avatar-2.png" },
+  { id: 104, name: "Riley", number: "riley", avatar: "/images/avatar-3.png" },
+];
+
+export const mockRecentGiftCustomers: GiftStaff[] = mockGiftCustomers.slice(0, 2);
 
 export const mockGiftItems: GiftItem[] = [
   { displayId: 1, interactionId: 1, name: "火箭发射", price: 588, image: GIFT_PLACEHOLDER_IMAGE, requiresConfirmation: true },

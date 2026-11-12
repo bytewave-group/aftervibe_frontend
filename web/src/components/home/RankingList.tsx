@@ -9,9 +9,10 @@ import {
 
 interface RankingListProps {
   data: RankingListData & { title: string };
+  empty?: string;
 }
 
-export async function RankingList({ data }: RankingListProps) {
+export async function RankingList({ data, empty }: RankingListProps) {
   const { t } = await getT();
   const metricIcon = metricIcons[data.metric];
   const metricLabel = t(`home.metrics.${data.metric}`);
@@ -29,6 +30,11 @@ export async function RankingList({ data }: RankingListProps) {
         </h2>
       </div>
 
+      {data.entries.length === 0 ? (
+        <p className="mt-[5px] py-3 text-center text-[13px] leading-none text-white/50">
+          {empty}
+        </p>
+      ) : (
       <ol className="anim-stagger mt-[5px] flex flex-col gap-[5px]">
         {data.entries.map((entry) => (
           <li key={entry.id}>
@@ -90,6 +96,7 @@ export async function RankingList({ data }: RankingListProps) {
           </li>
         ))}
       </ol>
+      )}
     </section>
   );
 }

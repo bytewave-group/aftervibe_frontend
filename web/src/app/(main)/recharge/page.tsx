@@ -3,6 +3,7 @@ import { RechargeBodySkeleton } from "@/components/navigation/PageSkeletons";
 import { loadRecharge } from "@/lib/api/recharge";
 import { safeRedirectPath } from "@/lib/auth/redirect";
 import { Suspense } from "react";
+import { DevMockBadge } from "@/components/dev/DevMockBadge";
 
 async function RechargeContent({
   searchParams,
@@ -15,14 +16,17 @@ async function RechargeContent({
   const shortfall = Number.isFinite(shortfallRaw) && shortfallRaw > 0 ? shortfallRaw : null;
 
   return (
-    <div className="anim-content-fade flex min-h-0 flex-1 flex-col">
-      <RechargePageClient
-        initialData={data}
-        shortfall={shortfall}
-        backHref={safeRedirectPath(params.from, "/")}
-        returnedOrderNo={params.coin_order?.trim() || null}
-      />
-    </div>
+    <>
+      <div className="anim-content-fade flex min-h-0 flex-1 flex-col">
+        <RechargePageClient
+          initialData={data}
+          shortfall={shortfall}
+          backHref={safeRedirectPath(params.from, "/")}
+          returnedOrderNo={params.coin_order?.trim() || null}
+        />
+      </div>
+      <DevMockBadge />
+    </>
   );
 }
 

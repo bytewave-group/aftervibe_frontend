@@ -1,11 +1,13 @@
 "use client";
 
 import { claimCheckinAction, loadCheckinStatusAction } from "@/lib/api/checkin-actions";
+import { claimedRewardText, grantCaption } from "@/lib/checkin";
 import { mockCheckinStatus, type CheckinStatus, type DayState } from "@/lib/mock/checkin";
 import { useTranslations } from "@/i18n/locale-provider";
 import { MotionBurst } from "@/components/motion/MotionBurst";
 import { usePresence } from "@/components/ui/usePresence";
 import { useEffect, useId, useRef, useState } from "react";
+import { FIGMA_SHEET_BG } from "@/lib/figma-backgrounds";
 
 interface CheckinDialogProps {
   onClose: () => void;
@@ -16,8 +18,8 @@ interface CheckinDialogProps {
 
 type Feedback = "loading" | "claiming" | "success" | "already_claimed" | "error" | "load_error" | null;
 
-function labelBarClass(day: number, state: DayState): string {
-  if (day === 7) return "bg-[#FDA565] text-white";
+function labelBarClass(isLast: boolean, state: DayState): string {
+  if (isLast) return "bg-[#FDA565] text-white";
   if (state === "locked") return "bg-[#6B6B6B] text-white";
   return "bg-[#D01F25] text-white";
 }
@@ -51,6 +53,22 @@ function feedbackText(
     default:
       return null;
   }
+}
+
+function subtitleFor(
+  t: (key: string, vars?: Record<string, string | number>) => string,
+  status: CheckinStatus | null,
+): string {
+  if (!status) {
+    return t("checkin.subtitle");
+  }
+  if (!status.campaignActive) {
+    return t("checkin.campaignClosed");
+  }
+  if (status.mode === "consecutive_streak") {
+    return t("checkin.subtitleStreak");
+  }
+  return t("checkin.subtitleWeekly");
 }
 
 export function CheckinDialog({ onClose, previewStatus, open = true }: CheckinDialogProps) {
@@ -102,14 +120,14 @@ export function CheckinDialog({ onClose, previewStatus, open = true }: CheckinDi
   }
 
   const claimToday = async () => {
-    if (!status || status.checkedIn || feedback === "claiming" || feedback === "load_error") return;
+    if (!status || status.checkedIn || !status.campaignActive || feedback === "claiming" || feedback === "load_error") return;
     const today = status.days.find((day) => day.state === "today");
     if (!today) return;
     setFeedback("claiming");
     const result = await claimCheckinAction(status);
     if (result.ok) {
       setStatus(result.status);
-      setReward(result.reward);
+      setReward(claimedRewardText(t, result.status) || result.reward);
       setCelebratedDay(today.day);
       setFeedback("success");
       return;
@@ -127,7 +145,11 @@ export function CheckinDialog({ onClose, previewStatus, open = true }: CheckinDi
     ...day,
     state: "locked" as const,
   }));
+  const visibleDays = days ?? placeholders;
+  const lastDay = visibleDays.length;
   const message = feedbackText(t, feedback, reward);
+  const streakKey =
+    (status?.streakCount ?? 0) === 1 ? "checkin.streakStatus" : "checkin.streakStatusPlural";
 
   return (
     <div
@@ -141,7 +163,10 @@ export function CheckinDialog({ onClose, previewStatus, open = true }: CheckinDi
         className={`anim-sheet relative w-full max-w-[327px] ${exiting ? "is-exit" : ""}`}
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="relative overflow-visible rounded-[16px] pt-[36px] pb-5">
+        <div
+          className="relative overflow-visible rounded-[16px] pt-[36px] pb-5"
+          style={{ background: FIGMA_SHEET_BG }}
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/images/checkin-panel.svg"
@@ -168,23 +193,55 @@ export function CheckinDialog({ onClose, previewStatus, open = true }: CheckinDi
 
           <div className="relative z-10 px-4">
             <p className="text-center text-[11px] leading-[16px] text-white/70">
-              {t("checkin.subtitle")}
+              {subtitleFor(t, status)}
             </p>
+            {status ? (
+              <p className="mt-1 text-center text-[11px] leading-[16px] text-white/70">
+                {t("checkin.cycleStatus", {
+                  current: status.currentDay,
+                  length: status.cycleLength,
+                })}
+                {status.mode === "consecutive_streak" ? (
+                  <>
+                    {" · "}
+                    {t(streakKey, { n: status.streakCount })}
+                  </>
+                ) : null}
+              </p>
+            ) : null}
+            {status?.bonus && status.bonusDay ? (
+              <p className="mt-1 text-center text-[11px] leading-[16px] text-[#FDA565]">
+                {t("checkin.bonusOn", {
+                  n: status.bonusDay,
+                  reward: grantCaption(t, status.bonus),
+                })}
+              </p>
+            ) : null}
 
             <div className="anim-stagger mt-4 grid grid-cols-4 gap-[8px]">
-              {(days ?? placeholders).map((day) => (
-                <DayTile
-                  key={day.day}
-                  label={day.label}
-                  state={day.state}
-                  wide={day.day === 7}
-                  ariaLabel={dayAria(t, day.day, day.state)}
-                  labelBarClass={labelBarClass(day.day, day.state)}
-                  claiming={feedback === "claiming" && day.state === "today"}
-                  celebrate={day.day === celebratedDay}
-                  onClaim={status && day.state === "today" ? claimToday : undefined}
-                />
-              ))}
+              {visibleDays.map((day) => {
+                const isLast = day.day === lastDay;
+                const wide = isLast && lastDay % 4 !== 0;
+                return (
+                  <DayTile
+                    key={day.day}
+                    label={day.label}
+                    state={day.state}
+                    caption={grantCaption(t, day.grant)}
+                    image={day.grant.package?.image ?? null}
+                    wide={wide}
+                    ariaLabel={dayAria(t, day.day, day.state)}
+                    labelBarClass={labelBarClass(isLast, day.state)}
+                    claiming={feedback === "claiming" && day.state === "today"}
+                    celebrate={day.day === celebratedDay}
+                    onClaim={
+                      status && status.campaignActive && day.state === "today"
+                        ? claimToday
+                        : undefined
+                    }
+                  />
+                );
+              })}
             </div>
 
             {feedback === "loading" ? (
@@ -226,6 +283,8 @@ export function CheckinDialog({ onClose, previewStatus, open = true }: CheckinDi
 function DayTile({
   label,
   state,
+  caption,
+  image,
   ariaLabel,
   labelBarClass,
   wide,
@@ -235,6 +294,8 @@ function DayTile({
 }: {
   label: string;
   state: DayState;
+  caption: string;
+  image?: string | null;
   ariaLabel: string;
   labelBarClass: string;
   wide?: boolean;
@@ -256,21 +317,26 @@ function DayTile({
         wide ? "col-span-2 h-[92px]" : "h-[92px] w-full"
       } ${clickable ? "cursor-pointer" : "cursor-default"} ${claiming ? "opacity-70" : ""}`}
     >
-      <span className="flex min-h-0 flex-1 items-center justify-center">
+      <span className="flex min-h-0 flex-1 flex-col items-center justify-center gap-0.5 px-0.5">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={
-            wide
-              ? "/images/checkin-chest.png"
-              : claimedOrToday
-                ? "/images/checkin-diamond-orange.png"
-                : "/images/checkin-diamond-silver.png"
+            image
+              ? image
+              : wide
+                ? "/images/checkin-chest.png"
+                : claimedOrToday
+                  ? "/images/checkin-diamond-orange.png"
+                  : "/images/checkin-diamond-silver.png"
           }
           alt=""
           width={wide ? 72 : 40}
           height={wide ? 54 : 40}
           className={wide ? "h-[54px] w-[72px] object-contain" : "size-[40px] object-contain"}
         />
+        <span className="max-w-full truncate text-[9px] leading-none text-white/90">
+          {caption}
+        </span>
       </span>
       <span
         className={`flex h-[22px] w-full shrink-0 items-center justify-center text-[12px] leading-none font-bold ${labelBarClass}`}

@@ -5,6 +5,7 @@ import { logApiFallback, redirectIfUnauthorized } from "@/lib/api/paginate";
 import type { MeResponse, ProfileUpdateResponse } from "@/lib/api/types";
 import { mapCustomerToProfile } from "@/lib/api/profile";
 import { profileData, type ProfileData } from "@/lib/mock/profile";
+import { devMockOnError } from "@/lib/mock/devFallback";
 import { revalidatePath } from "next/cache";
 
 export interface ProfileEditInput {
@@ -23,11 +24,11 @@ export async function loadProfileForEdit(): Promise<ProfileData> {
     return mapCustomerToProfile(payload.customer);
   } catch (error) {
     redirectIfUnauthorized(error, "/profile/edit");
-    logApiFallback(
-      "[profile-edit] GET /api/customer/me failed; falling back to mock profile",
-      error,
-    );
-    return structuredClone(profileData);
+    logApiFallback("[profile-edit] GET /api/customer/me failed", error);
+    // Production surfaces the real error rather than letting someone edit a blank profile.
+    return devMockOnError("profile", error, () => structuredClone(profileData), () => {
+      throw error;
+    });
   }
 }
 

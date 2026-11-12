@@ -1,10 +1,43 @@
 const { BrowserWindow, app } = require("electron");
+const fs = require("fs");
 const path = require("path");
+const config = require("../config");
 const { lookupOverlay } = require("./map");
 const { createSender } = require("./sender");
 
 const MAX_WIDTH = 7680;
 const MAX_HEIGHT = 4320;
+const OVERLAY_RETRY_MS = 3000;
+// After this many consecutive remote failures, show the bundled page (if present) and keep retrying remote.
+const OVERLAY_REMOTE_FAILURES_BEFORE_FALLBACK = 5;
+const OVERLAY_REMOTE_RECHECK_MS = 60 * 1000;
+const BUNDLED_OVERLAY = path.join(__dirname, "../../dist/index.html");
+
+/**
+ * Rank overlay base URL (Next.js web /display/rank), first match wins:
+ * 1. env AFTERVIBE_RANK_OVERLAY_URL
+ * 2. `rankOverlayUrl` in userData/resolume-map.json (per machine, survives bar re-registration)
+ * 3. config.rankOverlayUrl (local: http://localhost:3000/display/rank; live: not set yet)
+ * null = load the bundled dist page.
+ */
+function rankOverlayBaseUrl() {
+    if (process.env.AFTERVIBE_RANK_OVERLAY_URL) {
+        return process.env.AFTERVIBE_RANK_OVERLAY_URL;
+    }
+
+    try {
+        const file = path.join(app.getPath("userData"), "resolume-map.json");
+        const raw = JSON.parse(fs.readFileSync(file, "utf8"));
+
+        if (typeof raw.rankOverlayUrl === "string" && /^https?:\/\//i.test(raw.rankOverlayUrl)) {
+            return raw.rankOverlayUrl;
+        }
+    } catch (error) {
+        // No map / unreadable map: fall through to config.
+    }
+
+    return config.rankOverlayUrl || null;
+}
 
 function displaySize(display) {
     const width = Math.min(
@@ -55,23 +88,29 @@ function createOverlayHost({ getMap, client, onDisplayRemoved }) {
         });
     });
 
-    function loadOverlay(window, display) {
-        const isDev = !app.isPackaged;
+    function loadBundledOverlay(window, display) {
+        window.loadFile(BUNDLED_OVERLAY, {
+            hash: `/overlay?env=live&display_id=${display.id}`,
+        });
+    }
 
-        if (isDev) {
-            const env = process.argv.includes("--live") ? "live" : "local";
-            window.loadURL(
-                `http://localhost:5173/#/overlay?env=${env}&display_id=${display.id}`
-            );
+    function loadOverlay(window, display, record) {
+        const overlayBase = rankOverlayBaseUrl();
+
+        if (record) {
+            record.remoteBase = overlayBase;
+            record.usingFallback = false;
+        }
+
+        if (overlayBase) {
+            const separator = overlayBase.includes("?") ? "&" : "?";
+            const url = `${overlayBase}${separator}display_id=${display.id}`;
+            console.log("RESOLUME OVERLAY URL =", display.id, url);
+            window.loadURL(url);
             return;
         }
 
-        window.loadFile(
-            path.join(__dirname, "../../dist/index.html"),
-            {
-                hash: `/overlay?env=live&display_id=${display.id}`,
-            }
-        );
+        loadBundledOverlay(window, display);
     }
 
     function ensureOverlay(display) {
@@ -138,6 +177,10 @@ function createOverlayHost({ getMap, client, onDisplayRemoved }) {
             sender,
             loaded: false,
             captureTimer: null,
+            retryTimer: null,
+            remoteBase: null,
+            remoteFailures: 0,
+            usingFallback: false,
         };
 
         const markLoaded = () => {
@@ -188,20 +231,80 @@ function createOverlayHost({ getMap, client, onDisplayRemoved }) {
             );
         });
 
+        // The preload bridge is exposed to whatever this window shows: keep it on the overlay page's origin
+        // (or the bundled file) and never open popups.
+        window.webContents.on("will-navigate", (event, url) => {
+            const allowed = record.remoteBase && !record.usingFallback
+                ? url.startsWith(new URL(record.remoteBase).origin)
+                : url.startsWith("file://");
+
+            if (!allowed) {
+                console.error("RESOLUME OVERLAY BLOCKED NAVIGATION =", displayId, url);
+                event.preventDefault();
+            }
+        });
+        window.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+
+        window.webContents.on("did-finish-load", () => {
+            const url = window.webContents.getURL();
+
+            if (record.remoteBase && !record.usingFallback && url.startsWith(record.remoteBase)) {
+                record.remoteFailures = 0;
+            }
+        });
+
         window.webContents.on(
             "did-fail-load",
-            (event, errorCode, errorDescription, validatedURL) => {
+            (event, errorCode, errorDescription, validatedURL, isMainFrame) => {
                 record.loaded = true;
                 console.error("========== OVERLAY LOAD FAILED ==========");
                 console.error("DISPLAY ID =", displayId);
                 console.error("ERROR CODE =", errorCode);
                 console.error("ERROR =", errorDescription);
                 console.error("URL =", validatedURL);
+
+                // -3 = ERR_ABORTED (superseded navigation).
+                if (isMainFrame === false || errorCode === -3) {
+                    return;
+                }
+
+                clearTimeout(record.retryTimer);
+
+                const remoteFailed = Boolean(record.remoteBase) && !record.usingFallback;
+                if (remoteFailed) {
+                    record.remoteFailures += 1;
+                }
+
+                // Remote web unreachable for a while (offline / not deployed): show the bundled page meanwhile.
+                if (
+                    remoteFailed
+                    && record.remoteFailures >= OVERLAY_REMOTE_FAILURES_BEFORE_FALLBACK
+                    && fs.existsSync(BUNDLED_OVERLAY)
+                ) {
+                    console.error("RESOLUME OVERLAY FALLBACK TO BUNDLED PAGE =", displayId);
+                    record.usingFallback = true;
+                    loadBundledOverlay(window, display);
+                    record.retryTimer = setTimeout(() => {
+                        if (!window.isDestroyed()) {
+                            console.log("RESOLUME OVERLAY RECHECK REMOTE =", displayId);
+                            loadOverlay(window, display, record);
+                        }
+                    }, OVERLAY_REMOTE_RECHECK_MS);
+                    return;
+                }
+
+                record.retryTimer = setTimeout(() => {
+                    if (!window.isDestroyed()) {
+                        console.log("RESOLUME OVERLAY RETRY LOAD =", displayId);
+                        loadOverlay(window, display, record);
+                    }
+                }, OVERLAY_RETRY_MS);
             }
         );
 
         window.on("closed", () => {
             clearInterval(record.captureTimer);
+            clearTimeout(record.retryTimer);
 
             if (windows.get(displayId)?.win === window) {
                 windows.delete(displayId);
@@ -213,7 +316,7 @@ function createOverlayHost({ getMap, client, onDisplayRemoved }) {
         windows.set(displayId, record);
         sender.open(size.width, size.height);
 
-        loadOverlay(window, display);
+        loadOverlay(window, display, record);
         console.log(
             `CREATE OVERLAY DISPLAY ${displayId}`,
             overlay.sender,
@@ -237,6 +340,7 @@ function createOverlayHost({ getMap, client, onDisplayRemoved }) {
         }
 
         clearInterval(record.captureTimer);
+        clearTimeout(record.retryTimer);
         record.sender.close();
         record.sender = {
             send() {},

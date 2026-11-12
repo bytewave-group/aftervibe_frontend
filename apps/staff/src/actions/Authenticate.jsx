@@ -60,6 +60,7 @@ function useAuthenticate() {
     //order flower
     create_buy_flower_record_from_mummy,
     mummy_lists,
+    flower_frequent_amounts,
     mummy_pending_payment_lists,
     update_flower_payment_method,
 
@@ -575,6 +576,16 @@ function useAuthenticate() {
       return data;
     } catch (error) {
       return { status: false, message: "Failed while fetching mummy lists" };
+    }
+  }
+
+  /** Most used claim-flower amounts (RM) for quick-pick buttons; never throws. */
+  async function flower_frequent_amounts(form) {
+    try {
+      const res = await api.post("flower_frequent_amounts", form);
+      return res.data;
+    } catch (error) {
+      return { status: false, message: "Failed while fetching frequent flower amounts", data: [] };
     }
   }
 

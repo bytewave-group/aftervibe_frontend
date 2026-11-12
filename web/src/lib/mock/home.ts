@@ -49,6 +49,7 @@ export interface RankingListData {
 
 export interface HomeData {
   balance: string;
+  foodcourtCustomerId: string | null;
   banners: Banner[];
   marqueeItems: MarqueeItem[];
   quickActions: QuickAction[];
@@ -57,6 +58,7 @@ export interface HomeData {
 
 export const homeData: HomeData = {
   balance: "10.00",
+  foodcourtCustomerId: null,
   banners: [
     { id: "dj-night-1", image: "/images/banner-dj-night.png" },
     { id: "dj-night-2", image: "/images/banner-dj-night.png" },

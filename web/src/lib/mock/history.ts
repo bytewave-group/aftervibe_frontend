@@ -10,13 +10,15 @@
  *
  * Recharge records:
  *   GET /api/customer/coin-orders  — CoinOrderApiController::index
- *   → orders[{ order_no, coins, amount, currency, status, paid_at, created_at }]
- *   Payment method (bank / e-wallet, Maybank, Touch'n Go) is stored as
- *   CoinOrder.gateway but is not yet included in CoinOrderService::toPayload.
+ *   → orders[{ id, order_no, coins, amount, currency, status, paid_at, created_at, payment_method }]
+ *   GET /api/customer/coin-orders/{id|orderNo} — show, same order payload.
+ *   payment_method is { category: bank|ewallet|card, provider } when the gateway
+ *   payload stores it; otherwise null (the `gateway` column is only the driver).
  */
 
 export type HistoryTab = "gift" | "recharge";
 export type RechargeMethod = "bank" | "ewallet";
+export type RechargeCategory = "bank" | "ewallet" | "card";
 
 export interface GiftRecord {
   id: number;
@@ -24,13 +26,17 @@ export interface GiftRecord {
   recipientName: string;
   giftName: string;
   quantity: number;
+  /** Coins for the whole entry (unit price × quantity); null when the API doesn't send it. */
+  totalAmount?: number | null;
   image: string;
 }
 
 export interface RechargeRecord {
-  id: number;
-  method: RechargeMethod;
-  provider: string;
+  id: string;
+  orderNo: string;
+  category: RechargeCategory | null;
+  method: RechargeMethod | null;
+  provider: string | null;
   amount: number;
   currency: string;
   createdAt: string;
@@ -67,7 +73,9 @@ export const mockGiftRecords: GiftRecord[] = [
 
 export const mockRechargeRecords: RechargeRecord[] = [
   {
-    id: 1,
+    id: "CO-MOCK-1",
+    orderNo: "CO-MOCK-1",
+    category: "bank",
     method: "bank",
     provider: "Maybank",
     amount: 10,
@@ -75,7 +83,9 @@ export const mockRechargeRecords: RechargeRecord[] = [
     createdAt: "2026-09-20 14:00:00",
   },
   {
-    id: 2,
+    id: "CO-MOCK-2",
+    orderNo: "CO-MOCK-2",
+    category: "ewallet",
     method: "ewallet",
     provider: "Touch'n Go",
     amount: 50,
@@ -83,7 +93,9 @@ export const mockRechargeRecords: RechargeRecord[] = [
     createdAt: "2026-08-12 18:30:00",
   },
   {
-    id: 3,
+    id: "CO-MOCK-3",
+    orderNo: "CO-MOCK-3",
+    category: "bank",
     method: "bank",
     provider: "CIMB",
     amount: 20,

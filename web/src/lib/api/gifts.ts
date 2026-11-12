@@ -9,16 +9,20 @@ import {
   GIFT_PLACEHOLDER_IMAGE,
   STAFF_PLACEHOLDER_AVATAR,
   mockGiftBalance,
+  mockGiftCustomers,
   mockGiftItems,
   mockGiftStaff,
+  mockRecentGiftCustomers,
   mockRecentGiftStaff,
   type GiftBalance,
   type GiftItem,
+  type GiftRecipientType,
   type GiftStaff,
 } from "@/lib/mock/gifts";
+import { devMockIfEmpty, devMockOnError } from "@/lib/mock/devFallback";
 import { revalidatePath } from "next/cache";
 
-export type { GiftBalance, GiftItem, GiftStaff };
+export type { GiftBalance, GiftItem, GiftRecipientType, GiftStaff };
 
 type StaffDto = {
   id: number;
@@ -26,6 +30,19 @@ type StaffDto = {
   username?: string | null;
   profile_image?: string | null;
   profile_image_position?: { x?: number; y?: number } | null;
+};
+
+type CustomerDto = {
+  id: number;
+  username?: string | null;
+  name?: string | null;
+  avatar?: string | null;
+  profile_image?: string | null;
+};
+
+type CustomerListResponse = {
+  success?: boolean;
+  customers?: CustomerDto[];
 };
 
 type StaffListResponse = {
@@ -60,7 +77,9 @@ type GiftHistoryRow = CustomerGiftDto & {
 };
 
 type GiftHistoryHint = {
+  type: GiftRecipientType;
   staffId: number | null;
+  customerId: number | null;
   staffNumber: string;
   name: string;
 };
@@ -80,11 +99,13 @@ type BalanceResponse = {
 type SendGiftResponse = {
   success?: boolean;
   balance?: number;
+  available_balance?: number;
+  combo_count?: number;
   message?: string;
 };
 
 export type SendGiftResult =
-  | { ok: true; balance: number; available: number }
+  | { ok: true; balance: number; available: number; comboCount: number }
   | { ok: false; reason: "insufficient"; balance: number; available: number; shortfall: number }
   | { ok: false; reason: "error"; message: string };
 
@@ -127,6 +148,17 @@ function mapStaff(dto: StaffDto): GiftStaff {
   };
 }
 
+function mapCustomer(dto: CustomerDto): GiftStaff {
+  return {
+    id: dto.id,
+    name: (dto.name || dto.username || "").trim() || "—",
+    number: (dto.username || "").trim(),
+    avatar: avatarUrl(dto.avatar || dto.profile_image) || STAFF_PLACEHOLDER_AVATAR,
+    position: null,
+  };
+}
+
+
 function resolveThreshold(value: unknown): number {
   if (value == null || value === "") {
     return CONFIRM_THRESHOLD;
@@ -160,15 +192,15 @@ function staffListFrom(payload: StaffListResponse): StaffDto[] {
   return [];
 }
 
-function recentsFromHistory(staffs: GiftStaff[], rows: GiftHistoryHint[]): GiftStaff[] {
-  const byId = new Map(staffs.map((staff) => [staff.id, staff]));
+function recentsFromHistory(people: GiftStaff[], rows: GiftHistoryHint[]): GiftStaff[] {
+  const byId = new Map(people.map((person) => [person.id, person]));
   const byKey = new Map<string, GiftStaff>();
-  for (const staff of staffs) {
-    if (staff.name.trim()) {
-      byKey.set(staff.name.trim().toLowerCase(), staff);
+  for (const person of people) {
+    if (person.name.trim()) {
+      byKey.set(person.name.trim().toLowerCase(), person);
     }
-    if (staff.number.trim()) {
-      byKey.set(staff.number.trim().toLowerCase(), staff);
+    if (person.number.trim()) {
+      byKey.set(person.number.trim().toLowerCase(), person);
     }
   }
   const seen = new Set<number>();
@@ -176,8 +208,12 @@ function recentsFromHistory(staffs: GiftStaff[], rows: GiftHistoryHint[]): GiftS
   for (const row of rows) {
     const numberKey = row.staffNumber.trim().toLowerCase();
     const nameKey = row.name.trim().toLowerCase();
+    const hintedId =
+      row.type === "customer"
+        ? row.customerId
+        : row.staffId;
     const match =
-      (row.staffId != null && row.staffId > 0 ? byId.get(row.staffId) : undefined) ??
+      (hintedId != null && hintedId > 0 ? byId.get(hintedId) : undefined) ??
       (numberKey ? byKey.get(numberKey) : undefined) ??
       (nameKey ? byKey.get(nameKey) : undefined);
     if (!match || seen.has(match.id)) continue;
@@ -193,6 +229,13 @@ async function fetchStaffList(): Promise<GiftStaff[]> {
   return staffListFrom(payload)
     .filter((row) => Number.isFinite(Number(row.id)))
     .map(mapStaff);
+}
+
+async function fetchCustomerList(): Promise<GiftStaff[]> {
+  const payload = await apiGet<CustomerListResponse>("/api/customer/customers", "required");
+  return (payload.customers ?? [])
+    .filter((row) => Number.isFinite(Number(row.id)))
+    .map(mapCustomer);
 }
 
 async function fetchGiftCatalog(): Promise<GiftCatalog> {
@@ -239,11 +282,24 @@ async function fetchRecentHistory(): Promise<GiftHistoryHint[]> {
       );
       return payload.gifts ?? {};
     }, 3);
-    return rows.map((item: GiftHistoryRow) => ({
-      staffId: item.staff_id == null ? null : asNumber(item.staff_id, 0) || null,
-      staffNumber: item.staff_number || "",
-      name: item.recipient_name || "",
-    }));
+    return rows.map((item: GiftHistoryRow) => {
+      const staffId = item.staff_id == null ? null : asNumber(item.staff_id, 0) || null;
+      const customerId =
+        item.receiver_customer_id == null
+          ? null
+          : asNumber(item.receiver_customer_id, 0) || null;
+      const type: GiftRecipientType =
+        item.recipient_type === "customer" || (customerId != null && !staffId)
+          ? "customer"
+          : "staff";
+      return {
+        type,
+        staffId,
+        customerId,
+        staffNumber: item.staff_number || "",
+        name: item.recipient_name || "",
+      };
+    });
   } catch (error) {
     if (error instanceof ApiError && error.status === 401) {
       throw error;
@@ -259,70 +315,131 @@ async function fetchRecentHistory(): Promise<GiftHistoryHint[]> {
 export async function loadStaffSelectPage(): Promise<{
   staffs: GiftStaff[];
   recents: GiftStaff[];
+  customers: GiftStaff[];
+  customerRecents: GiftStaff[];
 }> {
   try {
-    const staffs = await fetchStaffList();
-    const history = await fetchRecentHistory();
+    const [staffs, customers, history] = await Promise.all([
+      fetchStaffList(),
+      fetchCustomerList().catch((error) => {
+        if (error instanceof ApiError && error.status === 401) {
+          throw error;
+        }
+        logApiFallback(
+          "[gifts] GET /api/customer/customers failed",
+          error,
+        );
+        return devMockOnError("gifts.customers", error, () => structuredClone(mockGiftCustomers), () => []);
+      }),
+      fetchRecentHistory(),
+    ]);
+    const realStaffs = staffs;
+    const shownStaffs = devMockIfEmpty("gifts.staff", realStaffs, realStaffs.length === 0, () =>
+      structuredClone(mockGiftStaff),
+    );
     return {
-      staffs,
-      recents: recentsFromHistory(staffs, history),
+      staffs: shownStaffs,
+      recents:
+        shownStaffs === realStaffs
+          ? recentsFromHistory(
+              shownStaffs,
+              history.filter((row) => row.type === "staff"),
+            )
+          : structuredClone(mockRecentGiftStaff),
+      customers,
+      customerRecents: recentsFromHistory(
+        customers,
+        history.filter((row) => row.type === "customer"),
+      ),
     };
   } catch (error) {
     redirectIfUnauthorized(error, "/gifts");
-    logApiFallback(
-      "[gifts] GET /api/customer/staff failed; falling back to mock staff",
+    logApiFallback("[gifts] GET /api/customer/staff failed", error);
+    return devMockOnError(
+      "gifts.staff",
       error,
+      () => ({
+        staffs: structuredClone(mockGiftStaff),
+        recents: structuredClone(mockRecentGiftStaff),
+        customers: structuredClone(mockGiftCustomers),
+        customerRecents: structuredClone(mockRecentGiftCustomers),
+      }),
+      () => ({ staffs: [], recents: [], customers: [], customerRecents: [] }),
     );
-    return {
-      staffs: structuredClone(mockGiftStaff),
-      recents: structuredClone(mockRecentGiftStaff),
-    };
   }
 }
 
-export async function loadGiftSelectPage(staffId: number): Promise<{
+export async function loadGiftSelectPage(
+  recipientId: number,
+  recipientType: GiftRecipientType = "staff",
+): Promise<{
   staff: GiftStaff | null;
+  recipientType: GiftRecipientType;
   gifts: GiftItem[];
   balance: GiftBalance;
   confirmThreshold: number;
 }> {
+  const recipientPath =
+    recipientType === "customer"
+      ? `/gifts/customer/${recipientId}`
+      : `/gifts/${recipientId}`;
   try {
-    const [staffs, catalog, balance] = await Promise.all([
-      fetchStaffList(),
+    const [people, catalog, balance] = await Promise.all([
+      recipientType === "customer" ? fetchCustomerList() : fetchStaffList(),
       fetchGiftCatalog().catch((error) => {
         if (error instanceof ApiError && error.status === 401) {
           throw error;
         }
         logApiFallback(
-          "[gifts] GET /api/display/gift failed; falling back to mock gifts",
+          "[gifts] GET /api/display/gift failed",
           error,
         );
-        return {
-          gifts: structuredClone(mockGiftItems),
-          confirmThreshold: CONFIRM_THRESHOLD,
-        };
+        return devMockOnError<GiftCatalog>(
+          "gifts.catalog",
+          error,
+          () => ({ gifts: structuredClone(mockGiftItems), confirmThreshold: CONFIRM_THRESHOLD }),
+          () => ({ gifts: [], confirmThreshold: CONFIRM_THRESHOLD }),
+        );
       }),
       fetchBalance(),
     ]);
+    const gifts = devMockIfEmpty("gifts.catalog", catalog.gifts, catalog.gifts.length === 0, () =>
+      structuredClone(mockGiftItems),
+    );
     return {
-      staff: staffs.find((item) => item.id === staffId) ?? null,
-      gifts: catalog.gifts,
+      staff: people.find((item) => item.id === recipientId) ?? null,
+      recipientType,
+      gifts,
       balance,
       confirmThreshold: catalog.confirmThreshold,
     };
   } catch (error) {
-    redirectIfUnauthorized(error, `/gifts/${staffId}`);
-    logApiFallback(
-      "[gifts] gift page APIs failed; falling back to mock catalog and balance",
+    redirectIfUnauthorized(error, recipientPath);
+    logApiFallback("[gifts] gift page APIs failed", error);
+    return devMockOnError(
+      "gifts.page",
       error,
+      () => {
+        const people =
+          recipientType === "customer"
+            ? structuredClone(mockGiftCustomers)
+            : structuredClone(mockGiftStaff);
+        return {
+          staff: (people.find((item) => item.id === recipientId) ?? people[0] ?? null) as GiftStaff | null,
+          recipientType,
+          gifts: structuredClone(mockGiftItems),
+          balance: structuredClone(mockGiftBalance),
+          confirmThreshold: CONFIRM_THRESHOLD,
+        };
+      },
+      () => ({
+        staff: null,
+        recipientType,
+        gifts: [],
+        balance: { balance: 0, available: 0, reserved: 0 },
+        confirmThreshold: CONFIRM_THRESHOLD,
+      }),
     );
-    const staffs = structuredClone(mockGiftStaff);
-    return {
-      staff: staffs.find((item) => item.id === staffId) ?? staffs[0] ?? null,
-      gifts: structuredClone(mockGiftItems),
-      balance: structuredClone(mockGiftBalance),
-      confirmThreshold: CONFIRM_THRESHOLD,
-    };
   }
 }
 
@@ -353,15 +470,31 @@ function insufficientFrom(error: unknown, price: number): SendGiftResult | null 
 }
 
 export async function sendGiftAction(input: {
-  staffId: number;
+  staffId?: number;
+  recipientId?: number;
+  recipientType?: GiftRecipientType;
   displayId: number;
   interactionId: number;
   price: number;
+  /** Combo gifting: taps sharing this id merge into one playlist (×N) while it is queued / playing. */
+  comboId?: string;
+  /** A follow-up combo tap: skip the balance pre-check round trip (the backend still checks every tap). */
+  comboTap?: boolean;
 }): Promise<SendGiftResult> {
-  const { staffId, displayId, interactionId, price } = input;
+  const recipientType: GiftRecipientType = input.recipientType ?? "staff";
+  const recipientId = input.recipientId ?? input.staffId ?? 0;
+  const { displayId, interactionId, price } = input;
+  const comboId =
+    typeof input.comboId === "string" && /^[A-Za-z0-9_-]{1,64}$/.test(input.comboId)
+      ? input.comboId
+      : undefined;
+  const recipientPath =
+    recipientType === "customer"
+      ? `/gifts/customer/${recipientId}`
+      : `/gifts/${recipientId}`;
   try {
-    const current = await fetchBalance();
-    if (current.available < price) {
+    const current = input.comboTap && comboId ? null : await fetchBalance();
+    if (current && current.available < price) {
       return {
         ok: false,
         reason: "insufficient",
@@ -376,22 +509,28 @@ export async function sendGiftAction(input: {
       {
         display_id: displayId,
         interaction_id: interactionId,
-        target: "staff",
-        staff_id: staffId,
+        ...(recipientType === "customer"
+          ? { target: "customer", receiver_customer_id: recipientId }
+          : { target: "staff", staff_id: recipientId }),
+        ...(comboId ? { combo_id: comboId } : {}),
       },
       "required",
     );
-    const balance = asNumber(payload.balance, current.balance);
-    revalidatePath("/gifts");
-    revalidatePath(`/gifts/${staffId}`);
-    revalidatePath("/profile/history");
-    return {
-      ok: true,
-      balance,
-      available: Math.max(0, balance - current.reserved),
-    };
+    const balance = asNumber(payload.balance, current?.balance ?? 0);
+    const comboCount = Math.max(1, Math.floor(asNumber(payload.combo_count, 1)));
+    // Merged combo taps add no new rows, so only the first send refreshes the cached pages.
+    if (comboCount <= 1) {
+      revalidatePath("/gifts");
+      revalidatePath(recipientPath);
+      revalidatePath("/profile/history");
+    }
+    const available =
+      payload.available_balance == null
+        ? Math.max(0, balance - (current?.reserved ?? 0) - price)
+        : Math.max(0, asNumber(payload.available_balance, 0));
+    return { ok: true, balance, available, comboCount };
   } catch (error) {
-    redirectIfUnauthorized(error, `/gifts/${staffId}`);
+    redirectIfUnauthorized(error, recipientPath);
     const insufficient = insufficientFrom(error, price);
     if (insufficient) {
       return insufficient;

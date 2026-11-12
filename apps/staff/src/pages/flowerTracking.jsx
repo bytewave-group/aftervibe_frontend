@@ -20,6 +20,43 @@ const staffLabel = (staff) =>
 const mummyLabel = (mummy) =>
     mummy?.name || mummy?.mummy_name || (mummy?.id != null ? `Mummy ${mummy.id}` : "");
 
+/** Quick amounts (RM) for the flower amount; the field still accepts any value with up to 2 decimals. */
+const QUICK_AMOUNTS = [50, 100, 200, 500];
+const AMOUNT_STEP = 10;
+/** Extra quick amounts learned from recent claims (backend: flower_frequent_amounts). */
+const FREQUENT_AMOUNT_LIMIT = 4;
+
+const sameAmount = (a, b) => Math.round(Number(a) * 100) === Math.round(Number(b) * 100);
+
+/** Keeps positive, unique amounts that are not already fixed quick buttons. */
+const normalizeFrequentAmounts = (rows) => {
+    const result = [];
+    (Array.isArray(rows) ? rows : []).forEach((row) => {
+        const amount = Math.round(Number(row?.amount ?? row) * 100) / 100;
+        if (!Number.isFinite(amount) || amount <= 0) return;
+        if (QUICK_AMOUNTS.some((fixed) => sameAmount(fixed, amount))) return;
+        if (result.some((existing) => sameAmount(existing, amount))) return;
+        result.push(amount);
+    });
+    return result.slice(0, FREQUENT_AMOUNT_LIMIT);
+};
+
+const formatQuickAmount = (value) =>
+    Number.isInteger(value) ? String(value) : value.toFixed(2);
+/** Show the staff search box once the list gets long. */
+const STAFF_SEARCH_MIN = 9;
+
+const initialsOf = (name) => {
+    const text = String(name || "").replace(/^[A-Za-z]\d*_/, "").trim();
+    return (Array.from(text)[0] || "?").toUpperCase();
+};
+
+const formatMoney = (value) => {
+    const amount = Number(value);
+    if (!Number.isFinite(amount)) return "0.00";
+    return amount.toLocaleString("en-MY", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
 /** Tenant setting values arrive as 1 / "1" / "0" / true; treat anything else as off. */
 const isSettingEnabled = (value) => value === true || value === 1 || value === "1" || value === "true";
 
@@ -27,6 +64,7 @@ const FlowerTrackingPage = () => {
     const {
         staff_work_lists,
         mummy_lists,
+        flower_frequent_amounts,
         create_claim_flower_record_from_staff,
         verify_qr,
         global: fetchGlobal,
@@ -46,6 +84,9 @@ const FlowerTrackingPage = () => {
     const isProcessingScanRef = useRef(false);
     const [flowerAmount, setFlowerAmount] = useState("");
     const [submitting, setSubmitting] = useState(false);
+    const [staffQuery, setStaffQuery] = useState("");
+    const [brokenAvatars, setBrokenAvatars] = useState(() => new Set());
+    const [frequentAmounts, setFrequentAmounts] = useState([]);
 
     useEffect(() => {
         const handleLanguageChange = (event) => {
@@ -100,6 +141,14 @@ const FlowerTrackingPage = () => {
             }
         };
         fetchLists();
+        // Optional extra chips; any failure just leaves the fixed ones.
+        flower_frequent_amounts({ exclude: QUICK_AMOUNTS, limit: FREQUENT_AMOUNT_LIMIT })
+            .then((response) => {
+                if (!cancelled && response?.status) {
+                    setFrequentAmounts(normalizeFrequentAmounts(response.data));
+                }
+            })
+            .catch(() => {});
         return () => {
             cancelled = true;
             f7.preloader.hide();
@@ -123,6 +172,7 @@ const FlowerTrackingPage = () => {
         setStaffQr(null);
         setMummyQr(null);
         setFlowerAmount("");
+        setStaffQuery("");
     };
 
     /** Opens the scanner to confirm the tapped mummy / staff; they are only selected once their own QR is scanned. */
@@ -214,6 +264,16 @@ const FlowerTrackingPage = () => {
         }
     };
 
+    const setAmountValue = (value) => {
+        const next = Math.max(0, Math.round(value * 100) / 100);
+        setFlowerAmount(next > 0 ? String(next) : "");
+    };
+
+    const stepAmount = (delta) => {
+        const current = parseFloat(flowerAmount) || 0;
+        setAmountValue(current + delta);
+    };
+
     const handleSubmit = async () => {
         if (submitting) return;
         if (selectedMummyId == null || selectedMummyId === "") {
@@ -279,6 +339,31 @@ const FlowerTrackingPage = () => {
         }
     };
 
+    const parsedAmount = parseFloat(flowerAmount);
+    const amountValid = flowerAmount !== "" && Number.isFinite(parsedAmount) && parsedAmount > 0;
+    const amountInvalid = flowerAmount !== "" && flowerAmount !== "." && !amountValid;
+    const mummyDone = Boolean(selectedMummy);
+    const staffDone = Boolean(selectedStaff);
+    const canSubmit = mummyDone && staffDone && amountValid && !submitting;
+    const query = staffQuery.trim().toLowerCase();
+    const visibleStaff = query
+        ? staffList.filter((staff) => staffLabel(staff).toLowerCase().includes(query))
+        : staffList;
+
+    const stepBadge = (number, done, active) => (
+        <span className={`flower-tracking-step-badge ${done ? "is-done" : active ? "is-active" : ""}`} aria-hidden="true">
+            {done ? <Icon f7="checkmark_alt" /> : number}
+        </span>
+    );
+
+    const stepHeader = (number, label, done, active, value) => (
+        <div className="flower-tracking-step-head">
+            {stepBadge(number, done, active)}
+            <div className="flower-tracking-step-label">{label}</div>
+            {value ? <div className="flower-tracking-step-value">{value}</div> : null}
+        </div>
+    );
+
     return (
         <Page className="flower-tracking-page">
             <div className="flower-tracking-shell">
@@ -299,8 +384,8 @@ const FlowerTrackingPage = () => {
                         </span>
                     </div>
 
-                    <section className="flower-tracking-step">
-                        <div className="flower-tracking-step-label">{t("Step 1: Select Mummy")}</div>
+                    <section className={`flower-tracking-step ${mummyDone ? "is-done" : "is-active"}`}>
+                        {stepHeader(1, t("Step 1: Select Mummy"), mummyDone, !mummyDone, mummyDone ? mummyLabel(selectedMummy) : null)}
                         {mummyList.length === 0 ? (
                             <div className="flower-tracking-empty">{t("No results found")}</div>
                         ) : (
@@ -315,8 +400,12 @@ const FlowerTrackingPage = () => {
                                             aria-pressed={selected}
                                             onClick={() => handleSelectMummy(mummy)}
                                         >
-                                            {mummyLabel(mummy)}
-                                            {mummyRequiresQr && !selected && <Icon f7="qrcode" className="flower-tracking-qr-icon" />}
+                                            <span className="flower-tracking-group-name">{mummyLabel(mummy)}</span>
+                                            {selected ? (
+                                                <span className="flower-tracking-check" aria-hidden="true"><Icon f7="checkmark_alt" /></span>
+                                            ) : mummyRequiresQr ? (
+                                                <Icon f7="qrcode" className="flower-tracking-qr-icon" />
+                                            ) : null}
                                         </button>
                                     );
                                 })}
@@ -324,14 +413,29 @@ const FlowerTrackingPage = () => {
                         )}
                     </section>
 
-                    <section className={`flower-tracking-step ${selectedMummy ? "" : "is-locked"}`}>
-                        <div className="flower-tracking-step-label">{t("Step 2: Select Staff")}</div>
-                        {staffList.length === 0 ? (
+                    <section className={`flower-tracking-step ${mummyDone ? (staffDone ? "is-done" : "is-active") : "is-locked"}`}>
+                        {stepHeader(2, t("Step 2: Select Staff"), staffDone, mummyDone && !staffDone, staffDone ? staffLabel(selectedStaff) : null)}
+                        {staffList.length >= STAFF_SEARCH_MIN && (
+                            <label className="flower-tracking-search">
+                                <Icon f7="search" />
+                                <input
+                                    type="search"
+                                    value={staffQuery}
+                                    placeholder={t("Search staff")}
+                                    aria-label={t("Search staff")}
+                                    onChange={(e) => setStaffQuery(e.target.value)}
+                                />
+                            </label>
+                        )}
+                        {staffList.length === 0 || visibleStaff.length === 0 ? (
                             <div className="flower-tracking-empty">{t("No results found")}</div>
                         ) : (
                             <div className="flower-tracking-agent-grid">
-                                {staffList.map((staff) => {
+                                {visibleStaff.map((staff) => {
                                     const selected = String(staff.id) === String(selectedStaffId);
+                                    const name = staffLabel(staff);
+                                    const avatar = staff.profile_image && !brokenAvatars.has(staff.id) ? staff.profile_image : null;
+                                    const position = staff.profile_image_position;
                                     return (
                                         <button
                                             key={staff.id}
@@ -340,8 +444,28 @@ const FlowerTrackingPage = () => {
                                             aria-pressed={selected}
                                             onClick={() => handleSelectStaff(staff)}
                                         >
-                                            {staffLabel(staff)}
-                                            {staffRequiresQr && !selected && <Icon f7="qrcode" className="flower-tracking-qr-icon" />}
+                                            <span className="flower-tracking-avatar">
+                                                {avatar ? (
+                                                    <img
+                                                        src={avatar}
+                                                        alt=""
+                                                        loading="lazy"
+                                                        style={position && Number.isFinite(position.x) && Number.isFinite(position.y)
+                                                            ? { objectPosition: `${position.x}% ${position.y}%` }
+                                                            : undefined}
+                                                        onError={() => setBrokenAvatars((prev) => new Set(prev).add(staff.id))}
+                                                    />
+                                                ) : (
+                                                    <span className="flower-tracking-avatar-initial">{initialsOf(name)}</span>
+                                                )}
+                                                {selected && (
+                                                    <span className="flower-tracking-check" aria-hidden="true"><Icon f7="checkmark_alt" /></span>
+                                                )}
+                                                {staffRequiresQr && !selected && (
+                                                    <span className="flower-tracking-avatar-qr" aria-hidden="true"><Icon f7="qrcode" /></span>
+                                                )}
+                                            </span>
+                                            <span className="flower-tracking-agent-name">{name}</span>
                                         </button>
                                     );
                                 })}
@@ -349,27 +473,103 @@ const FlowerTrackingPage = () => {
                         )}
                     </section>
 
-                    <section className="flower-tracking-step flower-tracking-step-amount">
-                        <div className="flower-tracking-step-label">{t("Step 3: Enter amount")}</div>
-                        <input
-                            type="text"
-                            inputMode="decimal"
-                            className="flower-tracking-amount-input"
-                            value={flowerAmount}
-                            placeholder={t("Flower Amount")}
-                            aria-label={t("Flower Amount")}
-                            onChange={handleFlowerAmountChange}
-                        />
+                    <section className={`flower-tracking-step flower-tracking-step-amount ${amountValid ? "is-done" : staffDone ? "is-active" : ""}`}>
+                        {stepHeader(3, t("Step 3: Enter amount"), amountValid, staffDone && !amountValid, null)}
+                        <div className={`flower-tracking-amount ${amountInvalid ? "is-invalid" : ""}`}>
+                            <button
+                                type="button"
+                                className="flower-tracking-stepper"
+                                aria-label={`- ${AMOUNT_STEP}`}
+                                disabled={!amountValid}
+                                onClick={() => stepAmount(-AMOUNT_STEP)}
+                            >
+                                <Icon f7="minus" />
+                            </button>
+                            <div className="flower-tracking-amount-field">
+                                <span className="flower-tracking-currency">RM</span>
+                                <input
+                                    type="text"
+                                    inputMode="decimal"
+                                    className="flower-tracking-amount-input"
+                                    value={flowerAmount}
+                                    placeholder="0.00"
+                                    aria-label={t("Flower Amount")}
+                                    aria-invalid={amountInvalid}
+                                    onChange={handleFlowerAmountChange}
+                                />
+                            </div>
+                            <button
+                                type="button"
+                                className="flower-tracking-stepper"
+                                aria-label={`+ ${AMOUNT_STEP}`}
+                                onClick={() => stepAmount(AMOUNT_STEP)}
+                            >
+                                <Icon f7="plus" />
+                            </button>
+                        </div>
+                        <div className="flower-tracking-quick">
+                            {QUICK_AMOUNTS.map((value) => (
+                                <button
+                                    key={value}
+                                    type="button"
+                                    data-quick-amount={value}
+                                    className={`flower-tracking-quick-chip ${amountValid && parsedAmount === value ? "is-selected" : ""}`}
+                                    onClick={() => setAmountValue(value)}
+                                >
+                                    RM {value}
+                                </button>
+                            ))}
+                        </div>
+                        {frequentAmounts.length > 0 && (
+                            <div className="flower-tracking-frequent">
+                                <span className="flower-tracking-frequent-label">
+                                    <Icon f7="clock" />
+                                    {t("Frequently used")}
+                                </span>
+                                <div className="flower-tracking-frequent-chips">
+                                    {frequentAmounts.map((value) => (
+                                        <button
+                                            key={value}
+                                            type="button"
+                                            data-frequent-amount={value}
+                                            className={`flower-tracking-quick-chip is-frequent ${amountValid && sameAmount(parsedAmount, value) ? "is-selected" : ""}`}
+                                            onClick={() => setAmountValue(value)}
+                                        >
+                                            RM {formatQuickAmount(value)}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                        {amountInvalid && (
+                            <div className="flower-tracking-error" role="alert">{t("Please enter a valid flower amount")}</div>
+                        )}
                     </section>
+
+                    <div className={`flower-tracking-summary ${canSubmit ? "is-ready" : ""}`} aria-live="polite">
+                        <span className="flower-tracking-summary-label">{t("Summary")}</span>
+                        <span className="flower-tracking-summary-text">
+                            <span className={mummyDone ? "" : "is-missing"}>{mummyDone ? mummyLabel(selectedMummy) : t("Mummy")}</span>
+                            <Icon f7="arrow_right" className="flower-tracking-summary-arrow" />
+                            <span className={staffDone ? "" : "is-missing"}>{staffDone ? staffLabel(selectedStaff) : t("Staff")}</span>
+                            <span className="flower-tracking-summary-dot">·</span>
+                            <strong className={amountValid ? "" : "is-missing"}>RM {amountValid ? formatMoney(parsedAmount) : "0.00"}</strong>
+                        </span>
+                    </div>
 
                     <button
                         type="button"
-                        className="flower-tracking-submit"
-                        disabled={submitting}
+                        className={`flower-tracking-submit ${submitting ? "is-loading" : ""}`}
+                        disabled={!canSubmit}
+                        aria-busy={submitting}
                         onClick={handleSubmit}
                     >
-                        {t("Confirm flower registration")}
+                        {submitting && <span className="flower-tracking-spinner" aria-hidden="true" />}
+                        {submitting ? t("Submitting...") : t("Confirm flower registration")}
                     </button>
+                    {!canSubmit && !submitting && (
+                        <div className="flower-tracking-hint">{t("Complete the steps above to continue")}</div>
+                    )}
                 </div>
             </div>
 

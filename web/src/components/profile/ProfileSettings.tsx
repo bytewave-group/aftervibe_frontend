@@ -1,11 +1,11 @@
 "use client";
 
-import { nextLocale } from "@/i18n/config";
-import { useLocale } from "@/i18n/locale-provider";
-import type { ProfileData } from "@/lib/mock/profile";
 import { GuardedLink } from "@/components/auth/GuardedLink";
-import { useState } from "react";
-import { ToggleSwitch } from "./ToggleSwitch";
+import { AppDialog } from "@/components/ui/AppDialog";
+import { locales, type Locale } from "@/i18n/config";
+import { useLocale } from "@/i18n/locale-provider";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 interface MenuIcon {
   src: string;
@@ -27,23 +27,11 @@ const icons: Record<string, MenuIcon> = {
     height: 20,
     background: "bg-[#fd54b1]",
   },
-  notifications: {
-    src: "/images/icon-bell-menu.svg",
-    width: 20,
-    height: 25,
-    background: "bg-[#00c7db]",
-  },
   language: {
     src: "/images/icon-language.svg",
     width: 25,
     height: 25,
     background: "bg-[#fda565]",
-  },
-  giftConfirm: {
-    src: "/images/icon-gift-confirm.png",
-    width: 25,
-    height: 25,
-    background: "bg-[#ba4df5]",
   },
 };
 
@@ -58,12 +46,46 @@ function RowIcon({ icon }: { icon: MenuIcon }) {
   );
 }
 
-export function ProfileSettings({ profile }: { profile: ProfileData }) {
+export function ProfileSettings() {
   const { locale, t, setLocale, isPending } = useLocale();
-  const [notifications, setNotifications] = useState(
-    profile.notificationsEnabled,
+  const [open, setOpen] = useState(false);
+  const [canPortal, setCanPortal] = useState(false);
+
+  useEffect(() => {
+    setCanPortal(true);
+  }, []);
+
+  const choose = (next: Locale) => {
+    if (next !== locale) {
+      setLocale(next);
+    }
+    setOpen(false);
+  };
+
+  const dialog = (
+    <AppDialog title={t("profile.language")} open={open} onClose={() => setOpen(false)}>
+      <ul className="flex flex-col gap-2">
+        {locales.map((code) => {
+          const selected = code === locale;
+          return (
+            <li key={code}>
+              <button
+                type="button"
+                disabled={isPending}
+                aria-current={selected ? "true" : undefined}
+                className={`anim-press flex w-full items-center justify-between rounded-[12px] px-4 py-3 text-left text-[16px] leading-none font-bold ${
+                  selected ? "bg-white text-black" : "bg-white/10 text-white"
+                }`}
+                onClick={() => choose(code)}
+              >
+                {t(`languages.${code}`)}
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </AppDialog>
   );
-  const [giftConfirm, setGiftConfirm] = useState(profile.giftConfirmEnabled);
 
   return (
     <section className="anim-fade-up mt-[30px] [--stagger:2]">
@@ -96,24 +118,12 @@ export function ProfileSettings({ profile }: { profile: ProfileData }) {
           </GuardedLink>
         </li>
 
-        <li className="flex items-center">
-          <RowIcon icon={icons.notifications} />
-          <span className="ml-[20px] flex-1 text-[16px] leading-none font-bold text-white">
-            {t("profile.notifications")}
-          </span>
-          <ToggleSwitch
-            checked={notifications}
-            onChange={setNotifications}
-            label={t("profile.notifications")}
-          />
-        </li>
-
         <li>
           <button
             type="button"
             className="anim-press flex w-full items-center bg-transparent p-0 text-left"
             disabled={isPending}
-            onClick={() => setLocale(nextLocale(locale))}
+            onClick={() => setOpen(true)}
           >
             <RowIcon icon={icons.language} />
             <span className="ml-[20px] flex-1 text-[16px] leading-none font-bold text-white">
@@ -124,19 +134,8 @@ export function ProfileSettings({ profile }: { profile: ProfileData }) {
             </span>
           </button>
         </li>
-
-        <li className="flex items-center">
-          <RowIcon icon={icons.giftConfirm} />
-          <span className="ml-[20px] flex-1 text-[16px] leading-none font-bold text-white">
-            {t("profile.giftConfirm")}
-          </span>
-          <ToggleSwitch
-            checked={giftConfirm}
-            onChange={setGiftConfirm}
-            label={t("profile.giftConfirm")}
-          />
-        </li>
       </ul>
+      {canPortal ? createPortal(dialog, document.body) : null}
     </section>
   );
 }

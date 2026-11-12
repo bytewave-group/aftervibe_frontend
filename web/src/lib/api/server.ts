@@ -1,6 +1,8 @@
 import "server-only";
 
 import { AUTH_COOKIE_NAME } from "@/lib/auth/cookies";
+import { isDevMockEnabled, isDevMockForced, isDevMockSession } from "@/lib/mock/devFallback";
+import { DEV_MOCK_ACTION_MESSAGE } from "@/lib/mock/devMode";
 import { cookies } from "next/headers";
 
 export class ApiError extends Error {
@@ -82,16 +84,32 @@ function errorMessage(payload: unknown, status: number): string {
   return `Request failed with status ${status}`;
 }
 
+const DEV_READ_TIMEOUT_MS = 8000;
+
 export async function apiFetch<T>(
   path: string,
   options: ApiRequestOptions = {},
 ): Promise<T> {
   const { method = "GET", auth = "optional", body, formData, headers } = options;
   const url = `${getApiBaseUrl()}${path.startsWith("/") ? path : `/${path}`}`;
+  const isRead = method.toUpperCase() === "GET";
+
+  // Dev-only mock login: never send the fake token. Reads fall back to mock data (503),
+  // mutations surface DEV_MOCK_ACTION_MESSAGE (409). Unauthenticated calls (login) still go out.
+  if (auth !== "none" && (await isDevMockSession())) {
+    throw new ApiError(DEV_MOCK_ACTION_MESSAGE, isRead ? 503 : 409);
+  }
+
+  // Dev-only: ?mock=force simulates a backend outage for reads (see src/lib/mock/devFallback.ts).
+  if (isRead && (await isDevMockForced())) {
+    throw new ApiError("[dev-mock] forced mock mode (add ?mock=off to disable)", 503);
+  }
 
   const res = await fetch(url, {
     method,
     cache: "no-store",
+    // Dev-only: don't hang on a dead backend; the read falls back to mock data instead.
+    signal: isRead && isDevMockEnabled() ? AbortSignal.timeout(DEV_READ_TIMEOUT_MS) : undefined,
     headers: {
       Accept: "application/json",
       ...tenantHeaders(),
@@ -134,3 +152,11 @@ export function apiPost<T>(
 ): Promise<T> {
   return apiFetch<T>(path, { method: "POST", auth, body });
 }
+
+export function apiDelete<T>(
+  path: string,
+  auth: AuthMode = "optional",
+): Promise<T> {
+  return apiFetch<T>(path, { method: "DELETE", auth });
+}
+

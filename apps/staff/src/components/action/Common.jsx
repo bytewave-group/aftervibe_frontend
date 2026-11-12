@@ -13,9 +13,17 @@ function useCommon() {
   function navigate(path, options = {}) {
     const mainRouter = f7.views?.main?.router;
 
-    /* if path is -1,direct back to previous page */
+    /* if path is -1, go back. A direct open has no previous page, so return home. */
     if (path.toString() === "-1") {
-      mainRouter?.back?.();
+      if (mainRouter && mainRouter.history.length > 1) {
+        mainRouter.back();
+        return;
+      }
+      if (mainRouter) {
+        mainRouter.navigate("/", { reloadCurrent: true });
+        return;
+      }
+      window.location.assign("/");
       return;
     }
 
