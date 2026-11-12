@@ -157,9 +157,60 @@ export function useQrScanner({
 
   useEffect(() => {
     if (!enabled || !showQrScanner || scanMode !== "usb") return;
-    const timer = setTimeout(() => usbScanInputRef.current?.focus(), 100);
-    return () => clearTimeout(timer);
-  }, [enabled, showQrScanner, scanMode]);
+
+    let buffer = "";
+    let idleTimer = null;
+
+    const submit = (raw) => {
+      const value = String(raw || "").trim();
+      buffer = "";
+      if (!value || isProcessingScanRef?.current) return;
+      if (isProcessingScanRef) {
+        isProcessingScanRef.current = true;
+      }
+      if (qrScannerRef.current?.isScanning) {
+        qrScannerRef.current.stop().catch(() => {});
+      }
+      const input = usbScanInputRef.current;
+      if (input) input.value = "";
+      setShowQrScanner(false);
+      resetScannerState();
+      onDecoded(value);
+    };
+
+    const onKeyDown = (event) => {
+      if (event.key === "Enter" || event.key === "NumpadEnter" || event.key === "Tab") {
+        event.preventDefault();
+        event.stopPropagation();
+        clearTimeout(idleTimer);
+        submit(buffer);
+        return;
+      }
+      if (event.key.length !== 1 || event.metaKey || event.ctrlKey || event.altKey) return;
+      event.preventDefault();
+      event.stopPropagation();
+      buffer += event.key;
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(() => submit(buffer), 250);
+    };
+
+    window.addEventListener("keydown", onKeyDown, true);
+    const focusTimer = setTimeout(() => usbScanInputRef.current?.focus(), 100);
+
+    return () => {
+      clearTimeout(focusTimer);
+      clearTimeout(idleTimer);
+      window.removeEventListener("keydown", onKeyDown, true);
+    };
+  }, [
+    enabled,
+    showQrScanner,
+    scanMode,
+    isProcessingScanRef,
+    onDecoded,
+    resetScannerState,
+    setShowQrScanner,
+  ]);
 
   const openQrScanner = useCallback(() => {
     setShowQrScanner(true);

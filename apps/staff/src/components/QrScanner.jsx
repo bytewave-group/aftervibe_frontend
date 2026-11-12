@@ -54,15 +54,9 @@ function QrScannerView({
             </p>
           </div>
         )}
-        {scanMode !== null && (
+        {scanMode === "camera" && !cameraUnavailable && (
           <div className="qr-scanner-instructions">
-            <p>
-              {scanMode === "usb"
-                ? t("Scan with USB barcode scanner")
-                : cameraUnavailable
-                  ? t("Scan with USB barcode scanner")
-                  : t("Position the QR code within the frame")}
-            </p>
+            <p>{t("Position the QR code within the frame")}</p>
           </div>
         )}
         {(scanMode === "camera" || scanMode === "usb") && (
