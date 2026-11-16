@@ -10,5 +10,6 @@ export default async function LoginPage({
   searchParams: Promise<{ redirect?: string }>;
 }) {
   const params = await searchParams;
-  redirect(loginUrl(params.redirect));
+  redirect(loginUrl(params.redirect)); 
+  
 }
