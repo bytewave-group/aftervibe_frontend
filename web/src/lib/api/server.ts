@@ -1,5 +1,6 @@
 import "server-only";
 
+import { apiBaseUrl, apiTenantId } from "@/lib/api/env";
 import { AUTH_COOKIE_NAME } from "@/lib/auth/cookies";
 import { isDevMockEnabled, isDevMockForced, isDevMockSession } from "@/lib/mock/devFallback";
 import { DEV_MOCK_ACTION_MESSAGE } from "@/lib/mock/devMode";
@@ -28,15 +29,15 @@ export type ApiRequestOptions = {
 };
 
 export function getApiBaseUrl(): string {
-  const base = process.env.API_BASE_URL?.trim();
+  const base = apiBaseUrl();
   if (!base) {
-    throw new ApiError("API_BASE_URL is not configured.", 500);
+    throw new ApiError("NEXT_PUBLIC_API_BASE_URL is not configured.", 500);
   }
-  return base.replace(/\/+$/, "");
+  return base;
 }
 
 function tenantHeaders(): Record<string, string> {
-  const tenantId = process.env.API_TENANT_ID?.trim();
+  const tenantId = apiTenantId();
   return tenantId ? { "X-Tenant-ID": tenantId } : {};
 }
 

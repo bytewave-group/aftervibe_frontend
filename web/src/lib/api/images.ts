@@ -1,3 +1,5 @@
+import { apiBaseUrl } from "@/lib/api/env";
+
 const PLACEHOLDER_AVATAR = "/images/avatar-profile.png";
 const PLACEHOLDER_BANNER = "/images/banner-dj-night.png";
 
@@ -18,7 +20,7 @@ function trimLeadingSlashes(value: string): string {
 }
 
 function apiOrigin(): string {
-  return trimTrailingSlashes((process.env.API_BASE_URL ?? "").trim());
+  return trimTrailingSlashes(apiBaseUrl());
 }
 
 function upgradeLocalHttp(url: string): string {
@@ -41,7 +43,7 @@ function upgradeLocalHttp(url: string): string {
 /**
  * Turn a backend media value into a browser-loadable URL.
  * - absolute http(s) URLs are kept (Herd http is upgraded to https)
- * - `/storage/...` and other non-app relative paths are resolved against API_BASE_URL
+ * - `/storage/...` and other non-app relative paths are resolved against NEXT_PUBLIC_API_BASE_URL
  * - `/images/...` and other Next public assets are left as-is
  * - empty/null stays null (do not invent a portrait)
  */
