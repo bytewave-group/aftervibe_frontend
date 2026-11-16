@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 
-import Background from "../components/common/background";
+import Background from "../components/common/Background";
 import NavigationBar from "../components/common/NavigationBar";
 import BarAccessPopup from "../components/bar/BarAccessPopup";
 

@@ -1,4 +1,4 @@
-import Header from "../components/header/header";
+import Header from "../components/header/Header";
 import Background from "../components/common/Background";
 import NavigationBar from "../components/common/NavigationBar";
 

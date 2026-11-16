@@ -5,8 +5,8 @@ import AnimationSendButton from "../../components/animation/AnimationSendButton"
 import GiftMenu from "../../components/gift/GiftMenu";
 import StaffMenu from "../../components/interaction/StaffMenu";
 import CustomerMenu from "../../components/interaction/CustomerMenu";
-import Background from "../../components/common/background";
-import Header from "../../components/header/header";
+import Background from "../../components/common/Background";
+import Header from "../../components/header/Header";
 import NavigationBar from "../../components/common/NavigationBar";
 
 import "../../css/Gift.css";

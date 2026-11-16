@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
-import Header from "../components/header/header";
+import Header from "../components/header/Header";
 import Background from "../components/common/Background";
 import NavigationBar from "../components/common/NavigationBar";
 import { eventImage, formatEventSchedule } from "../components/events/eventSchedule";

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
-import Header from "../components/header/header";
-import Background from "../components/common/background";
+import Header from "../components/header/Header";
+import Background from "../components/common/Background";
 import NavigationBar from "../components/common/NavigationBar";
 import { apiErrorMessage, customerFetch } from "../config/customerApi";
 
