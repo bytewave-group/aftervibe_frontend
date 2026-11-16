@@ -3,9 +3,11 @@
   "private": true,
   "description": "AfterVibe apps: staff app (apps/staff, from f7_babylon_superapp) and customer app with displays and Electron (apps/customer, from after_vibe_frontend).",
   "scripts": {
-    "install:all": "npm --prefix apps/staff install && npm --prefix apps/customer install",
+    "install:all": "npm --prefix apps/staff install && npm --prefix apps/customer install && npm --prefix web install",
+    "postinstall": "npm run install:all",
     "dev:staff": "npm --prefix apps/staff run dev",
     "dev:customer": "npm --prefix apps/customer run dev",
+    "build": "npm run build:staff && npm run build:customer && npm run build:web",
     "build:staff": "npm --prefix apps/staff run build",
     "build:customer": "npm --prefix apps/customer run build",
     "electron": "npm --prefix apps/customer run electron",
