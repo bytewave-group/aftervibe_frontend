@@ -1,7 +1,7 @@
 "use client";
 
+import { useAuth } from "@/components/auth/AuthProvider";
 import { sendOtp, verifyOtp } from "@/lib/api/otp";
-import { registerAction, type RegisterState } from "@/lib/auth/actions";
 import {
   COUNTRY_OPTIONS,
   DEFAULT_COUNTRY_ID,
@@ -9,7 +9,7 @@ import {
   isValidNationalNumber,
 } from "@/lib/auth/phone";
 import { useTranslations } from "@/i18n/locale-provider";
-import { useActionState, useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 
 const ERROR_KEYS: Record<string, string> = {
   missing: "register.errorMissing",
@@ -31,18 +31,17 @@ const RESEND_SECONDS = 60;
 
 export function AuthRegisterForm({ redirectTo }: { redirectTo: string }) {
   const t = useTranslations();
-  const [state, formAction, pending] = useActionState<RegisterState, FormData>(
-    registerAction,
-    null,
-  );
+  const { register } = useAuth();
   const [countryId, setCountryId] = useState(DEFAULT_COUNTRY_ID);
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [countdown, setCountdown] = useState(0);
+  const [pending, setPending] = useState(false);
   const [clientError, setClientError] = useState<string | null>(null);
-  const otpVerifiedRef = useRef(false);
+  const [serverError, setServerError] = useState<string | null>(null);
+  void redirectTo;
 
   useEffect(() => {
     if (countdown <= 0) return;
@@ -54,8 +53,8 @@ export function AuthRegisterForm({ redirectTo }: { redirectTo: string }) {
 
   const errorKey = clientError
     ? ERROR_KEYS[clientError] ?? "register.errorGeneric"
-    : state?.error
-      ? (ERROR_KEYS[state.error] ?? "register.errorGeneric")
+    : serverError
+      ? (ERROR_KEYS[serverError] ?? "register.errorGeneric")
       : null;
 
   const handleSendOtp = async () => {
@@ -77,56 +76,61 @@ export function AuthRegisterForm({ redirectTo }: { redirectTo: string }) {
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    if (otpVerifiedRef.current) {
-      return;
-    }
+    event.preventDefault();
+    if (pending) return;
     const form = event.currentTarget;
     const username = String(new FormData(form).get("username") ?? "").trim();
     const password = String(new FormData(form).get("password") ?? "");
     const confirmation = String(new FormData(form).get("password_confirmation") ?? "");
 
     setClientError(null);
+    setServerError(null);
 
     if (!username || !password || !confirmation || !phone.trim() || !otp.trim()) {
-      event.preventDefault();
       setClientError("missing");
       return;
     }
     if (password.length < 6) {
-      event.preventDefault();
       setClientError("short_password");
       return;
     }
     if (password !== confirmation) {
-      event.preventDefault();
       setClientError("mismatch");
       return;
     }
     if (!isValidNationalNumber(phone)) {
-      event.preventDefault();
       setClientError("phone");
       return;
     }
     if (!otpSent) {
-      event.preventDefault();
       setClientError("otp_required");
       return;
     }
 
-    event.preventDefault();
     const verified = await verifyOtp(phone, countryId, otp);
     if (!verified.ok) {
       setClientError("otp");
       return;
     }
-    otpVerifiedRef.current = true;
-    form.requestSubmit();
+
+    setPending(true);
+    const result = await register({
+      phone: composePhone(countryId, phone),
+      username,
+      password,
+      passwordConfirmation: confirmation,
+      otp,
+    });
+    setPending(false);
+    if (result?.error) {
+      setServerError(result.error);
+    }
   };
 
   const composed = composePhone(countryId, phone);
 
   return (
-    <form action={formAction} onSubmit={handleSubmit} className="mt-5 flex flex-col">
+    <form onSubmit={(event) => void handleSubmit(event)} className="mt-5 flex flex-col">
       <input type="hidden" name="redirect" value={redirectTo} />
       <input type="hidden" name="phone" value={composed} />
 

@@ -1,10 +1,12 @@
+"use client";
+
 import { CountUp } from "@/components/ui/CountUp";
-import { getT } from "@/i18n/get-locale";
+import { useTranslations } from "@/i18n/locale-provider";
 import Image from "next/image";
 import { ForwardLink } from "@/components/navigation/ForwardLink";
 
-export async function BalanceCard({ balance }: { balance: number }) {
-  const { t } = await getT();
+export function BalanceCard({ balance }: { balance: number }) {
+  const t = useTranslations();
 
   return (
     <section className="anim-fade-up relative mx-6 mt-[25px] h-[153px] overflow-hidden rounded-[10px] [--stagger:1]">

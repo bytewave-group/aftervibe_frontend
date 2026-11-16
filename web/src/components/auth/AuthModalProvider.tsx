@@ -3,6 +3,7 @@
 import { AuthModal, type AuthMode } from "@/components/auth/AuthModal";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { usePresence } from "@/components/ui/usePresence";
+import { SESSION_EXPIRED_EVENT } from "@/lib/api/browser";
 import { loginUrl, registerUrl, safeRedirectPath } from "@/lib/auth/redirect";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
@@ -106,6 +107,15 @@ export function AuthModalProvider({ children }: { children: ReactNode }) {
     const qs = params.toString();
     router.replace(qs ? `/?${qs}` : "/", { scroll: false });
   }, [router]);
+
+  useEffect(() => {
+    const onExpired = () => {
+      const path = `${window.location.pathname}${window.location.search}`;
+      openLogin(path);
+    };
+    window.addEventListener(SESSION_EXPIRED_EVENT, onExpired);
+    return () => window.removeEventListener(SESSION_EXPIRED_EVENT, onExpired);
+  }, [openLogin]);
 
   const value = useMemo(
     () => ({ openLogin, openRegister, close }),

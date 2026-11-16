@@ -1,41 +1,11 @@
-import { GiftSelectClient } from "@/components/gifts/GiftSelectClient";
-import { GiftSelectBodySkeleton } from "@/components/navigation/PageSkeletons";
-import { loadGiftSelectPage } from "@/lib/api/gifts";
-import { Suspense } from "react";
-import { DevMockBadge } from "@/components/dev/DevMockBadge";
+import { StubPage } from "@/components/static/StubPage";
 
-async function GiftContent({
-  params,
-}: {
-  params: Promise<{ customerId: string }>;
-}) {
-  const { customerId } = await params;
-  const id = Number(customerId);
-  const data = await loadGiftSelectPage(Number.isFinite(id) ? id : 0, "customer");
-  return (
-    <>
-      <div className="anim-content-fade flex min-h-0 flex-1 flex-col">
-        <GiftSelectClient
-          staff={data.staff}
-          recipientType="customer"
-          gifts={data.gifts}
-          balance={data.balance}
-          confirmThreshold={data.confirmThreshold}
-        />
-      </div>
-      <DevMockBadge />
-    </>
-  );
+export function generateStaticParams() {
+  return [{ customerId: "_" }];
 }
 
-export default function CustomerGiftSelectPage({
-  params,
-}: {
-  params: Promise<{ customerId: string }>;
-}) {
-  return (
-    <Suspense fallback={<GiftSelectBodySkeleton />}>
-      <GiftContent params={params} />
-    </Suspense>
-  );
+export const dynamicParams = false;
+
+export default function Page() {
+  return <StubPage title="Gift" />;
 }

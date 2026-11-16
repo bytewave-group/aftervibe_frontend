@@ -1,27 +1,164 @@
 "use client";
 
 import {
+  apiFetch,
+  ApiError,
+  AUTH_CHANGED_EVENT,
+  clearStoredToken,
+  getStoredToken,
+  SESSION_EXPIRED_EVENT,
+  setStoredToken,
+} from "@/lib/api/browser";
+import type { LoginResponse, LogoutResponse, RegisterResponse } from "@/lib/api/types";
+import { DEV_MOCK_TOKEN_PREFIX } from "@/lib/mock/devMode";
+import {
   createContext,
+  useCallback,
   useContext,
+  useMemo,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 
+export type AuthResult = { error: string } | null;
+
+interface RegisterInput {
+  phone: string;
+  username: string;
+  password: string;
+  passwordConfirmation: string;
+  otp: string;
+}
+
 interface AuthContextValue {
   isAuthed: boolean;
+  login: (phone: string, password: string) => Promise<AuthResult>;
+  loginDevMock: () => void;
+  register: (input: RegisterInput) => Promise<AuthResult>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-export function AuthProvider({
-  isAuthed,
-  children,
-}: {
-  isAuthed: boolean;
-  children: ReactNode;
-}) {
-  return (
-    <AuthContext.Provider value={{ isAuthed }}>{children}</AuthContext.Provider>
+function registerErrorFromMessage(message: string): string {
+  const value = message.toLowerCase();
+  if (value.includes("verification code") || value.includes("otp")) {
+    return "otp";
+  }
+  if (value.includes("phone") && value.includes("taken")) {
+    return "phone_taken";
+  }
+  if (value.includes("username") && value.includes("taken")) {
+    return "username_taken";
+  }
+  return "generic";
+}
+
+function storeSession(token: string): void {
+  setStoredToken(token);
+}
+
+function subscribeAuth(onChange: () => void): () => void {
+  window.addEventListener(AUTH_CHANGED_EVENT, onChange);
+  window.addEventListener(SESSION_EXPIRED_EVENT, onChange);
+  window.addEventListener("storage", onChange);
+  return () => {
+    window.removeEventListener(AUTH_CHANGED_EVENT, onChange);
+    window.removeEventListener(SESSION_EXPIRED_EVENT, onChange);
+    window.removeEventListener("storage", onChange);
+  };
+}
+
+function authSnapshot(): boolean {
+  return Boolean(getStoredToken());
+}
+
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const isAuthed = useSyncExternalStore(subscribeAuth, authSnapshot, () => false);
+
+  const login = useCallback(async (phone: string, password: string): Promise<AuthResult> => {
+    const trimmed = phone.trim();
+    if (!trimmed || !password) {
+      return { error: "missing" };
+    }
+
+    try {
+      const payload = await apiFetch<LoginResponse>("/api/customer/login", {
+        method: "POST",
+        auth: "none",
+        body: { phone: trimmed, password },
+      });
+      if (!payload?.token || typeof payload.token !== "string") {
+        return { error: "generic" };
+      }
+      storeSession(payload.token);
+      return null;
+    } catch (error) {
+      if (error instanceof ApiError) {
+        if (error.status === 401) return { error: "credentials" };
+        if (error.status === 403) return { error: "inactive" };
+        return { error: "generic" };
+      }
+      return { error: "network" };
+    }
+  }, []);
+
+  const loginDevMock = useCallback(() => {
+    storeSession(`${DEV_MOCK_TOKEN_PREFIX}${Date.now()}`);
+  }, []);
+
+  const register = useCallback(async (input: RegisterInput): Promise<AuthResult> => {
+    try {
+      const payload = await apiFetch<RegisterResponse>("/api/customer/register", {
+        method: "POST",
+        auth: "none",
+        body: {
+          phone: input.phone,
+          username: input.username,
+          name: input.username,
+          password: input.password,
+          password_confirmation: input.passwordConfirmation,
+          otp: input.otp,
+        },
+      });
+      if (!payload?.token || typeof payload.token !== "string") {
+        return { error: "generic" };
+      }
+      storeSession(payload.token);
+      return null;
+    } catch (error) {
+      if (error instanceof ApiError) {
+        return { error: registerErrorFromMessage(error.message) };
+      }
+      return { error: "network" };
+    }
+  }, []);
+
+  const logout = useCallback(async () => {
+    const token = getStoredToken();
+    if (token && !token.startsWith(DEV_MOCK_TOKEN_PREFIX)) {
+      try {
+        await apiFetch<LogoutResponse>("/api/customer/logout", {
+          method: "POST",
+          auth: "optional",
+          body: {},
+          onUnauthorized: "ignore",
+        });
+      } catch (error) {
+        if (!(error instanceof ApiError && (error.status === 401 || error.status === 403))) {
+          console.error("Customer logout failed", error);
+        }
+      }
+    }
+    clearStoredToken();
+  }, []);
+
+  const value = useMemo(
+    () => ({ isAuthed, login, loginDevMock, register, logout }),
+    [isAuthed, login, loginDevMock, register, logout],
   );
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth(): AuthContextValue {

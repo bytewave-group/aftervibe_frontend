@@ -1,6 +1,8 @@
+"use client";
+
 import { RequireAuthTap } from "@/components/auth/RequireAuthTap";
 import { SafeImage } from "@/components/media/SafeImage";
-import { getT } from "@/i18n/get-locale";
+import { useTranslations } from "@/i18n/locale-provider";
 import {
   metricIcons,
   rankingHeaderClass,
@@ -12,8 +14,8 @@ interface RankingListProps {
   empty?: string;
 }
 
-export async function RankingList({ data, empty }: RankingListProps) {
-  const { t } = await getT();
+export function RankingList({ data, empty }: RankingListProps) {
+  const t = useTranslations();
   const metricIcon = metricIcons[data.metric];
   const metricLabel = t(`home.metrics.${data.metric}`);
 

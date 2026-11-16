@@ -1,15 +1,24 @@
+"use client";
+
 import { loginUrl } from "@/lib/auth/redirect";
-import { redirect } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect } from "react";
 
-// /login only redirects to /?auth=login; it must not be prerendered.
-export const instant = false;
+function LoginRedirect() {
+  const router = useRouter();
+  const params = useSearchParams();
 
-export default async function LoginPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ redirect?: string }>;
-}) {
-  const params = await searchParams;
-  redirect(loginUrl(params.redirect)); 
-  
+  useEffect(() => {
+    router.replace(loginUrl(params.get("redirect") ?? undefined));
+  }, [router, params]);
+
+  return null;
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginRedirect />
+    </Suspense>
+  );
 }

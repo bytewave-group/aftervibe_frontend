@@ -1,32 +1,5 @@
-import { EditProfileForm } from "@/components/profile/EditProfileForm";
-import { PageMain } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { EditProfileBodySkeleton } from "@/components/navigation/PageSkeletons";
-import { loadProfileForEdit } from "@/lib/api/profile-edit";
-import { Suspense } from "react";
-import { DevMockBadge } from "@/components/dev/DevMockBadge";
+import { StubPage } from "@/components/static/StubPage";
 
-async function EditContent() {
-  const profile = await loadProfileForEdit();
-  return (
-    <>
-      <div className="anim-content-fade">
-        <EditProfileForm initial={profile} />
-      </div>
-      <DevMockBadge />
-    </>
-  );
-}
-
-export default function EditProfilePage() {
-  return (
-    <>
-      <PageHeader titleKey="profileEdit.title" backHref="/?tab=me" />
-      <PageMain>
-        <Suspense fallback={<EditProfileBodySkeleton />}>
-          <EditContent />
-        </Suspense>
-      </PageMain>
-    </>
-  );
+export default function Page() {
+  return <StubPage title="Edit profile" />;
 }

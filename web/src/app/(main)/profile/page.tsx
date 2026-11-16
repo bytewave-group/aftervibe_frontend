@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation";
+import { StubPage } from "@/components/static/StubPage";
 
-export default function ProfilePage() {
-  redirect("/?tab=me");
+export default function Page() {
+  return <StubPage title="Profile" />;
 }

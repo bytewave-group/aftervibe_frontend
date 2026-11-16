@@ -4,7 +4,7 @@ import { GuardedLink } from "@/components/auth/GuardedLink";
 import { AppDialog } from "@/components/ui/AppDialog";
 import { locales, type Locale } from "@/i18n/config";
 import { useLocale } from "@/i18n/locale-provider";
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 
 interface MenuIcon {
@@ -49,11 +49,11 @@ function RowIcon({ icon }: { icon: MenuIcon }) {
 export function ProfileSettings() {
   const { locale, t, setLocale, isPending } = useLocale();
   const [open, setOpen] = useState(false);
-  const [canPortal, setCanPortal] = useState(false);
-
-  useEffect(() => {
-    setCanPortal(true);
-  }, []);
+  const canPortal = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 
   const choose = (next: Locale) => {
     if (next !== locale) {

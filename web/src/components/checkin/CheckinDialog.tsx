@@ -1,7 +1,6 @@
 "use client";
 
-import { claimCheckinAction, loadCheckinStatusAction } from "@/lib/api/checkin-actions";
-import { claimedRewardText, grantCaption } from "@/lib/checkin";
+import { grantCaption } from "@/lib/checkin";
 import { mockCheckinStatus, type CheckinStatus, type DayState } from "@/lib/mock/checkin";
 import { useTranslations } from "@/i18n/locale-provider";
 import { MotionBurst } from "@/components/motion/MotionBurst";
@@ -75,30 +74,11 @@ export function CheckinDialog({ onClose, previewStatus, open = true }: CheckinDi
   const t = useTranslations();
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
-  const [status, setStatus] = useState<CheckinStatus | null>(previewStatus ?? null);
-  const [feedback, setFeedback] = useState<Feedback>(previewStatus ? null : "loading");
-  const [reward, setReward] = useState<string | null>(previewStatus?.reward ?? null);
-  const [celebratedDay, setCelebratedDay] = useState<number | null>(null);
+  const [status] = useState<CheckinStatus | null>(previewStatus ?? null);
+  const [feedback, setFeedback] = useState<Feedback>(previewStatus ? null : "load_error");
+  const reward = previewStatus?.reward ?? null;
+  const celebratedDay = null;
   const { mounted, exiting } = usePresence(open);
-
-  useEffect(() => {
-    if (previewStatus || !open) return;
-    let cancelled = false;
-    void loadCheckinStatusAction().then((result) => {
-      if (cancelled) return;
-      if (result.ok) {
-        setStatus(result.status);
-        setReward(result.status.reward);
-        setFeedback(result.status.checkedIn ? "already_claimed" : null);
-        return;
-      }
-      setStatus(null);
-      setFeedback("load_error");
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [previewStatus, open]);
 
   useEffect(() => {
     if (!mounted || exiting) return;
@@ -119,24 +99,10 @@ export function CheckinDialog({ onClose, previewStatus, open = true }: CheckinDi
     return null;
   }
 
-  const claimToday = async () => {
+  const claimToday = () => {
     if (!status || status.checkedIn || !status.campaignActive || feedback === "claiming" || feedback === "load_error") return;
     const today = status.days.find((day) => day.state === "today");
     if (!today) return;
-    setFeedback("claiming");
-    const result = await claimCheckinAction(status);
-    if (result.ok) {
-      setStatus(result.status);
-      setReward(claimedRewardText(t, result.status) || result.reward);
-      setCelebratedDay(today.day);
-      setFeedback("success");
-      return;
-    }
-    if (result.reason === "already_claimed") {
-      setStatus(result.status ?? status);
-      setFeedback("already_claimed");
-      return;
-    }
     setFeedback("error");
   };
 

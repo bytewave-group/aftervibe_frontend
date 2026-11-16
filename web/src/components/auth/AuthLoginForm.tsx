@@ -1,9 +1,9 @@
 "use client";
 
-import { loginAction, type LoginState } from "@/lib/auth/actions";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { useTranslations } from "@/i18n/locale-provider";
 import { isDevMockEnabled } from "@/lib/mock/devMode";
-import { useActionState } from "react";
+import { useState, type FormEvent } from "react";
 
 const ERROR_KEYS: Record<string, string> = {
   missing: "login.errorMissing",
@@ -18,17 +18,37 @@ const fieldClass =
 
 export function AuthLoginForm({ redirectTo }: { redirectTo: string }) {
   const t = useTranslations();
-  const [state, formAction, pending] = useActionState<LoginState, FormData>(
-    loginAction,
-    null,
-  );
+  const { login, loginDevMock } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+  void redirectTo;
 
-  const errorKey = state?.error ? (ERROR_KEYS[state.error] ?? "login.errorGeneric") : null;
+  const errorKey = error ? (ERROR_KEYS[error] ?? "login.errorGeneric") : null;
+
+  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (pending) return;
+    const submitter = (event.nativeEvent as SubmitEvent).submitter;
+    if (
+      submitter instanceof HTMLButtonElement &&
+      submitter.name === "intent" &&
+      submitter.value === "dev-mock"
+    ) {
+      loginDevMock();
+      return;
+    }
+
+    const form = new FormData(event.currentTarget);
+    const phone = String(form.get("phone") ?? "");
+    const password = String(form.get("password") ?? "");
+    setPending(true);
+    const result = await login(phone, password);
+    setPending(false);
+    setError(result?.error ?? null);
+  };
 
   return (
-    <form action={formAction} className="mt-5 flex flex-col">
-      <input type="hidden" name="redirect" value={redirectTo} />
-
+    <form onSubmit={(event) => void onSubmit(event)} className="mt-5 flex flex-col">
       <label className="sr-only" htmlFor="auth-login-phone">
         {t("login.phone")}
       </label>

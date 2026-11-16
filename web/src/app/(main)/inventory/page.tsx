@@ -1,32 +1,5 @@
-import { InventoryPageClient } from "@/components/inventory/InventoryPageClient";
-import { PageMain } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { InventoryBodySkeleton } from "@/components/navigation/PageSkeletons";
-import { loadInventory } from "@/lib/api/inventory";
-import { Suspense } from "react";
-import { DevMockBadge } from "@/components/dev/DevMockBadge";
+import { StubPage } from "@/components/static/StubPage";
 
-async function InventoryContent() {
-  const data = await loadInventory();
-  return (
-    <>
-      <div className="anim-content-fade">
-        <InventoryPageClient initialData={data} />
-      </div>
-      <DevMockBadge />
-    </>
-  );
-}
-
-export default function InventoryPage() {
-  return (
-    <>
-      <PageHeader titleKey="inventory.title" backHref="/" />
-      <PageMain>
-        <Suspense fallback={<InventoryBodySkeleton />}>
-          <InventoryContent />
-        </Suspense>
-      </PageMain>
-    </>
-  );
+export default function Page() {
+  return <StubPage title="Inventory" />;
 }

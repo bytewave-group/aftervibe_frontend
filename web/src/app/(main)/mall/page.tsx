@@ -1,32 +1,5 @@
-import { MallPageClient } from "@/components/mall/MallPageClient";
-import { PageMain } from "@/components/layout/AppShell";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { MallBodySkeleton } from "@/components/navigation/PageSkeletons";
-import { loadMall } from "@/lib/api/mall";
-import { Suspense } from "react";
-import { DevMockBadge } from "@/components/dev/DevMockBadge";
+import { StubPage } from "@/components/static/StubPage";
 
-async function MallContent() {
-  const data = await loadMall();
-  return (
-    <>
-      <div className="anim-content-fade">
-        <MallPageClient initialData={data} />
-      </div>
-      <DevMockBadge />
-    </>
-  );
-}
-
-export default function MallPage() {
-  return (
-    <>
-      <PageHeader titleKey="mall.title" backHref="/" />
-      <PageMain>
-        <Suspense fallback={<MallBodySkeleton />}>
-          <MallContent />
-        </Suspense>
-      </PageMain>
-    </>
-  );
+export default function Page() {
+  return <StubPage title="Mall" />;
 }

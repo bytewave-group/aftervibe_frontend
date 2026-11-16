@@ -4,7 +4,7 @@ import { useRequireAuth } from "@/components/auth/useRequireAuth";
 import { AppDialog } from "@/components/ui/AppDialog";
 import { useTranslations } from "@/i18n/locale-provider";
 import { QRCodeSVG } from "qrcode.react";
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
 
 export function ProfileQrButton({
@@ -20,11 +20,11 @@ export function ProfileQrButton({
   const t = useTranslations();
   const requireAuth = useRequireAuth();
   const [open, setOpen] = useState(false);
-  const [canPortal, setCanPortal] = useState(false);
-
-  useEffect(() => {
-    setCanPortal(true);
-  }, []);
+  const canPortal = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 
   const dialog = (
     <AppDialog title={t("profile.qrTitle")} open={open} onClose={() => setOpen(false)}>

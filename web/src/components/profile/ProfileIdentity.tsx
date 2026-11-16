@@ -1,10 +1,12 @@
+"use client";
+
 import { ProfileQrButton } from "@/components/profile/ProfileQrButton";
-import { getT } from "@/i18n/get-locale";
+import { useTranslations } from "@/i18n/locale-provider";
 import { SafeImage } from "@/components/media/SafeImage";
 import type { ProfileData } from "@/lib/mock/profile";
 
-export async function ProfileIdentity({ profile }: { profile: ProfileData }) {
-  const { t } = await getT();
+export function ProfileIdentity({ profile }: { profile: ProfileData }) {
+  const t = useTranslations();
 
   return (
     <section className="anim-fade-up flex items-center px-6 pt-[28px]">
