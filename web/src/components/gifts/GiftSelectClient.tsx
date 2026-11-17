@@ -342,9 +342,7 @@ export function GiftSelectClient({
     const from =
       staff == null
         ? "/gifts"
-        : recipientType === "customer"
-          ? `/gifts/customer/${staff.id}`
-          : `/gifts/${staff.id}`;
+        : `/gifts/select?id=${staff.id}&recipient=${recipientType}`;
     params.set("from", from);
     begin(`/recharge?${params.toString()}`, NAV_FORWARD);
   };

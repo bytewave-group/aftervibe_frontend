@@ -1,8 +1,7 @@
-"use server";
-
 import { logApiFallback, redirectIfUnauthorized } from "@/lib/api/paginate";
-import { apiGet, apiPost, ApiError } from "@/lib/api/server";
-import type { CoinOrderDto, CoinOrdersResponse, MeResponse } from "@/lib/api/types";
+import { apiGet, apiPost, ApiError } from "@/lib/api/browser";
+import { loadMe } from "@/lib/api/me-cache";
+import type { CoinOrderDto, CoinOrdersResponse } from "@/lib/api/types";
 import { safeRedirectPath } from "@/lib/auth/redirect";
 import {
   RECHARGE_CURRENCY,
@@ -104,8 +103,8 @@ async function fetchBalance(): Promise<RechargeBalance> {
       "[recharge] GET /api/customer/balance failed; falling back to /api/customer/me",
       error,
     );
-    const me = await apiGet<MeResponse>("/api/customer/me", "required");
-    const balance = asNumber(me.customer?.balance, 0);
+    const customer = await loadMe();
+    const balance = asNumber(customer?.balance, 0);
     return { balance, available: balance };
   }
 }

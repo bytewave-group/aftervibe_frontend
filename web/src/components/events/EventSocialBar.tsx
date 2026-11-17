@@ -26,7 +26,7 @@ export function EventSocialBar({ event }: { event: EventDetail }) {
   }, []);
 
   async function onToggleLike() {
-    if (!requireAuth(`/events/${event.id}`)) {
+    if (!requireAuth(`/events?id=${event.id}`)) {
       return;
     }
     const generation = ++inflight.current;

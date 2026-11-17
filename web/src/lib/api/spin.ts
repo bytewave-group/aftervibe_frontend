@@ -1,7 +1,5 @@
-"use server";
-
 import { resolveMediaUrl } from "@/lib/api/images";
-import { apiGet, apiPost, ApiError } from "@/lib/api/server";
+import { apiGet, apiPost, ApiError } from "@/lib/api/browser";
 import { logApiFallback, redirectIfUnauthorized } from "@/lib/api/paginate";
 import type {
   SpinPrizeDto,
@@ -16,7 +14,6 @@ import {
   type SpinStatus,
 } from "@/lib/mock/spin";
 import { devMockIfEmpty, devMockOnError } from "@/lib/mock/devFallback";
-import { revalidatePath } from "next/cache";
 
 export type { SpinResult, SpinStatus };
 
@@ -105,9 +102,6 @@ export async function performSpin(
       payWith ? { pay_with: payWith } : {},
       "required",
     );
-    revalidatePath("/spin");
-    revalidatePath("/profile");
-    revalidatePath("/profile/history");
     return {
       prizeIndex: Number(payload.prize_index) || 0,
       prize: mapPrize(payload.prize),

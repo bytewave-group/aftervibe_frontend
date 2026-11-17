@@ -23,9 +23,22 @@ export type ApiRequestOptions = {
   method?: string;
   auth?: AuthMode;
   body?: unknown;
+  formData?: FormData;
+  headers?: Record<string, string>;
   /** When the server returns 401 for a request that sent a bearer token. */
   onUnauthorized?: "expire" | "ignore";
 };
+
+const sessionResets: Array<() => void> = [];
+
+/** Drop cached reads when the token is stored or cleared. */
+export function onSessionChange(reset: () => void): void {
+  sessionResets.push(reset);
+}
+
+function notifySessionChange(): void {
+  for (const reset of sessionResets) reset();
+}
 
 export function getStoredToken(): string | null {
   if (typeof window === "undefined") {
@@ -36,11 +49,13 @@ export function getStoredToken(): string | null {
 
 export function setStoredToken(token: string): void {
   window.localStorage.setItem(TOKEN_STORAGE_KEY, token);
+  notifySessionChange();
   window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
 }
 
 export function clearStoredToken(): void {
   window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+  notifySessionChange();
   window.dispatchEvent(new Event(AUTH_CHANGED_EVENT));
 }
 
@@ -100,8 +115,16 @@ export async function apiFetch<T>(path: string, options: ApiRequestOptions = {})
   if (auth !== "none" && token) {
     headers.Authorization = `Bearer ${token}`;
   }
-  if (options.body !== undefined) {
+  if (options.headers) {
+    Object.assign(headers, options.headers);
+  }
+
+  let body: BodyInit | undefined;
+  if (options.formData) {
+    body = options.formData;
+  } else if (options.body !== undefined) {
     headers["Content-Type"] = "application/json";
+    body = JSON.stringify(options.body);
   }
 
   let response: Response;
@@ -109,7 +132,7 @@ export async function apiFetch<T>(path: string, options: ApiRequestOptions = {})
     response = await fetch(`${base}${path.startsWith("/") ? path : `/${path}`}`, {
       method: options.method ?? "GET",
       headers,
-      body: options.body !== undefined ? JSON.stringify(options.body) : undefined,
+      body,
     });
   } catch (error) {
     throw new ApiError(error instanceof Error ? error.message : "Network error", 0);
@@ -139,4 +162,16 @@ export async function apiFetch<T>(path: string, options: ApiRequestOptions = {})
   }
 
   return payload as T;
+}
+
+export function apiGet<T>(path: string, auth: AuthMode = "optional"): Promise<T> {
+  return apiFetch<T>(path, { method: "GET", auth });
+}
+
+export function apiPost<T>(path: string, body?: unknown, auth: AuthMode = "optional"): Promise<T> {
+  return apiFetch<T>(path, { method: "POST", auth, body });
+}
+
+export function apiDelete<T>(path: string, auth: AuthMode = "optional"): Promise<T> {
+  return apiFetch<T>(path, { method: "DELETE", auth });
 }

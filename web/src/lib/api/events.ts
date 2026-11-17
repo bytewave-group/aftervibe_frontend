@@ -1,7 +1,7 @@
 import { mapEventDetail } from "@/lib/api/event-detail";
 import { displayImageUrl } from "@/lib/api/images";
 import { logApiFallback, redirectIfUnauthorized } from "@/lib/api/paginate";
-import { apiGet, ApiError } from "@/lib/api/server";
+import { apiGet, ApiError } from "@/lib/api/browser";
 import type { EventDto, EventShowResponse, EventsResponse } from "@/lib/api/types";
 import { findMockEventDetail, type EventDetail } from "@/lib/mock/event-detail";
 import {
@@ -79,7 +79,7 @@ export async function getEvent(id: number): Promise<EventDetail | null> {
     }
     return mapEventDetail(payload.event);
   } catch (error) {
-    redirectIfUnauthorized(error, `/events/${id}`);
+    redirectIfUnauthorized(error, `/events?id=${id}`);
     if (error instanceof ApiError && error.status === 404) {
       return null;
     }

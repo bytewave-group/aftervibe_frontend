@@ -1,12 +1,10 @@
-"use server";
-
 import {
   collectPages,
   logApiFallback,
   redirectIfUnauthorized,
   type LaravelPaginator,
 } from "@/lib/api/paginate";
-import { apiGet, apiPost, ApiError } from "@/lib/api/server";
+import { apiGet, apiPost, ApiError } from "@/lib/api/browser";
 import type { CustomerNotificationDto } from "@/lib/api/types";
 import {
   buildNotificationsData,
@@ -16,7 +14,6 @@ import {
   type NotificationsData,
 } from "@/lib/mock/notifications";
 import { devMockIfEmpty, devMockOnError } from "@/lib/mock/devFallback";
-import { revalidatePath } from "next/cache";
 
 export type { NotificationItem, NotificationsData };
 
@@ -78,7 +75,6 @@ export async function markNotificationRead(
 ): Promise<NotificationsData> {
   try {
     await apiPost(`/api/customer/notifications/${id}/read`, {}, "required");
-    revalidatePath("/notifications");
     const now = new Date().toISOString();
     const next = items.map((item) =>
       item.id === id && !item.readAt ? { ...item, readAt: now } : item,
@@ -99,7 +95,6 @@ export async function markAllNotificationsRead(
 ): Promise<NotificationsData> {
   try {
     await apiPost("/api/customer/notifications/read-all", {}, "required");
-    revalidatePath("/notifications");
     const now = new Date().toISOString();
     const next = items.map((item) =>
       item.readAt ? item : { ...item, readAt: now },

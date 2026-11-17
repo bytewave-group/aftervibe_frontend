@@ -1,13 +1,10 @@
-import "server-only";
-
-import { AUTH_COOKIE_NAME } from "@/lib/auth/cookies";
+import { getStoredToken } from "@/lib/api/browser";
 import {
   DEV_MOCK_COOKIE,
   devMockFlag,
   isDevMockEnabled,
   isDevMockToken,
 } from "@/lib/mock/devMode";
-import { cookies } from "next/headers";
 import { unstable_rethrow } from "next/navigation";
 import { cache } from "react";
 
@@ -33,14 +30,7 @@ export { DEV_MOCK_COOKIE, isDevMockEnabled };
 
 /** True when the current request carries a dev mock login token. */
 export async function isDevMockSession(): Promise<boolean> {
-  if (!isDevMockEnabled()) {
-    return false;
-  }
-  try {
-    return isDevMockToken((await cookies()).get(AUTH_COOKIE_NAME)?.value);
-  } catch {
-    return false;
-  }
+  return isDevMockToken(getStoredToken());
 }
 
 export async function isDevMockForced(): Promise<boolean> {
@@ -50,11 +40,8 @@ export async function isDevMockForced(): Promise<boolean> {
   if (devMockFlag() === "force") {
     return true;
   }
-  try {
-    return (await cookies()).get(DEV_MOCK_COOKIE)?.value === "force";
-  } catch {
-    return false;
-  }
+  if (typeof document === "undefined") return false;
+  return document.cookie.split("; ").some((part) => part === `${DEV_MOCK_COOKIE}=force`);
 }
 
 function statusOf(error: unknown): number | null {

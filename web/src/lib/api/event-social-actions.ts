@@ -1,6 +1,4 @@
-"use server";
-
-import { ApiError } from "@/lib/api/server";
+import { ApiError } from "@/lib/api/browser";
 import {
   deleteEventComment,
   loadEventComments,
@@ -26,7 +24,7 @@ export type EventCommentActionResult =
 
 function handleAuth(error: unknown, eventId: number): void {
   if (error instanceof ApiError && error.status === 401) {
-    redirectToLogin(`/events/${eventId}`);
+    redirectToLogin(`/events?id=${eventId}`);
   }
 }
 

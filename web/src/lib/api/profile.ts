@@ -1,4 +1,4 @@
-import { apiGet, ApiError } from "@/lib/api/server";
+import { apiGet, ApiError } from "@/lib/api/browser";
 import { avatarUrl } from "@/lib/api/images";
 import type { CustomerPayload, MeResponse } from "@/lib/api/types";
 import { redirectToLogin } from "@/lib/auth/unauthorized";

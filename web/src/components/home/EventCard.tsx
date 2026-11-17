@@ -18,7 +18,7 @@ export function EventCard({ event, locale, hotLabel, ariaLabel }: EventCardProps
 
   return (
     <GuardedLink
-      href={`/events/${event.id}`}
+      href={`/events?id=${event.id}`}
       className="flex h-[88px] w-full items-center rounded-[12px] bg-[#242424] pr-[12px] pl-[8px] no-underline"
       aria-label={ariaLabel}
     >

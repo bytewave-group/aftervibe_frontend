@@ -1,5 +1,3 @@
-"use server";
-
 import { ApiError, fetchCheckinStatus, postCheckin } from "@/lib/api/checkin";
 import { mapCheckinStatus, markDayClaimed, type CheckinStatus } from "@/lib/checkin";
 import { redirectToLogin } from "@/lib/auth/unauthorized";

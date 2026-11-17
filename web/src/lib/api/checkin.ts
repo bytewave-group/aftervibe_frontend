@@ -1,6 +1,4 @@
-import "server-only";
-
-import { ApiError, apiGet, apiPost } from "@/lib/api/server";
+import { ApiError, apiGet, apiPost } from "@/lib/api/browser";
 import type { CheckinClaimResponse, CheckinStatusResponse } from "@/lib/api/types";
 import { mapCheckinStatus, type CheckinStatus } from "@/lib/checkin";
 

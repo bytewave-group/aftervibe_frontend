@@ -1,8 +1,8 @@
-import { loginUrl } from "@/lib/auth/redirect";
-import { redirect } from "next/navigation";
+import { SESSION_EXPIRED_EVENT } from "@/lib/api/browser";
 
-/** Clear the auth cookie, then send the user to /?auth=login&redirect=<target>. */
-export function redirectToLogin(target: string): never {
-  const login = loginUrl(target);
-  redirect(`/api/auth/clear?redirect=${encodeURIComponent(login)}`);
+/** Ask the login modal to open. The browser client already drops a rejected token. */
+export function redirectToLogin(target: string): void {
+  void target;
+  if (typeof window === "undefined") return;
+  window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
 }

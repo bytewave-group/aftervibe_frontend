@@ -1,12 +1,10 @@
-"use server";
-
-import { apiFetch, apiGet, apiPost, ApiError } from "@/lib/api/server";
+import { apiFetch, apiPost, ApiError } from "@/lib/api/browser";
 import { logApiFallback, redirectIfUnauthorized } from "@/lib/api/paginate";
-import type { MeResponse, ProfileUpdateResponse } from "@/lib/api/types";
+import type { ProfileUpdateResponse } from "@/lib/api/types";
+import { loadMe } from "@/lib/api/me-cache";
 import { mapCustomerToProfile } from "@/lib/api/profile";
 import { profileData, type ProfileData } from "@/lib/mock/profile";
 import { devMockOnError } from "@/lib/mock/devFallback";
-import { revalidatePath } from "next/cache";
 
 export interface ProfileEditInput {
   username: string;
@@ -17,11 +15,11 @@ export interface ProfileEditInput {
 
 export async function loadProfileForEdit(): Promise<ProfileData> {
   try {
-    const payload = await apiGet<MeResponse>("/api/customer/me", "required");
-    if (!payload?.customer) {
-      throw new ApiError("Missing customer payload.", 500, payload);
+    const customer = await loadMe();
+    if (!customer) {
+      throw new ApiError("Missing customer payload.", 401);
     }
-    return mapCustomerToProfile(payload.customer);
+    return mapCustomerToProfile(customer);
   } catch (error) {
     redirectIfUnauthorized(error, "/profile/edit");
     logApiFallback("[profile-edit] GET /api/customer/me failed", error);
@@ -30,11 +28,6 @@ export async function loadProfileForEdit(): Promise<ProfileData> {
       throw error;
     });
   }
-}
-
-function revalidateProfile(): void {
-  revalidatePath("/profile");
-  revalidatePath("/profile/edit");
 }
 
 export async function saveProfile(input: ProfileEditInput): Promise<ProfileData> {
@@ -57,7 +50,7 @@ export async function saveProfile(input: ProfileEditInput): Promise<ProfileData>
       customer = avatarPayload.customer ?? customer;
     }
 
-    revalidateProfile();
+    void loadMe(true);
     return mapCustomerToProfile(customer);
   } catch (error) {
     redirectIfUnauthorized(error, "/profile/edit");

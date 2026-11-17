@@ -549,9 +549,10 @@ export function skeletonForPath(pathname: string): ReactNode {
   if (pathname === "/notifications") return <NotificationsSkeleton />;
   if (pathname === "/profile/history") return <HistorySkeleton />;
   if (pathname === "/profile/edit") return <EditProfileSkeleton />;
-  if (pathname.startsWith("/events/")) return <EventDetailSkeleton />;
+  if (pathname === "/events") return <EventDetailSkeleton />;
   if (pathname === "/gifts") return <GiftStaffSkeleton />;
-  if (pathname.startsWith("/gifts/")) return <GiftSelectSkeleton />;
+  if (pathname === "/gifts/select") return <GiftSelectSkeleton />;
+  if (pathname === "/profile/history/recharge") return <HistorySkeleton />;
   if (pathname === "/recharge") return <RechargeSkeleton />;
   return <GenericPageSkeleton />;
 }

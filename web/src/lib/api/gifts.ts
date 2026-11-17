@@ -1,9 +1,8 @@
-"use server";
-
 import { avatarUrl, displayImageUrl } from "@/lib/api/images";
 import { collectPages, logApiFallback, redirectIfUnauthorized } from "@/lib/api/paginate";
-import { apiGet, apiPost, ApiError } from "@/lib/api/server";
-import type { CustomerGiftDto, CustomerGiftsResponse, MeResponse } from "@/lib/api/types";
+import { apiGet, apiPost, ApiError } from "@/lib/api/browser";
+import { loadMe } from "@/lib/api/me-cache";
+import type { CustomerGiftDto, CustomerGiftsResponse } from "@/lib/api/types";
 import {
   CONFIRM_THRESHOLD,
   GIFT_PLACEHOLDER_IMAGE,
@@ -20,7 +19,6 @@ import {
   type GiftStaff,
 } from "@/lib/mock/gifts";
 import { devMockIfEmpty, devMockOnError } from "@/lib/mock/devFallback";
-import { revalidatePath } from "next/cache";
 
 export type { GiftBalance, GiftItem, GiftRecipientType, GiftStaff };
 
@@ -267,8 +265,8 @@ async function fetchBalance(): Promise<GiftBalance> {
       "[gifts] GET /api/customer/balance failed; falling back to /api/customer/me",
       error,
     );
-    const me = await apiGet<MeResponse>("/api/customer/me", "required");
-    const balance = asNumber(me.customer?.balance, 0);
+    const customer = await loadMe();
+    const balance = asNumber(customer?.balance, 0);
     return { balance, available: balance, reserved: 0 };
   }
 }
@@ -379,10 +377,7 @@ export async function loadGiftSelectPage(
   balance: GiftBalance;
   confirmThreshold: number;
 }> {
-  const recipientPath =
-    recipientType === "customer"
-      ? `/gifts/customer/${recipientId}`
-      : `/gifts/${recipientId}`;
+  const recipientPath = `/gifts/select?id=${recipientId}&recipient=${recipientType}`;
   try {
     const [people, catalog, balance] = await Promise.all([
       recipientType === "customer" ? fetchCustomerList() : fetchStaffList(),
@@ -488,10 +483,7 @@ export async function sendGiftAction(input: {
     typeof input.comboId === "string" && /^[A-Za-z0-9_-]{1,64}$/.test(input.comboId)
       ? input.comboId
       : undefined;
-  const recipientPath =
-    recipientType === "customer"
-      ? `/gifts/customer/${recipientId}`
-      : `/gifts/${recipientId}`;
+  const recipientPath = `/gifts/select?id=${recipientId}&recipient=${recipientType}`;
   try {
     const current = input.comboTap && comboId ? null : await fetchBalance();
     if (current && current.available < price) {
@@ -518,12 +510,6 @@ export async function sendGiftAction(input: {
     );
     const balance = asNumber(payload.balance, current?.balance ?? 0);
     const comboCount = Math.max(1, Math.floor(asNumber(payload.combo_count, 1)));
-    // Merged combo taps add no new rows, so only the first send refreshes the cached pages.
-    if (comboCount <= 1) {
-      revalidatePath("/gifts");
-      revalidatePath(recipientPath);
-      revalidatePath("/profile/history");
-    }
     const available =
       payload.available_balance == null
         ? Math.max(0, balance - (current?.reserved ?? 0) - price)

@@ -1,5 +1,14 @@
-import { StubPage } from "@/components/static/StubPage";
+"use client";
 
-export default function Page() {
-  return <StubPage title="Profile" />;
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+
+export default function ProfilePage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    router.replace("/?tab=me");
+  }, [router]);
+
+  return null;
 }

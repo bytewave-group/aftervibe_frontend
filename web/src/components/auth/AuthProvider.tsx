@@ -9,12 +9,14 @@ import {
   SESSION_EXPIRED_EVENT,
   setStoredToken,
 } from "@/lib/api/browser";
-import type { LoginResponse, LogoutResponse, RegisterResponse } from "@/lib/api/types";
+import { getMeSnapshot, loadMe, subscribeMe, type MeSnapshot } from "@/lib/api/me-cache";
+import type { CustomerPayload, LoginResponse, LogoutResponse, RegisterResponse } from "@/lib/api/types";
 import { DEV_MOCK_TOKEN_PREFIX } from "@/lib/mock/devMode";
 import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useSyncExternalStore,
   type ReactNode,
@@ -32,6 +34,8 @@ interface RegisterInput {
 
 interface AuthContextValue {
   isAuthed: boolean;
+  customer: CustomerPayload | null;
+  meStatus: MeSnapshot["status"];
   login: (phone: string, password: string) => Promise<AuthResult>;
   loginDevMock: () => void;
   register: (input: RegisterInput) => Promise<AuthResult>;
@@ -73,8 +77,16 @@ function authSnapshot(): boolean {
   return Boolean(getStoredToken());
 }
 
+const emptyMe: MeSnapshot = { customer: null, status: "guest" };
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const isAuthed = useSyncExternalStore(subscribeAuth, authSnapshot, () => false);
+  const me = useSyncExternalStore(subscribeMe, getMeSnapshot, () => emptyMe);
+
+  useEffect(() => {
+    if (!isAuthed) return;
+    void loadMe();
+  }, [isAuthed]);
 
   const login = useCallback(async (phone: string, password: string): Promise<AuthResult> => {
     const trimmed = phone.trim();
@@ -154,8 +166,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ isAuthed, login, loginDevMock, register, logout }),
-    [isAuthed, login, loginDevMock, register, logout],
+    () => ({
+      isAuthed,
+      customer: me.customer,
+      meStatus: me.status,
+      login,
+      loginDevMock,
+      register,
+      logout,
+    }),
+    [isAuthed, me, login, loginDevMock, register, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -1,10 +1,8 @@
-"use server";
-
 import { displayImageUrl } from "@/lib/api/images";
-import { apiGet, apiPost, ApiError } from "@/lib/api/server";
+import { apiGet, apiPost, ApiError } from "@/lib/api/browser";
 import { logApiFallback, redirectIfUnauthorized } from "@/lib/api/paginate";
+import { loadMe } from "@/lib/api/me-cache";
 import type {
-  MeResponse,
   RewardPackageDto,
   RewardRedeemResponse,
   RewardsResponse,
@@ -17,7 +15,6 @@ import {
   type RedeemResult,
 } from "@/lib/mock/mall";
 import { devMockIfEmpty, devMockOnError } from "@/lib/mock/devFallback";
-import { revalidatePath } from "next/cache";
 
 export type { MallData, RedeemResult };
 
@@ -52,13 +49,13 @@ function mapPackage(pkg: RewardPackageDto): MallPackage {
 
 export async function loadMall(): Promise<MallData> {
   try {
-    const [rewards, me] = await Promise.all([
+    const [rewards, customer] = await Promise.all([
       apiGet<RewardsResponse>("/api/customer/rewards", "required"),
-      apiGet<MeResponse>("/api/customer/me", "required"),
+      loadMe(),
     ]);
     const data: MallData = {
       enabled: rewards.enabled !== false,
-      points: Number(me.customer?.reward_points) || 0,
+      points: Number(customer?.reward_points) || 0,
       packages: (rewards.packages ?? []).map(mapPackage),
     };
     return devMockIfEmpty("mall", data, data.enabled && data.packages.length === 0, () => ({
@@ -86,9 +83,6 @@ export async function redeemMallPackage(
       {},
       "required",
     );
-    revalidatePath("/mall");
-    revalidatePath("/inventory");
-    revalidatePath("/profile");
     return {
       points: Number(payload.reward_points) || 0,
       packageId,

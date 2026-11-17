@@ -18,7 +18,7 @@ import {
   logApiFallback,
   redirectIfUnauthorized,
 } from "@/lib/api/paginate";
-import { ApiError, apiGet } from "@/lib/api/server";
+import { ApiError, apiGet } from "@/lib/api/browser";
 import type {
   CoinOrderDto,
   CoinOrderPaymentMethodDto,

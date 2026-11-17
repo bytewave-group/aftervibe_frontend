@@ -1,6 +1,6 @@
 import { displayPosAssetUrl } from "@/lib/api/images";
 import { logApiFallback, redirectIfUnauthorized } from "@/lib/api/paginate";
-import { apiGet } from "@/lib/api/server";
+import { apiGet } from "@/lib/api/browser";
 import type { StorageItemDto, StorageResponse } from "@/lib/api/types";
 import { lastRedeemableAt } from "@/lib/format/datetime";
 import {

@@ -126,7 +126,7 @@ export function HistoryPageClient({
           {recharges.map((item) => (
             <li key={item.orderNo}>
               <Link
-                href={`/profile/history/recharge/${encodeURIComponent(item.orderNo)}`}
+                href={`/profile/history/recharge?id=${encodeURIComponent(item.orderNo)}`}
                 className="flex items-center rounded-[12px] border border-white/20 bg-[#141010] px-4 py-3"
               >
                 {item.method ? (

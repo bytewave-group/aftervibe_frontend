@@ -1,4 +1,6 @@
-import { getT } from "@/i18n/get-locale";
+"use client";
+
+import { useLocale, useTranslations } from "@/i18n/locale-provider";
 import { formatHistoryDetailDateTime } from "@/lib/format/datetime";
 import type { RechargeRecord } from "@/lib/mock/history";
 
@@ -6,8 +8,9 @@ function formatAmount(currency: string, amount: number): string {
   return `${currency} ${amount.toFixed(2)}`;
 }
 
-export async function HistoryRechargeDetail({ record }: { record: RechargeRecord }) {
-  const { t, locale } = await getT();
+export function HistoryRechargeDetail({ record }: { record: RechargeRecord }) {
+  const t = useTranslations();
+  const { locale } = useLocale();
 
   const categoryLabel =
     record.category === "bank"

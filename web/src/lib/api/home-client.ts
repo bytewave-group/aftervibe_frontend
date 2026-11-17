@@ -1,4 +1,4 @@
-import { apiFetch, ApiError } from "@/lib/api/browser";
+import { apiFetch, ApiError, getStoredToken, onSessionChange } from "@/lib/api/browser";
 import { avatarUrl, bannerUrl } from "@/lib/api/images";
 import type { HomeArtistDto, HomeResponse, HomeSpenderDto } from "@/lib/api/types";
 import {
@@ -111,15 +111,40 @@ function emptyHome(): HomeData {
   };
 }
 
+let homeCache: { token: string | null; data: HomeData } | null = null;
+let homePending: Promise<HomeData> | null = null;
+let homePendingToken: string | null | undefined;
+
+function rememberHome(token: string | null, data: HomeData): HomeData {
+  homeCache = { token, data };
+  return data;
+}
+
+onSessionChange(() => {
+  homeCache = null;
+  homePending = null;
+  homePendingToken = undefined;
+});
+
 export async function loadHomeClient(): Promise<HomeData> {
-  try {
-    const payload = await apiFetch<HomeResponse>("/api/customer/home", { auth: "optional" });
-    return mapHomeResponse(payload);
-  } catch (error) {
-    console.warn(
-      "[home] GET /api/customer/home failed",
-      error instanceof ApiError ? { status: error.status, message: error.message } : error,
-    );
-    return emptyHome();
-  }
+  const token = getStoredToken();
+  if (homeCache && homeCache.token === token) return homeCache.data;
+  if (homePending && homePendingToken === token) return homePending;
+
+  homePendingToken = token;
+  homePending = (async () => {
+    try {
+      const payload = await apiFetch<HomeResponse>("/api/customer/home", { auth: "optional" });
+      return rememberHome(token, mapHomeResponse(payload));
+    } catch (error) {
+      console.warn(
+        "[home] GET /api/customer/home failed",
+        error instanceof ApiError ? { status: error.status, message: error.message } : error,
+      );
+      return rememberHome(token, emptyHome());
+    } finally {
+      if (homePendingToken === token) homePending = null;
+    }
+  })();
+  return homePending;
 }

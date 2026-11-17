@@ -1,4 +1,4 @@
-import { apiFetch, ApiError } from "@/lib/api/browser";
+import { apiFetch, ApiError, getStoredToken, onSessionChange } from "@/lib/api/browser";
 import { displayImageUrl } from "@/lib/api/images";
 import type { EventDto, EventsResponse } from "@/lib/api/types";
 import { EVENT_PLACEHOLDER_IMAGE, type EventItem } from "@/lib/mock/events";
@@ -21,15 +21,38 @@ function mapEvent(event: EventDto): EventItem {
   };
 }
 
+let eventsCache: { token: string | null; events: EventItem[] } | null = null;
+let eventsPending: Promise<EventItem[]> | null = null;
+let eventsPendingToken: string | null | undefined;
+
+onSessionChange(() => {
+  eventsCache = null;
+  eventsPending = null;
+  eventsPendingToken = undefined;
+});
+
 export async function loadEventsClient(): Promise<EventItem[]> {
-  try {
-    const payload = await apiFetch<EventsResponse>("/api/customer/events", { auth: "optional" });
-    return (payload.events ?? []).map(mapEvent).slice(0, HOME_EVENT_LIMIT);
-  } catch (error) {
-    console.warn(
-      "[events] GET /api/customer/events failed",
-      error instanceof ApiError ? { status: error.status, message: error.message } : error,
-    );
-    return [];
-  }
+  const token = getStoredToken();
+  if (eventsCache && eventsCache.token === token) return eventsCache.events;
+  if (eventsPending && eventsPendingToken === token) return eventsPending;
+
+  eventsPendingToken = token;
+  eventsPending = (async () => {
+    try {
+      const payload = await apiFetch<EventsResponse>("/api/customer/events", { auth: "optional" });
+      const events = (payload.events ?? []).map(mapEvent).slice(0, HOME_EVENT_LIMIT);
+      eventsCache = { token, events };
+      return events;
+    } catch (error) {
+      console.warn(
+        "[events] GET /api/customer/events failed",
+        error instanceof ApiError ? { status: error.status, message: error.message } : error,
+      );
+      eventsCache = { token, events: [] };
+      return [];
+    } finally {
+      if (eventsPendingToken === token) eventsPending = null;
+    }
+  })();
+  return eventsPending;
 }

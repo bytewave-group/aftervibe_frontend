@@ -1,4 +1,4 @@
-import { apiGet, ApiError } from "@/lib/api/server";
+import { apiGet, ApiError } from "@/lib/api/browser";
 import { avatarUrl, bannerUrl } from "@/lib/api/images";
 import type { HomeArtistDto, HomeResponse, HomeSpenderDto } from "@/lib/api/types";
 import { hasCustomerSession } from "@/lib/auth/session";

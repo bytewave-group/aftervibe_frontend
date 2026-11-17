@@ -1,4 +1,4 @@
-import { ApiError } from "@/lib/api/server";
+import { ApiError } from "@/lib/api/browser";
 import { redirectToLogin } from "@/lib/auth/unauthorized";
 
 export interface LaravelPaginator<T> {

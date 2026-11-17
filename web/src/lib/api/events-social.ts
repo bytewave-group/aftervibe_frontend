@@ -1,6 +1,4 @@
-import "server-only";
-
-import { apiDelete, apiGet, apiPost } from "@/lib/api/server";
+import { apiDelete, apiGet, apiPost } from "@/lib/api/browser";
 import type {
   EventCommentDto,
   EventCommentMutationResponse,

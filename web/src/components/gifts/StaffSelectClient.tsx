@@ -104,18 +104,18 @@ export function StaffSelectClient({
   );
 
   usePrefetch([
-    ...staffs.slice(0, 8).map((staff) => `/gifts/${staff.id}`),
-    ...customers.slice(0, 8).map((customer) => `/gifts/customer/${customer.id}`),
+    ...staffs.slice(0, 8).map((staff) => `/gifts/select?id=${staff.id}&recipient=staff`),
+    ...customers.slice(0, 8).map((customer) => `/gifts/select?id=${customer.id}&recipient=customer`),
   ]);
 
   const openRecipient = (person: GiftStaff) => {
     if (isCustomerTab) {
       rememberRecentCustomer(person);
-      begin(`/gifts/customer/${person.id}`, NAV_FORWARD);
+      begin(`/gifts/select?id=${person.id}&recipient=customer`, NAV_FORWARD);
       return;
     }
     rememberRecentStaff(person);
-    begin(`/gifts/${person.id}`, NAV_FORWARD);
+    begin(`/gifts/select?id=${person.id}&recipient=staff`, NAV_FORWARD);
   };
 
   const switchTab = (next: GiftRecipientType) => {
