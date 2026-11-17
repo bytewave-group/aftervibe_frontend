@@ -37,6 +37,8 @@ export interface SpinPrize {
 export type SpinFreePeriod = "daily" | "weekly";
 
 export interface SpinStatus {
+  /** False when the venue has not configured a wheel. */
+  configured: boolean;
   chances: number;
   dailyChances: number;
   freeSpinPeriod?: SpinFreePeriod;
@@ -76,6 +78,7 @@ export const mockSpinPrizes: SpinPrize[] = [
 ];
 
 export const mockSpinStatus: SpinStatus = {
+  configured: true,
   chances: 2,
   dailyChances: 3,
   freeSpinPeriod: "daily",

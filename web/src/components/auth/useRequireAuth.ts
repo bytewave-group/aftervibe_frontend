@@ -1,27 +1,24 @@
 "use client";
 
 import { useAuth } from "@/components/auth/AuthProvider";
-import { loginUrl } from "@/lib/auth/redirect";
-import { useRouter } from "next/navigation";
+import { useAuthModal } from "@/components/auth/AuthModalProvider";
 import { useCallback } from "react";
 
 /**
- * Returns a function that opens the login popup (/?auth=login&redirect=<target>)
- * when the user is logged out, and returns false. When logged in it returns
- * true and does not navigate, so the caller can continue.
+ * Confirmed guests get the login modal on the current page and this returns
+ * false. While auth is still loading it returns false and does not navigate.
+ * Authenticated callers get true so they can continue the original action.
  */
 export function useRequireAuth() {
-  const { isAuthed } = useAuth();
-  const router = useRouter();
+  const { status } = useAuth();
+  const { openLogin } = useAuthModal();
 
   return useCallback(
     (target: string = "/") => {
-      if (isAuthed) {
-        return true;
-      }
-      router.push(loginUrl(target));
+      if (status === "authenticated") return true;
+      if (status === "guest") openLogin(target);
       return false;
     },
-    [isAuthed, router],
+    [status, openLogin],
   );
 }

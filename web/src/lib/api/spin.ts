@@ -37,22 +37,27 @@ function mapPrize(prize: SpinPrizeDto): SpinPrize {
 }
 
 function mapStatus(payload: SpinWheelResponse): SpinStatus {
+  const prizes = (payload.prizes ?? []).map(mapPrize);
+  const cost = {
+    coins: payload.cost?.coins ?? null,
+    points: payload.cost?.points ?? null,
+  };
+  const dailyChances = Number(payload.daily_chances) || 0;
+  const hasPaid = cost.coins != null || cost.points != null;
   return {
+    configured: payload.enabled !== false && prizes.length > 0 && (dailyChances > 0 || hasPaid),
     chances: Number(payload.chances) || 0,
-    dailyChances: Number(payload.daily_chances) || 0,
+    dailyChances,
     freeSpinPeriod: payload.free_spin_period === "weekly" ? "weekly" : "daily",
     nextSpinSeconds: Number(payload.next_spin_seconds) || 0,
-    cost: {
-      coins: payload.cost?.coins ?? null,
-      points: payload.cost?.points ?? null,
-    },
+    cost,
     balance: spendableBalance(payload),
     rewardPoints: Number(payload.reward_points) || 0,
     paidSpinsRemaining:
       payload.paid_spins_remaining === undefined
         ? null
         : payload.paid_spins_remaining,
-    prizes: (payload.prizes ?? []).map(mapPrize),
+    prizes,
   };
 }
 
@@ -75,11 +80,13 @@ export async function loadSpinStatus(): Promise<SpinStatus> {
       "required",
     );
     const status = mapStatus(payload);
+    if (!status.configured) return status;
     return devMockIfEmpty("spin", status, status.prizes.length === 0, () => structuredClone(mockSpinStatus));
   } catch (error) {
     redirectIfUnauthorized(error, "/spin");
     logApiFallback("[spin] GET /api/customer/spin-wheel failed", error);
     return devMockOnError("spin", error, () => structuredClone(mockSpinStatus), () => ({
+      configured: false,
       chances: 0,
       dailyChances: 0,
       nextSpinSeconds: 0,

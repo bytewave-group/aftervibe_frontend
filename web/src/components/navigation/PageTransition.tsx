@@ -19,7 +19,7 @@ import {
   hrefKey,
   type InstantNavValue,
 } from "./instant-nav";
-import { NAV_BACK, NAV_FORWARD, pathOf } from "./nav-direction";
+import { canonicalPath, NAV_BACK, NAV_FORWARD, pathOf } from "./nav-direction";
 import { useNavDirection } from "./NavDirectionProvider";
 import { skeletonForPath } from "./PageSkeletons";
 
@@ -61,7 +61,8 @@ function prefersReduce(): boolean {
 }
 
 function locationKeyFromHooks(pathname: string, search: string): string {
-  return search ? `${pathname}?${search}` : pathname;
+  const path = canonicalPath(pathname);
+  return search ? `${path}?${search}` : path;
 }
 
 function hrefFromKey(key: string): string {
@@ -123,7 +124,7 @@ function scheduleIdle(fn: () => void): () => void {
 }
 
 export function PageTransition({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
+  const pathname = canonicalPath(usePathname() ?? "/");
   const searchParams = useSearchParams();
   const search = searchParams.toString();
   const hookKey = locationKeyFromHooks(pathname, search);
@@ -520,7 +521,6 @@ export function PageTransition({ children }: { children: ReactNode }) {
         }
         arrivedRef.current = false;
         setBlocking(false);
-        setShowSkeleton(false);
       };
 
       if (dir === NAV_BACK) {

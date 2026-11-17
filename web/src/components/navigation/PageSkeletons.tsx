@@ -542,17 +542,18 @@ export function RechargeSkeleton({ framed = true }: { framed?: boolean } = {}) {
 }
 
 export function skeletonForPath(pathname: string): ReactNode {
-  if (pathname === "/") return <HomeSkeleton withNav />;
-  if (pathname === "/spin") return <SpinSkeleton />;
-  if (pathname === "/mall") return <MallSkeleton />;
-  if (pathname === "/inventory") return <InventorySkeleton />;
-  if (pathname === "/notifications") return <NotificationsSkeleton />;
-  if (pathname === "/profile/history") return <HistorySkeleton />;
-  if (pathname === "/profile/edit") return <EditProfileSkeleton />;
-  if (pathname === "/events") return <EventDetailSkeleton />;
-  if (pathname === "/gifts") return <GiftStaffSkeleton />;
-  if (pathname === "/gifts/select") return <GiftSelectSkeleton />;
-  if (pathname === "/profile/history/recharge") return <HistorySkeleton />;
-  if (pathname === "/recharge") return <RechargeSkeleton />;
+  const path = pathname.length > 1 && pathname.endsWith("/") ? pathname.slice(0, -1) : pathname || "/";
+  if (path === "/") return <HomeSkeleton withNav />;
+  if (path === "/spin") return <SpinSkeleton />;
+  if (path === "/mall") return <MallSkeleton />;
+  if (path === "/inventory") return <InventorySkeleton />;
+  if (path === "/notifications") return <NotificationsSkeleton />;
+  if (path === "/profile/history") return <HistorySkeleton />;
+  if (path === "/profile/edit") return <EditProfileSkeleton />;
+  if (path === "/events") return <EventDetailSkeleton />;
+  if (path === "/gifts") return <GiftStaffSkeleton />;
+  if (path === "/gifts/select") return <GiftSelectSkeleton />;
+  if (path === "/profile/history/recharge") return <HistorySkeleton />;
+  if (path === "/recharge") return <RechargeSkeleton />;
   return <GenericPageSkeleton />;
 }

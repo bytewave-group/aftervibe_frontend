@@ -5,20 +5,38 @@ import { PageMain } from "@/components/layout/AppShell";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { SpinBodySkeleton } from "@/components/navigation/PageSkeletons";
 import { SpinPageClient } from "@/components/spin/SpinPageClient";
+import { useTranslations } from "@/i18n/locale-provider";
 import { loadSpinStatus } from "@/lib/api/spin";
 import type { SpinStatus } from "@/lib/mock/spin";
 import { Suspense, useEffect, useState } from "react";
 
 function SpinInner() {
   const ready = useAuthedPage();
+  const t = useTranslations();
   const [status, setStatus] = useState<SpinStatus | null>(null);
 
   useEffect(() => {
     if (!ready) return;
     let cancelled = false;
-    void loadSpinStatus().then((next) => {
-      if (!cancelled) setStatus(next);
-    });
+    void loadSpinStatus()
+      .then((next) => {
+        if (!cancelled) setStatus(next);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setStatus({
+            configured: false,
+            chances: 0,
+            dailyChances: 0,
+            nextSpinSeconds: 0,
+            cost: { coins: null, points: null },
+            balance: 0,
+            rewardPoints: 0,
+            paidSpinsRemaining: null,
+            prizes: [],
+          });
+        }
+      });
     return () => {
       cancelled = true;
     };
@@ -38,12 +56,16 @@ function SpinInner() {
       />
       <PageHeader titleKey="spin.title" backHref="/" />
       <PageMain>
-        {status ? (
+        {status == null ? (
+          <SpinBodySkeleton />
+        ) : status.configured ? (
           <div className="anim-content-fade">
             <SpinPageClient initialStatus={status} />
           </div>
         ) : (
-          <SpinBodySkeleton />
+          <p className="px-6 pt-16 text-center text-[16px] leading-snug font-bold text-white">
+            {t("spin.unavailable")}
+          </p>
         )}
       </PageMain>
     </div>

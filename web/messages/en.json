@@ -10,6 +10,8 @@
     "notifications": "Notifications",
     "recharge": "Top up",
     "back": "Back",
+    "pageError": "This page failed to load. Please try again.",
+    "retry": "Retry",
     "confirm": "Confirm",
     "cancel": "Cancel",
     "closeAria": "Close",
@@ -183,6 +185,7 @@
   },
   "mall": {
     "title": "Mall",
+    "unavailable": "The mall is unavailable.",
     "myPoints": "My points",
     "pointsUnit": "{n} pts",
     "redeem": "Redeem",

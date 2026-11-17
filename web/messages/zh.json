@@ -10,6 +10,8 @@
     "notifications": "通知",
     "recharge": "充值",
     "back": "返回",
+    "pageError": "页面加载失败，请稍后重试。",
+    "retry": "重试",
     "confirm": "确认",
     "cancel": "取消",
     "closeAria": "关闭",
@@ -183,6 +185,7 @@
   },
   "mall": {
     "title": "商城",
+    "unavailable": "商城暂未开放",
     "myPoints": "我的积分",
     "pointsUnit": "{n} 积分",
     "redeem": "兑换",

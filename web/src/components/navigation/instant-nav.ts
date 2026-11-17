@@ -9,7 +9,7 @@ import {
   type MouseEvent,
   type PointerEvent,
 } from "react";
-import { pathOf } from "./nav-direction";
+import { canonicalPath, pathOf } from "./nav-direction";
 
 export type InstantNavValue = {
   /** Start the slide and always commit the route with router.push. */
@@ -54,7 +54,7 @@ export function hrefKey(href: string): string {
     const url = /^https?:\/\//i.test(href)
       ? new URL(href)
       : new URL(href, "http://local.invalid");
-    return `${url.pathname}${url.search}`;
+    return `${canonicalPath(url.pathname)}${url.search}`;
   } catch {
     const withoutHash = href.split("#")[0] ?? href;
     const q = withoutHash.indexOf("?");
@@ -64,7 +64,7 @@ export function hrefKey(href: string): string {
 }
 
 export function currentLocationKey(): string {
-  return `${window.location.pathname}${window.location.search}`;
+  return `${canonicalPath(window.location.pathname)}${window.location.search}`;
 }
 
 /**

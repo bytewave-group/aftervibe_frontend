@@ -13,18 +13,18 @@ import { mapCustomerToProfile } from "@/lib/api/profile";
 
 export function HomeMePane() {
   const t = useTranslations();
-  const { isAuthed, customer, meStatus } = useAuth();
+  const { status, customer, meStatus } = useAuth();
   const profile = customer ? mapCustomerToProfile(customer) : null;
 
   let body;
-  if (!isAuthed || meStatus === "error" || (meStatus === "ready" && !profile)) {
+  if (status !== "authenticated" || meStatus === "loading" || meStatus === "guest") {
+    body = <ProfileBodySkeleton />;
+  } else if (meStatus === "error" || !profile) {
     body = (
       <p className="anim-content-fade px-6 pt-[28px] text-[16px] leading-snug font-bold text-white">
         {t("profile.loadError")}
       </p>
     );
-  } else if (!profile) {
-    body = <ProfileBodySkeleton />;
   } else {
     body = (
       <div className="anim-content-fade">

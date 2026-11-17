@@ -1,31 +1,27 @@
 "use client";
 
 import { useAuth } from "@/components/auth/AuthProvider";
-import { loginUrl } from "@/lib/auth/redirect";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useSyncExternalStore } from "react";
+import { useAuthModal } from "@/components/auth/AuthModalProvider";
+import { canonicalPath } from "@/components/navigation/nav-direction";
+import { usePathname, useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 
-function useMounted(): boolean {
-  return useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false,
-  );
-}
-
-/** Guests are sent to the login modal and returned here after they sign in. */
+/**
+ * Protected pages stay put. While the token is still unknown, render the
+ * skeleton and do not navigate. Only a confirmed guest opens the login modal
+ * on this page.
+ */
 export function useAuthedPage(): boolean {
-  const { isAuthed } = useAuth();
-  const mounted = useMounted();
-  const router = useRouter();
-  const pathname = usePathname();
+  const { status } = useAuth();
+  const { openLogin } = useAuthModal();
+  const pathname = canonicalPath(usePathname() ?? "/");
   const params = useSearchParams();
+  const search = params.toString();
 
   useEffect(() => {
-    if (!mounted || isAuthed) return;
-    const qs = params.toString();
-    router.replace(loginUrl(`${pathname}${qs ? `?${qs}` : ""}`));
-  }, [mounted, isAuthed, pathname, params, router]);
+    if (status !== "guest") return;
+    openLogin(search ? `${pathname}?${search}` : pathname);
+  }, [status, pathname, search, openLogin]);
 
-  return mounted && isAuthed;
+  return status === "authenticated";
 }

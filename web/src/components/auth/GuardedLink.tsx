@@ -1,10 +1,8 @@
 "use client";
 
-import { useAuth } from "@/components/auth/AuthProvider";
 import { useNavTrigger, usePrefetch } from "@/components/navigation/instant-nav";
-import { inferTransitionTypes } from "@/components/navigation/nav-direction";
+import { canonicalPath, inferTransitionTypes } from "@/components/navigation/nav-direction";
 import { useNavDirection } from "@/components/navigation/NavDirectionProvider";
-import { loginUrl } from "@/lib/auth/redirect";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import type { ComponentProps, MouseEvent, PointerEvent } from "react";
@@ -14,10 +12,9 @@ type GuardedLinkProps = ComponentProps<typeof Link> & {
 };
 
 /**
- * Like next/link, but guests are sent to /?auth=login&redirect=<href>.
- * Logged-in users follow href as usual.
- * Same-pathname query changes (login / check-in / rankings) skip a page transition.
- * Prefetch and instant-slide only run when the user is logged in.
+ * Like next/link. Guests still go to the real page; that page opens the login
+ * modal in place. Auth is not consulted here, so a click during hydration
+ * cannot be rewritten to the homepage.
  */
 export function GuardedLink({
   href,
@@ -29,13 +26,11 @@ export function GuardedLink({
   onPointerCancel,
   ...props
 }: GuardedLinkProps) {
-  const { isAuthed } = useAuth();
-  const pathname = usePathname();
+  const pathname = canonicalPath(usePathname() ?? "/");
   const { setNavDirection } = useNavDirection();
-  const dest = isAuthed ? href : loginUrl(href);
-  const direction = inferTransitionTypes(pathname, dest)?.[0];
-  const trigger = useNavTrigger(dest, direction, Boolean(isAuthed && direction));
-  usePrefetch(href, isAuthed);
+  const direction = inferTransitionTypes(pathname, href)?.[0];
+  const trigger = useNavTrigger(href, direction, Boolean(direction));
+  usePrefetch(href);
 
   const handleClick = (event: MouseEvent<HTMLAnchorElement>) => {
     onClick?.(event);
@@ -46,8 +41,8 @@ export function GuardedLink({
 
   return (
     <Link
-      href={dest}
-      prefetch={isAuthed}
+      href={href}
+      prefetch
       className={className ? `anim-press ${className}` : "anim-press"}
       {...props}
       onClick={handleClick}

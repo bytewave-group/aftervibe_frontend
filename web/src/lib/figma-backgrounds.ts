@@ -17,11 +17,12 @@ export const FIGMA_SHEET_BG = `${RED_RADIAL(0.5)}, ${FIGMA_SOLID_PAGE_BG}`;
 export const FIGMA_AUTH_BG = `${RED_RADIAL(0.25)}, ${FIGMA_SOLID_PAGE_BG}`;
 
 export function isSolidPageBg(pathname: string): boolean {
+  const path = pathname.length > 1 && pathname.endsWith("/") ? pathname.slice(0, -1) : pathname;
   return (
-    pathname === "/recharge" ||
-    pathname === "/inventory" ||
-    pathname === "/profile/history" ||
-    pathname === "/gifts" ||
-    pathname.startsWith("/gifts/")
+    path === "/recharge" ||
+    path === "/inventory" ||
+    path === "/profile/history" ||
+    path === "/gifts" ||
+    path.startsWith("/gifts/")
   );
 }

@@ -22,6 +22,8 @@ import {
   type ReactNode,
 } from "react";
 
+export type AuthStatus = "loading" | "authenticated" | "guest";
+
 export type AuthResult = { error: string } | null;
 
 interface RegisterInput {
@@ -33,6 +35,7 @@ interface RegisterInput {
 }
 
 interface AuthContextValue {
+  status: AuthStatus;
   isAuthed: boolean;
   customer: CustomerPayload | null;
   meStatus: MeSnapshot["status"];
@@ -73,20 +76,22 @@ function subscribeAuth(onChange: () => void): () => void {
   };
 }
 
-function authSnapshot(): boolean {
-  return Boolean(getStoredToken());
+function authSnapshot(): AuthStatus {
+  if (typeof window === "undefined") return "loading";
+  return getStoredToken() ? "authenticated" : "guest";
 }
 
 const emptyMe: MeSnapshot = { customer: null, status: "guest" };
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const isAuthed = useSyncExternalStore(subscribeAuth, authSnapshot, () => false);
+  const status = useSyncExternalStore(subscribeAuth, authSnapshot, () => "loading" as AuthStatus);
+  const isAuthed = status === "authenticated";
   const me = useSyncExternalStore(subscribeMe, getMeSnapshot, () => emptyMe);
 
   useEffect(() => {
-    if (!isAuthed) return;
+    if (status !== "authenticated") return;
     void loadMe();
-  }, [isAuthed]);
+  }, [status]);
 
   const login = useCallback(async (phone: string, password: string): Promise<AuthResult> => {
     const trimmed = phone.trim();
@@ -167,6 +172,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value = useMemo(
     () => ({
+      status,
       isAuthed,
       customer: me.customer,
       meStatus: me.status,
@@ -175,7 +181,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       register,
       logout,
     }),
-    [isAuthed, me, login, loginDevMock, register, logout],
+    [status, isAuthed, me, login, loginDevMock, register, logout],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

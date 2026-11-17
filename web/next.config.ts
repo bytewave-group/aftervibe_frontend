@@ -3,6 +3,8 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: "export",
   distDir: "dist",
+  // Cloudflare Pages resolves /inventory from inventory/index.html.
+  trailingSlash: true,
   images: {
     unoptimized: true,
     // aftervibe_backend.test resolves to 127.0.0.1 under Herd. The

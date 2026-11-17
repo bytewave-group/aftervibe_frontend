@@ -6,6 +6,7 @@ import { useHomeTab, type HomeTab } from "@/components/layout/HomeTabProvider";
 import { isModifiedClick } from "@/components/navigation/instant-nav";
 import { useTranslations } from "@/i18n/locale-provider";
 import Image from "next/image";
+import { canonicalPath } from "@/components/navigation/nav-direction";
 import { usePathname } from "next/navigation";
 
 interface NavItem {
@@ -35,7 +36,7 @@ const items: NavItem[] = [
 ];
 
 export function BottomNav() {
-  const pathname = usePathname();
+  const pathname = canonicalPath(usePathname() ?? "/");
   const t = useTranslations();
   const { isAuthed } = useAuth();
   const { tab, setTab } = useHomeTab();

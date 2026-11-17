@@ -4,6 +4,7 @@ import { BottomNav } from "@/components/layout/BottomNav";
 import { HomeTabProvider } from "@/components/layout/HomeTabProvider";
 import { NavDirectionProvider } from "@/components/navigation/NavDirectionProvider";
 import { PageTransition } from "@/components/navigation/PageTransition";
+import { canonicalPath } from "@/components/navigation/nav-direction";
 import { FIGMA_SHELL_BG, FIGMA_SOLID_PAGE_BG, isSolidPageBg } from "@/lib/figma-backgrounds";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -39,7 +40,7 @@ function ShellFrame({ children }: { children: ReactNode }) {
 }
 
 function ShellContent({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
+  const pathname = canonicalPath(usePathname() ?? "/");
   const showNav = pathname === "/";
   const solidBg = isSolidPageBg(pathname);
 
@@ -85,7 +86,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 }
 
 export function PageMain({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
+  const pathname = canonicalPath(usePathname() ?? "/");
   const isHome = pathname === "/";
 
   return (

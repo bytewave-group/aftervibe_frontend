@@ -58,7 +58,8 @@ export async function loadMall(): Promise<MallData> {
       points: Number(customer?.reward_points) || 0,
       packages: (rewards.packages ?? []).map(mapPackage),
     };
-    return devMockIfEmpty("mall", data, data.enabled && data.packages.length === 0, () => ({
+    if (!data.enabled) return data;
+    return devMockIfEmpty("mall", data, data.packages.length === 0, () => ({
       ...structuredClone(mockMallData),
       points: data.points,
     }));
@@ -66,7 +67,7 @@ export async function loadMall(): Promise<MallData> {
     redirectIfUnauthorized(error, "/mall");
     logApiFallback("[mall] GET /api/customer/rewards failed", error);
     return devMockOnError("mall", error, () => structuredClone(mockMallData), () => ({
-      enabled: true,
+      enabled: false,
       points: 0,
       packages: [],
     }));

@@ -1,8 +1,8 @@
 "use client";
 
 import { useAuth } from "@/components/auth/AuthProvider";
-import { loginUrl } from "@/lib/auth/redirect";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useAuthModal } from "@/components/auth/AuthModalProvider";
+import { useSearchParams } from "next/navigation";
 import {
   createContext,
   useCallback,
@@ -46,8 +46,8 @@ export function useHomeTab(): HomeTabContextValue {
 }
 
 export function HomeTabProvider({ children }: { children: ReactNode }) {
-  const { isAuthed } = useAuth();
-  const router = useRouter();
+  const { status } = useAuth();
+  const { openLogin } = useAuthModal();
   const searchParams = useSearchParams();
   const searchKey = searchParams.toString();
   const urlTab: HomeTab = searchParams.get("tab") === "me" ? "me" : "home";
@@ -79,10 +79,9 @@ export function HomeTabProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (tab === "me" && !isAuthed) {
-      router.replace(loginUrl("/?tab=me"));
-    }
-  }, [isAuthed, router, tab]);
+    if (tab !== "me" || status !== "guest") return;
+    openLogin("/?tab=me");
+  }, [openLogin, status, tab]);
 
   const value = useMemo(() => ({ tab, setTab }), [tab, setTab]);
 

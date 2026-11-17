@@ -1,8 +1,8 @@
 "use client";
 
 import { RankingsDialog } from "@/components/home/RankingsDialog";
+import { useAuthModal } from "@/components/auth/AuthModalProvider";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { loginUrl } from "@/lib/auth/redirect";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   createContext,
@@ -35,7 +35,8 @@ export function RankingsHost({
   children: ReactNode;
   lists: ReactNode;
 }) {
-  const { isAuthed } = useAuth();
+  const { status, isAuthed } = useAuth();
+  const { openLogin } = useAuthModal();
   const router = useRouter();
   const searchParams = useSearchParams();
   const fromQuery = searchParams.get("rankings") === "1";
@@ -57,11 +58,10 @@ export function RankingsHost({
   }, []);
 
   useEffect(() => {
-    if (!fromQuery || isAuthed) return;
-    const params = new URLSearchParams(searchParams.toString());
-    const qs = params.toString();
-    router.replace(loginUrl(qs ? `/?${qs}` : "/?rankings=1"));
-  }, [fromQuery, isAuthed, router, searchParams]);
+    if (!fromQuery || status !== "guest") return;
+    const qs = searchParams.toString();
+    openLogin(qs ? `/?${qs}` : "/?rankings=1");
+  }, [fromQuery, openLogin, searchParams, status]);
 
   const value = useMemo(() => ({ openRankings }), [openRankings]);
 

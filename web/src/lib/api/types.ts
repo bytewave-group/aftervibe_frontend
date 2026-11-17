@@ -217,6 +217,7 @@ export interface SpinPrizeDto {
 
 export interface SpinWheelResponse {
   success: boolean;
+  enabled?: boolean;
   chances: number;
   daily_chances: number;
   free_spin_period?: "daily" | "weekly";

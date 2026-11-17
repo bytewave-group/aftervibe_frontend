@@ -1,8 +1,8 @@
 "use client";
 
 import { CheckinDialog } from "@/components/checkin/CheckinDialog";
+import { useAuthModal } from "@/components/auth/AuthModalProvider";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { loginUrl } from "@/lib/auth/redirect";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   createContext,
@@ -29,7 +29,8 @@ export function useCheckin() {
 }
 
 export function CheckinHost({ children }: { children: ReactNode }) {
-  const { isAuthed } = useAuth();
+  const { status, isAuthed } = useAuth();
+  const { openLogin } = useAuthModal();
   const router = useRouter();
   const searchParams = useSearchParams();
   const fromQuery = searchParams.get("checkin") === "1";
@@ -51,9 +52,9 @@ export function CheckinHost({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (!fromQuery || isAuthed) return;
-    router.replace(loginUrl("/?checkin=1"));
-  }, [fromQuery, isAuthed, router]);
+    if (!fromQuery || status !== "guest") return;
+    openLogin("/?checkin=1");
+  }, [fromQuery, openLogin, status]);
 
   const value = useMemo(() => ({ openCheckin }), [openCheckin]);
 
