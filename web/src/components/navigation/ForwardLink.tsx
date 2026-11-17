@@ -21,7 +21,7 @@ export function ForwardLink({ href, className, children }: Props) {
   return (
     <Link
       href={href}
-      prefetch
+      prefetch={false}
       className={className}
       onClick={(event) => {
         setNavDirection(NAV_FORWARD);

@@ -76,13 +76,14 @@ export function AuthLoginForm({ redirectTo }: { redirectTo: string }) {
         className={`${fieldClass} mt-3`}
       />
 
-      {/* TODO: /forgot-password has no page yet. */}
+      {/* TODO: /forgot-password has no page yet.
       <a
         href="/forgot-password"
         className="mt-2 self-end text-[11px] leading-none text-white/55 no-underline"
       >
         {t("login.forgot")}
       </a>
+      */}
 
       {errorKey ? (
         <p className="mt-3 text-[13px] leading-snug font-bold text-[#f0454a]" role="alert">

@@ -5,15 +5,13 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
-    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-    "upload": "opennextjs-cloudflare build && opennextjs-cloudflare upload",
-    "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
+    "preview": "set -a && . ./.env.production && set +a && next build && wrangler pages deploy dist --project-name aftervibe-web",
+    "deploy": "set -a && . ./.env.production && set +a && next build && wrangler pages deploy dist --project-name aftervibe-web",
+    "upload": "set -a && . ./.env.production && set +a && next build && wrangler pages deploy dist --project-name aftervibe-web",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
-    "@opennextjs/cloudflare": "^1.20.17",
     "next": "16.4.6",
     "playwright": "^1.65.0",
     "qrcode.react": "^4.2.0",

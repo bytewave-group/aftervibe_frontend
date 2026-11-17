@@ -1,7 +1,6 @@
 import { apiGet, ApiError } from "@/lib/api/browser";
 import { avatarUrl, bannerUrl } from "@/lib/api/images";
 import type { HomeArtistDto, HomeResponse, HomeSpenderDto } from "@/lib/api/types";
-import { hasCustomerSession } from "@/lib/auth/session";
 import {
   homeData,
   type Banner,
@@ -162,8 +161,6 @@ function withDevMockSections(data: HomeData): HomeData {
 }
 
 export async function loadHome(): Promise<LoadedHome> {
-  const isAuthed = await hasCustomerSession();
-
   try {
     const payload = await apiGet<HomeResponse>("/api/customer/home", "optional");
     if (process.env.NODE_ENV !== "production") {
@@ -182,7 +179,7 @@ export async function loadHome(): Promise<LoadedHome> {
     }
     return {
       data: withDevMockSections(mapHomeResponse(payload)),
-      isAuthed,
+      isAuthed: false,
       source: "api",
     };
   } catch (error) {
@@ -195,8 +192,8 @@ export async function loadHome(): Promise<LoadedHome> {
     return devMockOnError<LoadedHome>(
       "home",
       error,
-      () => ({ data: isAuthed ? structuredClone(homeData) : guestMockHome(), isAuthed, source: "mock" }),
-      () => ({ data: emptyHome(), isAuthed, source: "api" }),
+      () => ({ data: guestMockHome(), isAuthed: false, source: "mock" }),
+      () => ({ data: emptyHome(), isAuthed: false, source: "api" }),
     );
   }
 }

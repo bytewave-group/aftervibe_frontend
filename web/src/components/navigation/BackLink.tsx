@@ -37,7 +37,7 @@ export function BackLink({ href, className, ariaLabel, children, onClick }: Prop
   return (
     <Link
       href={href}
-      prefetch
+      prefetch={false}
       data-nav-back="1"
       data-nav-no-swipe=""
       onClick={handleClick}

@@ -687,12 +687,11 @@ export function PageTransition({ children }: { children: ReactNode }) {
     tick();
     const poll = window.setInterval(tick, LOCATION_POLL_MS);
     const safety = window.setTimeout(() => {
-      const key = currentLocationKey();
       const pendingNow = pendingRef.current;
-      if (pendingNow && key === pendingNow.originKey) {
-        revertToKeyRef.current = pendingNow.originKey;
-        setRevertTo(pendingNow.originKey);
-        finishPending(pendingNow.originPath, "revert");
+      if (pendingNow) {
+        // Client navigation did not commit. A full load avoids staying on the
+        // skeleton after a poisoned route cache, and does not snap back.
+        window.location.assign(pendingNow.href);
         return;
       }
       finishPending(pathOf(window.location.href), "commit");

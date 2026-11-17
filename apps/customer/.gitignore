@@ -23,3 +23,4 @@ electron/resolume/native/build/*.o
 electron/resolume/native/build/include/
 electron/resolume/native/build/syphon-xcode/
 dist/index.html
+/release/

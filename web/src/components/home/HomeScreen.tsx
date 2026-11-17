@@ -83,16 +83,22 @@ function HomeBody({
 
 export function HomeScreen() {
   const { isAuthed } = useAuth();
+  const t = useTranslations();
   const [home, setHome] = useState<HomeData | null>(null);
   const [events, setEvents] = useState<EventItem[] | null>(null);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    void Promise.all([loadHomeClient(), loadEventsClient()]).then(([nextHome, nextEvents]) => {
-      if (cancelled) return;
-      setHome(nextHome);
-      setEvents(nextEvents);
-    });
+    void Promise.all([loadHomeClient(), loadEventsClient()])
+      .then(([nextHome, nextEvents]) => {
+        if (cancelled) return;
+        setHome(nextHome);
+        setEvents(nextEvents);
+      })
+      .catch(() => {
+        if (!cancelled) setFailed(true);
+      });
     return () => {
       cancelled = true;
     };
@@ -101,16 +107,22 @@ export function HomeScreen() {
   return (
     <HomeTabs
       home={
-        <>
-          {home ? (
-            <TopBar balance={home.balance} foodcourtCustomerId={home.foodcourtCustomerId} />
-          ) : (
-            <HomeTopBarSkeleton />
-          )}
-          <PageMain>
-            {home && events ? <HomeBody home={home} events={events} /> : <HomeBodySkeleton />}
-          </PageMain>
-        </>
+        failed ? (
+          <p className="px-6 pt-16 text-center text-[16px] leading-snug font-bold text-white">
+            {t("common.pageError")}
+          </p>
+        ) : (
+          <>
+            {home ? (
+              <TopBar balance={home.balance} foodcourtCustomerId={home.foodcourtCustomerId} />
+            ) : (
+              <HomeTopBarSkeleton />
+            )}
+            <PageMain>
+              {home && events ? <HomeBody home={home} events={events} /> : <HomeBodySkeleton />}
+            </PageMain>
+          </>
+        )
       }
       profile={<HomeMePane />}
     />

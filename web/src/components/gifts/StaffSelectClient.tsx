@@ -11,7 +11,7 @@ import {
   useRecentStaff,
 } from "@/components/gifts/recent";
 import { PageMain } from "@/components/layout/AppShell";
-import { useInstantNav, usePrefetch } from "@/components/navigation/instant-nav";
+import { useInstantNav } from "@/components/navigation/instant-nav";
 import { NAV_FORWARD } from "@/components/navigation/nav-direction";
 import { useTranslations } from "@/i18n/locale-provider";
 import type { GiftRecipientType, GiftStaff } from "@/lib/mock/gifts";
@@ -102,11 +102,6 @@ export function StaffSelectClient({
     () => people.filter((person) => matchesQuery(person, query)),
     [people, query],
   );
-
-  usePrefetch([
-    ...staffs.slice(0, 8).map((staff) => `/gifts/select?id=${staff.id}&recipient=staff`),
-    ...customers.slice(0, 8).map((customer) => `/gifts/select?id=${customer.id}&recipient=customer`),
-  ]);
 
   const openRecipient = (person: GiftStaff) => {
     if (isCustomerTab) {

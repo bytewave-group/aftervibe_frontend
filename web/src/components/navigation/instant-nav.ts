@@ -1,15 +1,13 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   type MouseEvent,
   type PointerEvent,
 } from "react";
-import { canonicalPath, pathOf } from "./nav-direction";
+import { canonicalPath } from "./nav-direction";
 
 export type InstantNavValue = {
   /** Start the slide and always commit the route with router.push. */
@@ -77,12 +75,6 @@ export function useNavTrigger(
   enabled: boolean,
 ) {
   const { begin } = useInstantNav();
-  const router = useRouter();
-
-  const prefetch = useCallback(() => {
-    if (!href) return;
-    void router.prefetch(href);
-  }, [href, router]);
 
   const onPointerDown = useCallback(
     (event: PointerEvent<HTMLElement>) => {
@@ -92,10 +84,9 @@ export function useNavTrigger(
       } catch {
         /* capture is best-effort */
       }
-      prefetch();
       begin(href, direction);
     },
-    [begin, direction, enabled, href, prefetch],
+    [begin, direction, enabled, href],
   );
 
   const onClick = useCallback(
@@ -113,26 +104,16 @@ export function useNavTrigger(
   return {
     onPointerDown,
     onClick,
-    prefetch,
     commit: () => begin(href, direction),
   };
 }
 
-/** Prefetch one or more routes on mount. */
-export function usePrefetch(href: string | string[] | undefined, enabled = true) {
-  const router = useRouter();
-  const list = Array.isArray(href) ? href : href ? [href] : [];
-  const key = list.join("|");
-
-  useEffect(() => {
-    if (!enabled || !key) return;
-    for (const item of list) {
-      if (!item || item.startsWith("#")) continue;
-      const path = pathOf(item);
-      if (!path) continue;
-      void router.prefetch(item);
-    }
-    // list is represented by key
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, key, router]);
+/**
+ * Prefetch is disabled. Next's full prefetch requests `/path/?_rsc=` without a
+ * `.txt` suffix; Cloudflare Pages answers with HTML and poisons the route cache.
+ * The export stays so existing call sites do not need to change.
+ */
+export function usePrefetch(_href?: string | string[], _enabled = true): void {
+  void _href;
+  void _enabled;
 }

@@ -42,7 +42,7 @@ export function GuardedLink({
   return (
     <Link
       href={href}
-      prefetch
+      prefetch={false}
       className={className ? `anim-press ${className}` : "anim-press"}
       {...props}
       onClick={handleClick}

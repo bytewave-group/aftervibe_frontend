@@ -24,7 +24,7 @@ export { DEV_MOCK_COOKIE, isDevMockEnabled };
  *   as if the backend were down. `?mock=off` clears it.
  * - A dev mock login (src/lib/auth/dev-mock-session.ts) stores a fake
  *   "dev-mock." token; it is never sent to the backend: reads use mock data,
- *   mutations fail with DEV_MOCK_ACTION_MESSAGE (see src/lib/api/server.ts).
+ *   mutations fail with DEV_MOCK_ACTION_MESSAGE (see src/lib/mock/devMode.ts).
  * - Each use is logged with console.warn and recorded for <DevMockBadge />.
  */
 
