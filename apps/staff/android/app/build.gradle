@@ -1,5 +1,29 @@
 apply plugin: 'com.android.application'
 
+def versionFile = rootProject.file("version.properties")
+
+def readAppVersion = {
+    def props = new Properties()
+    if (versionFile.exists()) {
+        versionFile.withInputStream { props.load(it) }
+    }
+    def code = props.getProperty("VERSION_CODE", "1").toInteger()
+    def name = props.getProperty("VERSION_NAME", "1.0")
+    return [code: code, name: name]
+}
+
+def writeAppVersion = { int code, String name ->
+    versionFile.setText("VERSION_CODE=${code}\nVERSION_NAME=${name}\n", "UTF-8")
+}
+
+if (!versionFile.exists()) {
+    writeAppVersion(1, "1.0")
+}
+
+def currentVersion = readAppVersion()
+def versionCodeValue = currentVersion.code
+def versionNameValue = currentVersion.name
+
 android {
     namespace "com.night_management.app"
     compileSdk rootProject.ext.compileSdkVersion
@@ -13,8 +37,8 @@ android {
         applicationId "com.night_management.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+        versionCode versionCodeValue
+        versionName versionNameValue
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

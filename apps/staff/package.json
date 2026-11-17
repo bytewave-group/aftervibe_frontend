@@ -12,6 +12,8 @@
     "build:bar": "cross-env NODE_ENV=production vite build --mode",
     "build-capacitor-ios": "cross-env NODE_ENV=production vite build && npx cap copy ios",
     "build-capacitor-android": "cross-env NODE_ENV=production vite build && npx cap copy android",
+    "android": "node scripts/build-android.js",
+    "ios": "node scripts/build-ios.js",
     "postinstall": "cpy --flat ./node_modules/framework7-icons/fonts/*.* ./src/fonts/ && cpy --flat ./node_modules/material-icons/iconfont/*.* ./src/fonts/"
   },
   "browserslist": [
