@@ -50,7 +50,7 @@ function mapPackage(pkg: RewardPackageDto): MallPackage {
 export async function loadMall(): Promise<MallData> {
   try {
     const [rewards, customer] = await Promise.all([
-      apiGet<RewardsResponse>("/api/customer/rewards", "required"),
+      apiGet<RewardsResponse>("/api/customer/rewards", "optional"),
       loadMe(),
     ]);
     const data: MallData = {
@@ -64,7 +64,6 @@ export async function loadMall(): Promise<MallData> {
       points: data.points,
     }));
   } catch (error) {
-    redirectIfUnauthorized(error, "/mall");
     logApiFallback("[mall] GET /api/customer/rewards failed", error);
     return devMockOnError("mall", error, () => structuredClone(mockMallData), () => ({
       enabled: false,

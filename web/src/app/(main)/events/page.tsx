@@ -1,11 +1,12 @@
 "use client";
 
-import { useAuthedPage } from "@/components/auth/useAuthedPage";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { EventDetailView } from "@/components/events/EventDetailView";
 import { PageMain } from "@/components/layout/AppShell";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { EventDetailBodySkeleton } from "@/components/navigation/PageSkeletons";
 import { useTranslations } from "@/i18n/locale-provider";
+import { getEventFromPublicList } from "@/lib/api/event-detail";
 import { getEvent } from "@/lib/api/events";
 import type { EventDetail } from "@/lib/mock/event-detail";
 import { notFound, useSearchParams } from "next/navigation";
@@ -18,7 +19,7 @@ function positiveIntParam(value: string | null): number | null {
 }
 
 function EventInner() {
-  const ready = useAuthedPage();
+  const { status } = useAuth();
   const t = useTranslations();
   const params = useSearchParams();
   const id = positiveIntParam(params.get("id"));
@@ -26,9 +27,10 @@ function EventInner() {
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    if (!ready || id == null) return;
+    if (id == null || status === "loading") return;
     let cancelled = false;
-    void getEvent(id)
+    const request = status === "authenticated" ? getEvent(id) : getEventFromPublicList(id);
+    void request
       .then((next) => {
         if (!cancelled) setEvent(next);
       })
@@ -38,7 +40,7 @@ function EventInner() {
     return () => {
       cancelled = true;
     };
-  }, [ready, id]);
+  }, [status, id]);
 
   if (id == null) {
     notFound();

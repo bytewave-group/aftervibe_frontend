@@ -1,5 +1,7 @@
 "use client";
 
+import { useAuth } from "@/components/auth/AuthProvider";
+import { useRequireAuth } from "@/components/auth/useRequireAuth";
 import { AppDialog } from "@/components/ui/AppDialog";
 import { SafeImage } from "@/components/media/SafeImage";
 import { useLocale } from "@/i18n/locale-provider";
@@ -36,7 +38,10 @@ function formatPoints(value: number): string {
 
 export function MallPageClient({ initialData }: { initialData: MallData }) {
   const { t } = useLocale();
+  const { isAuthed, customer } = useAuth();
+  const requireAuth = useRequireAuth();
   const [data, setData] = useState(initialData);
+  const [pendingRedeem, setPendingRedeem] = useState<MallPackage | null>(null);
   const [tab, setTab] = useState<MallTab>("all");
   const [selected, setSelected] = useState<MallPackage | null>(null);
   const [busy, setBusy] = useState(false);
@@ -46,7 +51,14 @@ export function MallPageClient({ initialData }: { initialData: MallData }) {
   if (selected && heldSelected !== selected) {
     setHeldSelected(selected);
   }
-  const dialogItem = selected ?? heldSelected;
+  const dialogItem = selected ?? heldSelected ?? (isAuthed ? pendingRedeem : null);
+  const dialogOpen = selected !== null || (isAuthed && pendingRedeem !== null);
+  const displayPoints =
+    isAuthed
+      ? (customer?.reward_points != null && message == null
+          ? Number(customer.reward_points) || 0
+          : data.points)
+      : 0;
 
   const visible = useMemo(
     () => data.packages.filter((pkg) => matchesTab(pkg, tab)),
@@ -57,25 +69,30 @@ export function MallPageClient({ initialData }: { initialData: MallData }) {
     pkg.nameKey ? t(`mall.items.${pkg.nameKey}`) : pkg.name;
 
   const confirmRedeem = async () => {
-    if (!selected || busy) {
+    const target = selected ?? pendingRedeem;
+    if (!target || busy) {
+      return;
+    }
+    if (!requireAuth("/mall")) {
       return;
     }
     setBusy(true);
     setError(null);
     try {
-      const result = await redeemMallPackage(data, selected.id);
+      const result = await redeemMallPackage(data, target.id);
       setData((current) => ({
         ...current,
         points: result.points,
         packages: current.packages
           .map((item) =>
-            item.id === selected.id && item.stock != null
+            item.id === target.id && item.stock != null
               ? { ...item, stock: item.stock - 1 }
               : item,
           )
           .filter((item) => item.stock == null || item.stock > 0),
       }));
       setSelected(null);
+      setPendingRedeem(null);
       setMessage(t("mall.success"));
     } catch (err) {
       setError(
@@ -94,17 +111,29 @@ export function MallPageClient({ initialData }: { initialData: MallData }) {
     <div className="px-6 pb-8">
       <section className="mt-[36px] flex h-[50px] items-center rounded-[10px] bg-[#1F1F1F] px-8">
         <p className="text-[12px] leading-[14px] text-white">{t("mall.remainingPoints")}</p>
-        <p className="ml-auto text-[24px] leading-none font-bold text-white tabular-nums">
-          {formatPoints(data.points)}
-        </p>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/images/mall-coin.webp"
-          alt=""
-          width={26}
-          height={26}
-          className="ml-5 size-[26px] shrink-0 object-contain"
-        />
+        {isAuthed ? (
+          <>
+            <p className="ml-auto text-[24px] leading-none font-bold text-white tabular-nums">
+              {formatPoints(displayPoints)}
+            </p>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/mall-coin.webp"
+              alt=""
+              width={26}
+              height={26}
+              className="ml-5 size-[26px] shrink-0 object-contain"
+            />
+          </>
+        ) : (
+          <button
+            type="button"
+            className="anim-press ml-auto text-[14px] leading-none font-bold text-white/80 underline decoration-white/30 underline-offset-4"
+            onClick={() => requireAuth("/mall")}
+          >
+            {t("mall.loginToSeePoints")}
+          </button>
+        )}
       </section>
 
       {message ? (
@@ -141,6 +170,11 @@ export function MallPageClient({ initialData }: { initialData: MallData }) {
                 type="button"
                 className="anim-press flex w-full flex-col items-start text-left"
                 onClick={() => {
+                  if (!requireAuth("/mall")) {
+                    setPendingRedeem(pkg);
+                    return;
+                  }
+                  setPendingRedeem(null);
                   setError(null);
                   setSelected(pkg);
                 }}
@@ -168,11 +202,12 @@ export function MallPageClient({ initialData }: { initialData: MallData }) {
 
       {dialogItem ? (
         <AppDialog
-          open={selected !== null}
+          open={dialogOpen}
           title={t("mall.confirmTitle")}
           onClose={() => {
             if (!busy) {
               setSelected(null);
+              setPendingRedeem(null);
               setError(null);
             }
           }}
@@ -182,7 +217,10 @@ export function MallPageClient({ initialData }: { initialData: MallData }) {
                 type="button"
                 disabled={busy}
                 className="anim-press flex h-[44px] flex-1 items-center justify-center rounded-[10px] bg-white/10 text-[15px] font-bold text-white disabled:opacity-50"
-                onClick={() => setSelected(null)}
+                onClick={() => {
+                  setSelected(null);
+                  setPendingRedeem(null);
+                }}
               >
                 {t("common.cancel")}
               </button>

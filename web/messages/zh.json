@@ -31,6 +31,7 @@
     "bannerSlideAria": "第 {n} 张",
     "bannerAlt": "DJ NIGHT",
     "quickActionsAria": "快捷入口",
+    "languageAria": "切换语言",
     "marqueePrefix": "[今夜榜单]",
     "marqueeWealth": "👑 尊贵榜一:",
     "marqueeCharm": "✨ 魅力榜一:",
@@ -73,6 +74,8 @@
     "editProfile": "编辑个人资料",
     "language": "语言",
     "logout": "登出",
+    "logoutConfirmTitle": "确定退出登录？",
+    "logoutConfirm": "确定",
     "loadError": "无法加载个人资料，请稍后重试。"
   },
   "login": {
@@ -186,6 +189,8 @@
   "mall": {
     "title": "商城",
     "unavailable": "商城暂未开放",
+    "loginToBrowse": "登录后即可浏览和兑换商品",
+    "loginToSeePoints": "登录查看",
     "myPoints": "我的积分",
     "pointsUnit": "{n} 积分",
     "redeem": "兑换",

@@ -10,9 +10,10 @@ type Props = {
   href: ComponentProps<typeof Link>["href"];
   className?: string;
   children: ReactNode;
+  "aria-label"?: string;
 };
 
-export function ForwardLink({ href, className, children }: Props) {
+export function ForwardLink({ href, className, children, "aria-label": ariaLabel }: Props) {
   const { setNavDirection } = useNavDirection();
   const hrefString = typeof href === "string" ? href : href.pathname ? String(href.pathname) : "/";
   const trigger = useNavTrigger(hrefString, NAV_FORWARD, true);
@@ -23,6 +24,7 @@ export function ForwardLink({ href, className, children }: Props) {
       href={href}
       prefetch={false}
       className={className}
+      aria-label={ariaLabel}
       onClick={(event) => {
         setNavDirection(NAV_FORWARD);
         trigger.onClick(event);

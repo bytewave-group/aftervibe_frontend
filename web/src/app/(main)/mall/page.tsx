@@ -1,6 +1,6 @@
 "use client";
 
-import { useAuthedPage } from "@/components/auth/useAuthedPage";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { PageMain } from "@/components/layout/AppShell";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { MallPageClient } from "@/components/mall/MallPageClient";
@@ -11,12 +11,12 @@ import type { MallData } from "@/lib/mock/mall";
 import { Suspense, useEffect, useState } from "react";
 
 function MallInner() {
-  const ready = useAuthedPage();
+  const { status } = useAuth();
   const t = useTranslations();
   const [data, setData] = useState<MallData | null>(null);
 
   useEffect(() => {
-    if (!ready) return;
+    if (status === "loading") return;
     let cancelled = false;
     void loadMall()
       .then((next) => {
@@ -28,13 +28,13 @@ function MallInner() {
     return () => {
       cancelled = true;
     };
-  }, [ready]);
+  }, [status]);
 
   return (
     <>
       <PageHeader titleKey="mall.title" backHref="/" />
       <PageMain>
-        {data == null ? (
+        {status === "loading" || data == null ? (
           <MallBodySkeleton />
         ) : data.enabled ? (
           <div className="anim-content-fade">

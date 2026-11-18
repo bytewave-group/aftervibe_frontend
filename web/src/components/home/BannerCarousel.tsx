@@ -1,6 +1,5 @@
 "use client";
 
-import { useRequireAuth } from "@/components/auth/useRequireAuth";
 import { useTranslations } from "@/i18n/locale-provider";
 import { SafeImage } from "@/components/media/SafeImage";
 import { PLACEHOLDER_BANNER } from "@/lib/api/images";
@@ -21,7 +20,6 @@ interface BannerCarouselProps {
 
 export function BannerCarousel({ banners }: BannerCarouselProps) {
   const t = useTranslations();
-  const requireAuth = useRequireAuth();
   const [index, setIndex] = useState(0);
   const startX = useRef<number | null>(null);
   const paused = useRef(false);
@@ -58,7 +56,6 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
       const dx = event.clientX - startX.current;
       if (dx > SWIPE_THRESHOLD) go(-1);
       else if (dx < -SWIPE_THRESHOLD) go(1);
-      else requireAuth("/");
     }
     startX.current = null;
     paused.current = false;

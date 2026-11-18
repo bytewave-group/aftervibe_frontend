@@ -3,6 +3,7 @@
 import { GuardedLink } from "@/components/auth/GuardedLink";
 import { useCheckin } from "@/components/checkin/CheckinHost";
 import { useRequireAuth } from "@/components/auth/useRequireAuth";
+import { ForwardLink } from "@/components/navigation/ForwardLink";
 import Image from "next/image";
 import type { QuickAction } from "@/lib/mock/home";
 
@@ -34,6 +35,17 @@ export function QuickActions({ actions, ariaLabel }: QuickActionsProps) {
               {action.label}
             </span>
           </button>
+        ) : action.id === "mall" ? (
+          <ForwardLink
+            key={action.id}
+            href={action.href}
+            className="anim-press flex min-w-0 flex-1 flex-col items-center no-underline"
+          >
+            <ActionIcon action={action} delay={index * 65} />
+            <span className="mt-[8px] whitespace-nowrap text-[14px] leading-none font-bold text-white">
+              {action.label}
+            </span>
+          </ForwardLink>
         ) : (
           <GuardedLink
             key={action.id}

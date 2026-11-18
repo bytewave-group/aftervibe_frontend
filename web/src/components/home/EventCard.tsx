@@ -1,6 +1,6 @@
 "use client";
 
-import { GuardedLink } from "@/components/auth/GuardedLink";
+import { ForwardLink } from "@/components/navigation/ForwardLink";
 import { SafeImage } from "@/components/media/SafeImage";
 import { formatEventSchedule } from "@/lib/events/schedule";
 import { EVENT_PLACEHOLDER_IMAGE, type EventItem } from "@/lib/mock/events";
@@ -17,9 +17,9 @@ export function EventCard({ event, locale, hotLabel, ariaLabel }: EventCardProps
   const schedule = formatEventSchedule(event, locale);
 
   return (
-    <GuardedLink
+    <ForwardLink
       href={`/events?id=${event.id}`}
-      className="flex h-[88px] w-full items-center rounded-[12px] bg-[#242424] pr-[12px] pl-[8px] no-underline"
+      className="anim-press flex h-[88px] w-full items-center rounded-[12px] bg-[#242424] pr-[12px] pl-[8px] no-underline"
       aria-label={ariaLabel}
     >
       <div className="relative size-[72px] shrink-0 overflow-hidden rounded-[8px] bg-[#3a3a3a]">
@@ -48,6 +48,6 @@ export function EventCard({ event, locale, hotLabel, ariaLabel }: EventCardProps
           <p className="mt-[8px] truncate text-[12px] leading-none text-white/50">{schedule}</p>
         ) : null}
       </div>
-    </GuardedLink>
+    </ForwardLink>
   );
 }

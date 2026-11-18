@@ -9,8 +9,9 @@
  * The list endpoint GET /api/customer/events is public; this detail
  * endpoint stays authenticated on the backend.
  */
+import { apiGet } from "@/lib/api/browser";
 import { displayImageUrl } from "@/lib/api/images";
-import type { EventDto } from "@/lib/api/types";
+import type { EventDto, EventsResponse } from "@/lib/api/types";
 import { findMockEventDetail, type EventDetail } from "@/lib/mock/event-detail";
 import { EVENT_PLACEHOLDER_IMAGE } from "@/lib/mock/events";
 
@@ -42,4 +43,19 @@ export async function loadEventDetail(id: number): Promise<EventDetail | null> {
   // TODO: try apiGet<{ success: boolean; event: EventDto }>(`/api/customer/events/${id}`, "required")
   // and return mapEventDetail(payload.event). Fall back to the mock below on failure / 404.
   return findMockEventDetail(id);
+}
+
+/**
+ * Guest-safe detail lookup via the public list.
+ * GET /api/customer/events/{id} requires a customer token on the backend,
+ * but the list payload already includes description and social counts.
+ */
+export async function getEventFromPublicList(id: number): Promise<EventDetail | null> {
+  try {
+    const payload = await apiGet<EventsResponse>("/api/customer/events", "optional");
+    const event = (payload.events ?? []).find((item) => item.id === id);
+    return event ? mapEventDetail(event) : null;
+  } catch {
+    return null;
+  }
 }

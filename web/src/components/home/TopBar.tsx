@@ -6,10 +6,11 @@ import { ProfileQrButton } from "@/components/profile/ProfileQrButton";
 import { useNavTrigger, usePrefetch } from "@/components/navigation/instant-nav";
 import { NAV_FORWARD } from "@/components/navigation/nav-direction";
 import { useNavDirection } from "@/components/navigation/NavDirectionProvider";
+import { LanguageDialog } from "@/components/ui/LanguageDialog";
 import { CountUp, parseBalanceValue } from "@/components/ui/CountUp";
 import { useTranslations } from "@/i18n/locale-provider";
 import Image from "next/image";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 
 interface TopBarProps {
   balance: string;
@@ -53,6 +54,7 @@ function NavIconButton({
 export function TopBar({ balance, foodcourtCustomerId }: TopBarProps) {
   const t = useTranslations();
   const parsedBalance = parseBalanceValue(balance);
+  const [languageOpen, setLanguageOpen] = useState(false);
 
   return (
     <header className="relative z-20 px-6 pt-[8px] pb-[31px] [padding-top:max(8px,env(safe-area-inset-top))]">
@@ -91,7 +93,7 @@ export function TopBar({ balance, foodcourtCustomerId }: TopBarProps) {
           priority
         />
 
-        <div className="mb-[3px] flex items-center gap-[27px] pr-[10px]">
+        <div className="mb-[3px] flex items-center gap-4 pr-[6px]">
           <ProfileQrButton
             customerId={foodcourtCustomerId}
             className="anim-press flex size-[25px] items-center justify-center"
@@ -105,8 +107,18 @@ export function TopBar({ balance, foodcourtCustomerId }: TopBarProps) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/images/icon-bell.svg" alt="" width={21} height={25} />
           </NavIconButton>
+          <button
+            type="button"
+            aria-label={t("home.languageAria")}
+            className="anim-press flex size-[25px] items-center justify-center"
+            onClick={() => setLanguageOpen(true)}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/images/icon-language.svg" alt="" width={22} height={22} />
+          </button>
         </div>
       </div>
+      <LanguageDialog open={languageOpen} onClose={() => setLanguageOpen(false)} />
     </header>
   );
 }

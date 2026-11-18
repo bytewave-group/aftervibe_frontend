@@ -1,5 +1,6 @@
 "use client";
 
+import { useRequireAuth } from "@/components/auth/useRequireAuth";
 import { SafeImage } from "@/components/media/SafeImage";
 import { usePresence } from "@/components/ui/usePresence";
 import { useLocale } from "@/i18n/locale-provider";
@@ -38,6 +39,7 @@ export function EventCommentsSheet({
   const titleId = useId();
   const isClient = useIsClient();
   const { locale, t } = useLocale();
+  const requireAuth = useRequireAuth();
   const { mounted, exiting } = usePresence(open);
   const [comments, setComments] = useState<EventCommentDto[]>([]);
   const [page, setPage] = useState(1);
@@ -112,6 +114,9 @@ export function EventCommentsSheet({
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
+    if (!requireAuth(`/events?id=${eventId}`)) {
+      return;
+    }
     const text = body.trim();
     if (!text || sending) {
       return;

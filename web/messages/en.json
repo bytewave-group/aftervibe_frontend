@@ -31,6 +31,7 @@
     "bannerSlideAria": "Slide {n}",
     "bannerAlt": "DJ NIGHT",
     "quickActionsAria": "Quick actions",
+    "languageAria": "Change language",
     "marqueePrefix": "[Tonight's board]",
     "marqueeWealth": "👑 Wealth #1:",
     "marqueeCharm": "✨ Charm #1:",
@@ -73,6 +74,8 @@
     "editProfile": "Edit profile",
     "language": "Language",
     "logout": "Log out",
+    "logoutConfirmTitle": "Log out?",
+    "logoutConfirm": "Log out",
     "loadError": "Could not load your profile. Please try again shortly."
   },
   "login": {
@@ -186,6 +189,8 @@
   "mall": {
     "title": "Mall",
     "unavailable": "The mall is unavailable.",
+    "loginToBrowse": "Log in to browse and redeem rewards",
+    "loginToSeePoints": "Log in to view",
     "myPoints": "My points",
     "pointsUnit": "{n} pts",
     "redeem": "Redeem",

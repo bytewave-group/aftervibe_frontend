@@ -1,11 +1,9 @@
 "use client";
 
 import { GuardedLink } from "@/components/auth/GuardedLink";
-import { AppDialog } from "@/components/ui/AppDialog";
-import { locales, type Locale } from "@/i18n/config";
+import { LanguageDialog } from "@/components/ui/LanguageDialog";
 import { useLocale } from "@/i18n/locale-provider";
-import { useState, useSyncExternalStore } from "react";
-import { createPortal } from "react-dom";
+import { useState } from "react";
 
 interface MenuIcon {
   src: string;
@@ -47,45 +45,8 @@ function RowIcon({ icon }: { icon: MenuIcon }) {
 }
 
 export function ProfileSettings() {
-  const { locale, t, setLocale, isPending } = useLocale();
+  const { locale, t, isPending } = useLocale();
   const [open, setOpen] = useState(false);
-  const canPortal = useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false,
-  );
-
-  const choose = (next: Locale) => {
-    if (next !== locale) {
-      setLocale(next);
-    }
-    setOpen(false);
-  };
-
-  const dialog = (
-    <AppDialog title={t("profile.language")} open={open} onClose={() => setOpen(false)}>
-      <ul className="flex flex-col gap-2">
-        {locales.map((code) => {
-          const selected = code === locale;
-          return (
-            <li key={code}>
-              <button
-                type="button"
-                disabled={isPending}
-                aria-current={selected ? "true" : undefined}
-                className={`anim-press flex w-full items-center justify-between rounded-[12px] px-4 py-3 text-left text-[16px] leading-none font-bold ${
-                  selected ? "bg-white text-black" : "bg-white/10 text-white"
-                }`}
-                onClick={() => choose(code)}
-              >
-                {t(`languages.${code}`)}
-              </button>
-            </li>
-          );
-        })}
-      </ul>
-    </AppDialog>
-  );
 
   return (
     <section className="anim-fade-up mt-[30px] [--stagger:2]">
@@ -135,7 +96,7 @@ export function ProfileSettings() {
           </button>
         </li>
       </ul>
-      {canPortal ? createPortal(dialog, document.body) : null}
+      <LanguageDialog open={open} onClose={() => setOpen(false)} />
     </section>
   );
 }
