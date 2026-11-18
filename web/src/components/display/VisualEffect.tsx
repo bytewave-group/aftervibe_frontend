@@ -67,6 +67,10 @@ export function VisualEffect({ layout, screenWidth = 0, screenHeight = 0 }: Visu
   const playingRef = useRef<VisualEffectResult | null>(null);
   const lastPlaylistIdRef = useRef<number | null>(null);
   const lastCountGroupRef = useRef<string | null>(null);
+  // Layout duration is read when a new playlist starts (the visual-effect effect has [] deps).
+  const layoutDurationRef = useRef(layout?.duration);
+  // After a local hold timer hides the card, polls of the same playlist must not remount it.
+  const dismissedPlaylistIdRef = useRef<number | null>(null);
   // Units of earlier consecutive playlists of the same sender→receiver gift, plus the current one's units
   // (`interaction.quantity` from the backend: combo taps merged into the playlist).
   const baseCountRef = useRef(0);
@@ -75,27 +79,62 @@ export function VisualEffect({ layout, screenWidth = 0, screenHeight = 0 }: Visu
   const firstQuantityRef = useRef(0);
 
   useEffect(() => {
+    layoutDurationRef.current = layout?.duration;
+  }, [layout?.duration]);
+
+  useEffect(() => {
     const api = electronDisplayApi();
     if (!api?.onVisualEffect) return;
 
     let cancelled = false;
     let leaveTimer: ReturnType<typeof setTimeout> | undefined;
+    let holdTimer: ReturnType<typeof setTimeout> | undefined;
+
+    const dismissCard = (payload: VisualEffectResult) => {
+      if (playingRef.current) {
+        setLeaving(playingRef.current);
+        playingRef.current = null;
+      }
+      clearTimeout(leaveTimer);
+      leaveTimer = setTimeout(() => setLeaving(null), EXIT_MS);
+      setData(payload);
+    };
+
+    const armHoldTimer = (playlistId: number) => {
+      clearTimeout(holdTimer);
+      const seconds = Number(layoutDurationRef.current);
+      if (!Number.isFinite(seconds) || seconds < 1) return;
+      holdTimer = setTimeout(() => {
+        if (cancelled || !playingRef.current || playingRef.current.playlist_id !== playlistId) return;
+        dismissedPlaylistIdRef.current = playlistId;
+        dismissCard({
+          success: true,
+          mode: "default",
+          playlist_id: null,
+          displays: playingRef.current?.displays || [],
+        });
+      }, seconds * 1000);
+    };
 
     const processResult = (result: VisualEffectResult) => {
       if (cancelled || !result?.success) return;
 
       if (result.mode !== "interaction" || !result.playlist_id) {
+        clearTimeout(holdTimer);
+        dismissedPlaylistIdRef.current = null;
         if (playingRef.current) {
-          setLeaving(playingRef.current);
-          clearTimeout(leaveTimer);
-          leaveTimer = setTimeout(() => setLeaving(null), EXIT_MS);
-          playingRef.current = null;
+          dismissCard(result);
+        } else {
+          setData(result);
         }
         lastPlaylistIdRef.current = null;
         lastCountGroupRef.current = null;
         baseCountRef.current = 0;
         currentUnitsRef.current = 0;
-        setData(result);
+        return;
+      }
+
+      if (dismissedPlaylistIdRef.current === result.playlist_id) {
         return;
       }
 
@@ -108,7 +147,9 @@ export function VisualEffect({ layout, screenWidth = 0, screenHeight = 0 }: Visu
       ]);
 
       const units = Math.max(1, Math.floor(Number(result.interaction?.quantity) || 1));
-      if (lastPlaylistIdRef.current !== result.playlist_id) {
+      const isNewPlaylist = lastPlaylistIdRef.current !== result.playlist_id;
+      if (isNewPlaylist) {
+        dismissedPlaylistIdRef.current = null;
         baseCountRef.current =
           lastCountGroupRef.current === groupKey ? baseCountRef.current + currentUnitsRef.current : 0;
         lastPlaylistIdRef.current = result.playlist_id;
@@ -128,12 +169,16 @@ export function VisualEffect({ layout, screenWidth = 0, screenHeight = 0 }: Visu
       clearTimeout(leaveTimer);
       setLeaving(null);
       setData(playing);
+      if (isNewPlaylist) {
+        armHoldTimer(result.playlist_id);
+      }
     };
 
     const unsubscribe = api.onVisualEffect(processResult);
     return () => {
       cancelled = true;
       clearTimeout(leaveTimer);
+      clearTimeout(holdTimer);
       if (typeof unsubscribe === "function") unsubscribe();
     };
   }, []);

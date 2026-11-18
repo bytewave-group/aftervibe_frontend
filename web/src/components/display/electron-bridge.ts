@@ -37,6 +37,8 @@ export type GiftCardLayout = {
   x: number | null;
   y: number | null;
   width: number | null;
+  /** Seconds the card stays on screen. Null/omitted = stay until gift playback ends. */
+  duration?: number | null;
 };
 
 export type VisualEffectUser = {

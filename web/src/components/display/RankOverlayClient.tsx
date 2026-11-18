@@ -34,7 +34,7 @@ const MOCK_SETTINGS: RankBoardSettings = {
     monthly: { enabled: false, position: "none", x: null, y: null },
   },
   rank_size: { width: 240, height: 300, font_size: 16 },
-  gift_card: { enabled: true, x: null, y: null, width: null },
+  gift_card: { enabled: true, x: null, y: null, width: null, duration: null },
 };
 
 /**
