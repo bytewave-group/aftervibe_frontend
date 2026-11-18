@@ -1009,6 +1009,7 @@ export function PageTransition({ children }: { children: ReactNode }) {
       <div
         ref={stageRef}
         className="pt-stage"
+        style={{ background: "transparent" }}
         data-nav-pending={covering || pending ? pending?.path : undefined}
         data-nav-blocking={covering ? "1" : "0"}
         data-ios-nav={pending?.dir}
@@ -1017,7 +1018,10 @@ export function PageTransition({ children }: { children: ReactNode }) {
           ref={layerARef}
           className="pt-layer"
           data-front={aIsFront ? "1" : "0"}
-          style={aIsFront ? settledFrontStyle : settledBackStyle}
+          style={{
+            background: "transparent",
+            ...(aIsFront ? settledFrontStyle : settledBackStyle),
+          }}
           inert={aIsFront ? undefined : true}
         >
           <div ref={shadowARef} className="pt-shadow" aria-hidden="true" />
@@ -1036,7 +1040,10 @@ export function PageTransition({ children }: { children: ReactNode }) {
           ref={layerBRef}
           className="pt-layer"
           data-front={aIsFront ? "0" : "1"}
-          style={aIsFront ? settledBackStyle : settledFrontStyle}
+          style={{
+            background: "transparent",
+            ...(aIsFront ? settledBackStyle : settledFrontStyle),
+          }}
           inert={aIsFront ? true : undefined}
         >
           <div ref={shadowBRef} className="pt-shadow" aria-hidden="true" />

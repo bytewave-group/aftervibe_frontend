@@ -18,3 +18,22 @@ html:has(.av-display-root) nextjs-portal {
   line-height: 1.5;
   color: #fff;
 }
+
+/* DEV ONLY (`?mock=1&bg=1`): a busy nightclub stand-in so we can judge card contrast over video.
+   Never shown in Electron — the live page background stays fully transparent. */
+.av-display-mock-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 20% 80%, rgba(255, 45, 85, 0.45), transparent 42%),
+    radial-gradient(ellipse at 80% 20%, rgba(70, 240, 255, 0.28), transparent 40%),
+    radial-gradient(ellipse at 60% 70%, rgba(140, 40, 255, 0.35), transparent 45%),
+    repeating-linear-gradient(
+      -18deg,
+      rgba(255, 255, 255, 0.05) 0 2px,
+      transparent 2px 18px
+    ),
+    linear-gradient(160deg, #1a0510 0%, #07101c 45%, #2a0a14 100%);
+}

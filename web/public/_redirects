@@ -1,12 +1,8 @@
-# Legacy path-style URLs → query strings (static export cannot use /events/[id]).
-# Pass-throughs MUST come first: Cloudflare matches redirects before files, so
-# /events/:id would otherwise catch Next RSC payloads (index.txt, __next.*)
-# and 301 to /events/?id=index.txt, which blanks the page.
-/events/index.txt /events/index.txt 200
-/events/index.html /events/index.html 200
-/events/__next* /events/__next:splat 200
-/events/:id /events/?id=:id 301
-/profile/history/recharge/index.txt /profile/history/recharge/index.txt 200
-/profile/history/recharge/index.html /profile/history/recharge/index.html 200
-/profile/history/recharge/__next* /profile/history/recharge/__next:splat 200
-/profile/history/recharge/:id /profile/history/recharge/?id=:id 301
+# Intentionally no /events/:id or /profile/history/recharge/:id rules.
+#
+# The app only uses query strings (/events/?id=123). A /events/:id 301 also
+# matches Next.js static-export RSC files (/events/index.txt) and sends the
+# browser to /events/?id=index.txt. Cloudflare Workers static assets do not
+# support 200 rewrite/pass-through rules, so those files cannot be excluded
+# reliably. 301s are also cached by browsers, so a bad rule keeps breaking
+# clients after a redeploy until the cache is cleared.

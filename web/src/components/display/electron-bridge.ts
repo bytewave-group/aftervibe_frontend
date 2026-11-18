@@ -8,11 +8,25 @@ export type RankEntry = {
   name: string;
   amount: number;
   membership?: unknown;
+  /** Optional; the current rankboard API does not send this. */
+  avatar?: string | null;
+  avatar_url?: string | null;
+  image?: string | null;
+  profile_image_position?: { x: number; y: number } | null;
 };
 
 export type RankBoardUpdate = {
   period: "daily" | "weekly" | "monthly";
   ranking: RankEntry[];
+  /** Present once Electron forwards it; until then the overlay reads staff rows from settings. */
+  staff_ranking?: RankEntry[];
+};
+
+export type StaffRankPlacement = {
+  enabled: boolean;
+  x: number | null;
+  y: number | null;
+  ranking?: RankEntry[];
 };
 
 export type RankPlacement = {
@@ -29,6 +43,8 @@ export type RankBoardSettings = {
   rank_size?: { width: number; height: number; font_size: number };
   /** Big-screen gift card placement (admin Rank board layout). Null x/y/width = centred default. */
   gift_card?: GiftCardLayout;
+  staff_rankings?: Partial<Record<"daily" | "weekly" | "monthly", StaffRankPlacement>>;
+  staff_rank_size?: { width: number; height: number; font_size: number };
 };
 
 /** Display pixels, top-left of the card; `width` is the card width on the display. */

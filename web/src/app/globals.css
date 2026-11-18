@@ -619,14 +619,15 @@ body::-webkit-scrollbar,
   overflow: hidden;
   isolation: isolate;
   touch-action: pan-y;
-  background: #000;
+  /* Transparent so AppShell's FIGMA_SHELL_BG + bg-glow show through (Figma Voxx frames). */
+  background: transparent;
 }
 
 .pt-layer {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: #000;
+  background: transparent;
   backface-visibility: hidden;
   contain: layout paint;
   pointer-events: none;
