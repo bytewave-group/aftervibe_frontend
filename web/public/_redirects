@@ -1,2 +1,12 @@
+# Legacy path-style URLs → query strings (static export cannot use /events/[id]).
+# Pass-throughs MUST come first: Cloudflare matches redirects before files, so
+# /events/:id would otherwise catch Next RSC payloads (index.txt, __next.*)
+# and 301 to /events/?id=index.txt, which blanks the page.
+/events/index.txt /events/index.txt 200
+/events/index.html /events/index.html 200
+/events/__next* /events/__next:splat 200
 /events/:id /events/?id=:id 301
+/profile/history/recharge/index.txt /profile/history/recharge/index.txt 200
+/profile/history/recharge/index.html /profile/history/recharge/index.html 200
+/profile/history/recharge/__next* /profile/history/recharge/__next:splat 200
 /profile/history/recharge/:id /profile/history/recharge/?id=:id 301

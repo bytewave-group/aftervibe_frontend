@@ -9,7 +9,7 @@ import { useTranslations } from "@/i18n/locale-provider";
 import { getEventFromPublicList } from "@/lib/api/event-detail";
 import { getEvent } from "@/lib/api/events";
 import type { EventDetail } from "@/lib/mock/event-detail";
-import { notFound, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
 function positiveIntParam(value: string | null): number | null {
@@ -42,15 +42,13 @@ function EventInner() {
     };
   }, [status, id]);
 
-  if (id == null) {
-    notFound();
-  }
-
   return (
     <>
       <PageHeader title={event?.title} titleKey="home.events.title" backHref="/" />
       <PageMain>
-        {failed ? (
+        {id == null ? (
+          <p className="px-6 pt-10 text-center text-[14px] text-white/60">{t("eventDetail.notFound")}</p>
+        ) : failed ? (
           <p className="px-6 pt-10 text-center text-[14px] text-white/60">{t("common.pageError")}</p>
         ) : event ? (
           <div className="anim-content-fade">
