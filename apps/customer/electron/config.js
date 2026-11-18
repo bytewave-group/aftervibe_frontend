@@ -13,13 +13,13 @@ const isLive =
 const config = isLive
     ? {
         name: "LIVE",
-        api: "https://voxxclub.vip/api",
-        appApi: "https://voxxclub.vip/api",
-        displayApi: "https://voxxclub.vip/api/animations/display",
-        websocket: "wss://voxxclub.vip/ws",
+        api: "https://fipm6crw6y.voxxclub.vip/api",
+        appApi: "https://fipm6crw6y.voxxclub.vip/api",
+        displayApi: "https://fipm6crw6y.voxxclub.vip/api/animations/display",
+        websocket: "wss://fipm6crw6y.voxxclub.vip/ws",
         // TODO(prod URL): set to the deployed Next.js web, e.g. "https://<web-host>/display/rank".
         // Not known yet (web/ is not deployed); null = use AFTERVIBE_RANK_OVERLAY_URL / resolume-map.json
-        rankOverlayUrl: "https://customer.voxxclub.vip/display/rank/",
+        rankOverlayUrl: "https://voxxclub.vip/display/rank/",
         barId: null,
     }
     : {
