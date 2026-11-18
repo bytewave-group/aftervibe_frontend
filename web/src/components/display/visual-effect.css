@@ -1,6 +1,10 @@
 /* Big-screen gift card (Resolume "AfterVibe Rank N" overlay, 1280x720, transparent).
    Designed v2 (was a verbatim copy of apps/customer Gift.css). CSS-only motion, transform/opacity only.
-   Rank boards sit at left/right 4%..16.5% (RankOverlayClient: 240/1920 wide) — the card stays inside 18%..82%. */
+   Default placement: centred (flex), min(64vw, 820px) wide — with default rank boards at left/right 4%..16.5%
+   (RankOverlayClient: 240/1920 wide) the card stays inside 18%..82%.
+   Custom placement (admin Rank board layout → Gift card, `/rankboard/settings` gift_card x/y/width): `.is-positioned`
+   + `.visual-effect-slot` at left/top %, card at its natural 820px width scaled from the top-left corner
+   (VisualEffect slotStyle). The card's own transform animations run inside the scaled slot. */
 
 .visual-effect-page {
   position: absolute;
@@ -14,6 +18,20 @@
   z-index: 1100;
   font-family: system-ui, -apple-system, "PingFang SC", "Noto Sans SC", "Microsoft YaHei", sans-serif;
   color: #fff;
+}
+
+.visual-effect-page.is-positioned {
+  display: block;
+}
+
+.visual-effect-slot {
+  position: absolute;
+  width: 820px; /* CARD_NATURAL_WIDTH in VisualEffect.tsx */
+  transform-origin: top left;
+}
+
+.visual-effect-slot > .visual-effect-card {
+  width: 100%;
 }
 
 .visual-effect-card {

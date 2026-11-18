@@ -1,8 +1,13 @@
 "use client";
 
 /* eslint-disable @next/next/no-img-element */
-import { useEffect, useRef, useState } from "react";
-import { electronDisplayApi, type VisualEffectResult, type VisualEffectUser } from "./electron-bridge";
+import { type CSSProperties, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import {
+  electronDisplayApi,
+  type GiftCardLayout,
+  type VisualEffectResult,
+  type VisualEffectUser,
+} from "./electron-bridge";
 import "./visual-effect.css";
 
 const EXIT_MS = 450;
@@ -15,7 +20,47 @@ const ROLE_LABELS = { Sender: "送出", Receiver: "收到" } as const;
 /** Combo counts that get a brighter burst on the ×N pill. */
 const COMBO_MILESTONES = new Set([10, 66, 99, 188, 520, 999, 1314]);
 
-export function VisualEffect() {
+/** Natural card width in CSS px (visual-effect.css `.visual-effect-slot`); a positioned card is scaled from it. */
+const CARD_NATURAL_WIDTH = 820;
+
+const subscribeResize = (onChange: () => void) => {
+  window.addEventListener("resize", onChange);
+  return () => window.removeEventListener("resize", onChange);
+};
+const viewportWidth = () => window.innerWidth;
+const serverViewportWidth = () => 0;
+
+type VisualEffectProps = {
+  /** From `/rankboard/settings` `gift_card`; missing or null x/y/width = centred default. */
+  layout?: GiftCardLayout | null;
+  /** Display size in pixels (`/rankboard/settings` `display`), the space `layout` is expressed in. */
+  screenWidth?: number;
+  screenHeight?: number;
+};
+
+/**
+ * Placement of a custom-positioned card: left/top as % of the overlay, scaled (transform-origin top left)
+ * so its width is `layout.width / screenWidth` of the viewport. Null = keep the centred flex layout.
+ */
+function slotStyle(
+  layout: GiftCardLayout | null | undefined,
+  screenWidth: number,
+  screenHeight: number,
+  viewport: number,
+): CSSProperties | null {
+  if (!layout || layout.x == null || layout.y == null || !layout.width) return null;
+  if (!(screenWidth > 0) || !(screenHeight > 0) || !(viewport > 0)) return null;
+
+  const scale = ((Number(layout.width) / screenWidth) * viewport) / CARD_NATURAL_WIDTH;
+  return {
+    left: `${(Number(layout.x) / screenWidth) * 100}%`,
+    top: `${(Number(layout.y) / screenHeight) * 100}%`,
+    transform: `scale(${scale})`,
+  };
+}
+
+export function VisualEffect({ layout, screenWidth = 0, screenHeight = 0 }: VisualEffectProps = {}) {
+  const viewport = useSyncExternalStore(subscribeResize, viewportWidth, serverViewportWidth);
   const [data, setData] = useState<VisualEffectResult | null>(null);
   // Last playing card, kept for EXIT_MS after playback ends so it can animate out.
   const [leaving, setLeaving] = useState<VisualEffectResult | null>(null);
@@ -96,6 +141,10 @@ export function VisualEffect() {
   // The old component rendered a "Loading..." text until the first push; it is invisible on the LED
   // (transparent overlay) only by accident, so render nothing instead.
   if (!data) return null;
+  // Turned off per display in admin (Rank board layout → Gift card).
+  if (layout?.enabled === false) return null;
+
+  const positioned = slotStyle(layout, screenWidth, screenHeight, viewport);
 
   const isPlayingInteraction = data.mode === "interaction";
   const card = isPlayingInteraction ? data : leaving;
@@ -145,41 +194,49 @@ export function VisualEffect() {
     </div>
   );
 
-  return (
-    <div className="visual-effect-page">
-      {card ? (
-        <div
-          key={card.playlist_id || "default"}
-          className={`visual-effect-card is-playing${isLeaving ? " is-leaving" : ""}`}
-        >
-          {renderUser(card.sender_info, "Sender")}
-          {beam("in")}
-          <div className="visual-effect-gift">
-            <div className="visual-effect-media">
-              <span className="visual-effect-halo" aria-hidden="true" />
-              {imageUrl && (
-                <img
-                  key={card.playlist_id || imageUrl}
-                  src={imageUrl}
-                  alt={interaction?.name || "Visual effect"}
-                  className="visual-effect-gift-image"
-                />
-              )}
-            </div>
-            <div className="visual-effect-gift-name">{interaction?.name || "No active interaction"}</div>
-            <div
-              key={`quantity-${card.playlist_id}-${interaction?.quantity}`}
-              className={`visual-effect-gift-quantity${
-                COMBO_MILESTONES.has(interaction?.quantity ?? 1) ? " is-milestone" : ""
-              }${card.combo_bump ? " is-combo" : ""}`}
-            >
-              ×{interaction?.quantity || 1}
-            </div>
-          </div>
-          {beam("out")}
-          {renderUser(card.receiver_info, "Receiver")}
+  const cardElement = card ? (
+    <div
+      key={card.playlist_id || "default"}
+      className={`visual-effect-card is-playing${isLeaving ? " is-leaving" : ""}`}
+    >
+      {renderUser(card.sender_info, "Sender")}
+      {beam("in")}
+      <div className="visual-effect-gift">
+        <div className="visual-effect-media">
+          <span className="visual-effect-halo" aria-hidden="true" />
+          {imageUrl && (
+            <img
+              key={card.playlist_id || imageUrl}
+              src={imageUrl}
+              alt={interaction?.name || "Visual effect"}
+              className="visual-effect-gift-image"
+            />
+          )}
         </div>
-      ) : null}
+        <div className="visual-effect-gift-name">{interaction?.name || "No active interaction"}</div>
+        <div
+          key={`quantity-${card.playlist_id}-${interaction?.quantity}`}
+          className={`visual-effect-gift-quantity${
+            COMBO_MILESTONES.has(interaction?.quantity ?? 1) ? " is-milestone" : ""
+          }${card.combo_bump ? " is-combo" : ""}`}
+        >
+          ×{interaction?.quantity || 1}
+        </div>
+      </div>
+      {beam("out")}
+      {renderUser(card.receiver_info, "Receiver")}
+    </div>
+  ) : null;
+
+  return (
+    <div className={`visual-effect-page${positioned ? " is-positioned" : ""}`}>
+      {positioned && cardElement ? (
+        <div className="visual-effect-slot" style={positioned}>
+          {cardElement}
+        </div>
+      ) : (
+        cardElement
+      )}
       {displays.length === 0 && <div className="visual-effect-status">No display data available</div>}
     </div>
   );

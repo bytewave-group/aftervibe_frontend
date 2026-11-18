@@ -34,6 +34,7 @@ const MOCK_SETTINGS: RankBoardSettings = {
     monthly: { enabled: false, position: "none", x: null, y: null },
   },
   rank_size: { width: 240, height: 300, font_size: 16 },
+  gift_card: { enabled: true, x: null, y: null, width: null },
 };
 
 /**
@@ -75,7 +76,11 @@ export function RankOverlayClient() {
       style={{ width: "100vw", height: "100vh", position: "relative", overflow: "hidden", background: "transparent" }}
     >
       <RankLayer boards={boards} rankSettings={rankSettings} />
-      <VisualEffect />
+      <VisualEffect
+        layout={rankSettings?.gift_card}
+        screenWidth={Number(rankSettings?.display?.width ?? 0)}
+        screenHeight={Number(rankSettings?.display?.height ?? 0)}
+      />
     </div>
   );
 }

@@ -27,6 +27,16 @@ export type RankBoardSettings = {
   display?: { id: number; name: string; width: number; height: number };
   rankings?: Partial<Record<"daily" | "weekly" | "monthly", RankPlacement>>;
   rank_size?: { width: number; height: number; font_size: number };
+  /** Big-screen gift card placement (admin Rank board layout). Null x/y/width = centred default. */
+  gift_card?: GiftCardLayout;
+};
+
+/** Display pixels, top-left of the card; `width` is the card width on the display. */
+export type GiftCardLayout = {
+  enabled: boolean;
+  x: number | null;
+  y: number | null;
+  width: number | null;
 };
 
 export type VisualEffectUser = {
