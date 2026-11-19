@@ -2,6 +2,7 @@
 
 import { AuthLoginForm } from "@/components/auth/AuthLoginForm";
 import { AuthRegisterForm } from "@/components/auth/AuthRegisterForm";
+import { PoweredByAfterVibe } from "@/components/common/PoweredByAfterVibe";
 import { useTranslations } from "@/i18n/locale-provider";
 import { useEffect, useId, useRef } from "react";
 import { FIGMA_AUTH_BG } from "@/lib/figma-backgrounds";
@@ -39,14 +40,14 @@ export function AuthModal({ mode, redirectTo, onClose, onSwitch, exiting = false
 
   return (
     <div
-      className={`anim-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-6 ${exiting ? "is-exit" : ""}`}
+      className={`anim-backdrop fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/70 px-6 py-6 ${exiting ? "is-exit" : ""}`}
       onClick={onClose}
     >
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className={`anim-sheet relative w-full max-w-[327px] overflow-hidden rounded-[16px] px-5 pt-5 pb-6 ${exiting ? "is-exit" : ""}`}
+        className={`anim-sheet relative my-auto w-full max-w-[327px] max-h-[calc(100dvh-3rem)] overflow-x-hidden overflow-y-auto rounded-[16px] px-5 pt-5 pb-6 ${exiting ? "is-exit" : ""}`}
         style={{
           background: FIGMA_AUTH_BG,
         }}
@@ -92,6 +93,7 @@ export function AuthModal({ mode, redirectTo, onClose, onSwitch, exiting = false
             {isLogin ? t("login.switchHint") : t("register.switchHint")}
           </p>
         </div>
+        <PoweredByAfterVibe className="mt-5" />
       </div>
     </div>
   );

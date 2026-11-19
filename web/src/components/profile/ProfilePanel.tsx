@@ -5,6 +5,7 @@ import { PageMain } from "@/components/layout/AppShell";
 import { ProfileBodySkeleton } from "@/components/navigation/PageSkeletons";
 import { BalanceCard } from "@/components/profile/BalanceCard";
 import { LogoutButton } from "@/components/profile/LogoutButton";
+import { PoweredByAfterVibe } from "@/components/common/PoweredByAfterVibe";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileIdentity } from "@/components/profile/ProfileIdentity";
 import { ProfileSettings } from "@/components/profile/ProfileSettings";
@@ -40,7 +41,12 @@ export function ProfilePanel({ showBack = false }: { showBack?: boolean }) {
   return (
     <>
       <ProfileHeader showBack={showBack} />
-      <PageMain>{body}</PageMain>
+      <PageMain>
+        <div className="flex min-h-full flex-col">
+          <div className="flex-1">{body}</div>
+          <PoweredByAfterVibe />
+        </div>
+      </PageMain>
     </>
   );
 }
