@@ -3,7 +3,7 @@
   "type": [
     "capacitor"
   ],
-  "name": "Babylon",
+  "name": "Voxx",
   "framework": "react",
   "template": "blank",
   "bundler": "vite",

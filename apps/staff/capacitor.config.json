@@ -1,11 +1,12 @@
 {
   "appId": "com.night_management.app",
-  "appName": "Babylon",
+  "appName": "Voxx",
   "bundledWebRuntime": false,
   "npmClient": "npm",
   "webDir": "www",
   "plugins": {
     "SplashScreen": {
+      "backgroundColor": "#170304",
       "launchShowDuration": 0
     }
   },

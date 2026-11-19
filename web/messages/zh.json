@@ -76,7 +76,8 @@
     "logout": "登出",
     "logoutConfirmTitle": "确定退出登录？",
     "logoutConfirm": "确定",
-    "loadError": "无法加载个人资料，请稍后重试。"
+    "loadError": "无法加载个人资料，请稍后重试。",
+    "poweredBy": "Powered by"
   },
   "login": {
     "title": "登录",

@@ -307,7 +307,7 @@ const LoginPage = () => {
                     <img
                         src="/images/nightclub_app_logo.webp"
                         className="company-logo"
-                        alt="Logo"
+                        alt="Voxx"
                         onClick={handleLogoTap}
                     />
                     <div className="login-header-text">

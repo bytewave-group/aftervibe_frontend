@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Babylon</string>
-    <string name="title_activity_main">Babylon</string>
+    <string name="app_name">Voxx</string>
+    <string name="title_activity_main">Voxx</string>
     <string name="package_name">com.night_management.app</string>
     <string name="custom_url_scheme">com.night_management.app</string>
     <string name="default_notification_channel_id">fcm_default_channel</string>

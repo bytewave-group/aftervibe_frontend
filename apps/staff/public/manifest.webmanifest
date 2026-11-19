@@ -1,4 +1,8 @@
 {
+  "name": "Voxx",
+  "short_name": "Voxx",
+  "background_color": "#170304",
+  "theme_color": "#170304",
   "icons": [
     {
       "src": "assets/icons/icon-48.webp",

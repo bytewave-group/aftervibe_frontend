@@ -1,7 +1,7 @@
 import { Preferences } from '@capacitor/preferences';
 import { loadGlobalData } from '../components/action/preferences';
 
-const FALLBACK_TENANT_NAME = 'Pulsex';
+const FALLBACK_TENANT_NAME = 'Voxx';
 
 let cachedTenantName = null;
 let receiptShopName = null;

@@ -1,4 +1,4 @@
-# Babylon
+# Voxx
 
 ## Framework7 CLI Options
 
@@ -10,7 +10,7 @@ Framework7 app created with following options:
   "type": [
     "capacitor"
   ],
-  "name": "Babylon",
+  "name": "Voxx",
   "framework": "react",
   "template": "blank",
   "bundler": "vite",
