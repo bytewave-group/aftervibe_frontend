@@ -76,8 +76,7 @@
     "logout": "Log out",
     "logoutConfirmTitle": "Log out?",
     "logoutConfirm": "Log out",
-    "loadError": "Could not load your profile. Please try again shortly.",
-    "poweredBy": "Powered by"
+    "loadError": "Could not load your profile. Please try again shortly."
   },
   "login": {
     "title": "Log in",
