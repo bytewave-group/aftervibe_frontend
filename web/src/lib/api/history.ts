@@ -4,6 +4,9 @@
  * Gift list:
  *   GET /api/customer/gifts  (CustomerGiftApiController::index, auth required)
  *   Paginated playlists the customer sent, excluding cancelled, newest first.
+ * Received gifts (own page, /profile/received-gifts):
+ *   GET /api/customer/gifts?direction=received  (same controller, receivedPayload)
+ *   Gifts other customers sent me: sender_name/avatar/membership_tier, points_earned.
  *
  * Recharge list:
  *   GET /api/customer/coin-orders  (CoinOrderApiController::index, auth required)
@@ -12,7 +15,7 @@
  * Recharge detail:
  *   GET /api/customer/coin-orders/{id|orderNo}
  */
-import { displayImageUrl } from "@/lib/api/images";
+import { displayImageUrl, resolveMediaUrl } from "@/lib/api/images";
 import {
   collectPages,
   logApiFallback,
@@ -32,13 +35,32 @@ import {
   mockGiftRecords,
   mockRechargeRecords,
   type GiftRecord,
+  mockReceivedGiftRecords,
   type HistoryData,
+  type ReceivedGiftRecord,
   type RechargeMethod,
   type RechargeRecord,
 } from "@/lib/mock/history";
 import { devMockIfEmpty, devMockOnError } from "@/lib/mock/devFallback";
 
-export type { GiftRecord, HistoryData, RechargeRecord };
+export type { GiftRecord, HistoryData, ReceivedGiftRecord, RechargeRecord };
+
+/** Row of GET /api/customer/gifts?direction=received (CustomerGiftApiController::receivedPayload). */
+interface CustomerReceivedGiftDto {
+  id: number;
+  direction?: "received";
+  sent_at: string | null;
+  sender_customer_id?: number | null;
+  sender_name: string;
+  sender_avatar?: string | null;
+  sender_membership_tier?: unknown;
+  gift_name: string;
+  quantity: number;
+  unit_price?: number;
+  total_amount?: number;
+  image: string | null;
+  points_earned?: number;
+}
 
 function displayCurrency(currency: string | undefined): string {
   const value = (currency ?? "").trim();
@@ -94,6 +116,50 @@ function mapGift(item: CustomerGiftDto): GiftRecord {
         : Number(item.total_amount),
     image: displayImageUrl(item.image, GIFT_PLACEHOLDER_IMAGE),
   };
+}
+
+function mapReceivedGift(item: CustomerReceivedGiftDto): ReceivedGiftRecord {
+  return {
+    id: item.id,
+    sentAt: item.sent_at || "",
+    senderName: item.sender_name || "",
+    senderAvatar: resolveMediaUrl(item.sender_avatar),
+    senderTier: item.sender_membership_tier ?? null,
+    giftName: item.gift_name || "",
+    quantity: Number(item.quantity) || 1,
+    totalAmount:
+      item.total_amount == null || !Number.isFinite(Number(item.total_amount))
+        ? null
+        : Number(item.total_amount),
+    image: displayImageUrl(item.image, GIFT_PLACEHOLDER_IMAGE),
+    pointsEarned: Math.max(0, Number(item.points_earned) || 0),
+  };
+}
+
+function mockReceivedGifts(): ReceivedGiftRecord[] {
+  return structuredClone(mockReceivedGiftRecords).map((item) => ({
+    ...item,
+    image: displayImageUrl(item.image, GIFT_PLACEHOLDER_IMAGE),
+  }));
+}
+
+/** 收到的礼物 page: only the received list (the history page no longer loads it). */
+export async function loadReceivedGifts(): Promise<ReceivedGiftRecord[]> {
+  try {
+    const rows = await collectPages(async (page) => {
+      const payload = await apiGet<{
+        success: boolean;
+        gifts: { data?: CustomerReceivedGiftDto[]; current_page?: number; last_page?: number };
+      }>(`/api/customer/gifts?direction=received&page=${page}`, "required");
+      return payload.gifts ?? {};
+    });
+    const records = rows.map(mapReceivedGift);
+    return devMockIfEmpty("history.received", records, records.length === 0, mockReceivedGifts);
+  } catch (error) {
+    redirectIfUnauthorized(error, "/profile/received-gifts");
+    logApiFallback("[history] GET /api/customer/gifts?direction=received failed", error);
+    return devMockOnError("history.received", error, mockReceivedGifts, () => []);
+  }
 }
 
 function mockGifts(): GiftRecord[] {

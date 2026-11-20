@@ -7,6 +7,7 @@ import {
 } from "@/lib/api/notifications";
 import { formatRelativeTime } from "@/lib/format/datetime";
 import type { NotificationItem, NotificationsData } from "@/lib/mock/notifications";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 const TITLE_KEYS: Record<NonNullable<NotificationItem["titleKey"]>, string> = {
@@ -25,6 +26,25 @@ const BODY_KEYS: Record<NonNullable<NotificationItem["bodyKey"]>, string> = {
   ladies: "notificationsPage.items.ladiesBody",
 };
 
+/** Gift notifications with backend params render in the UI language; older rows keep the stored text. */
+function itemTitle(item: NotificationItem, t: (key: string, values?: Record<string, string | number>) => string): string {
+  const gift = item.type === "gift_received" ? item.giftParams : null;
+  if (gift) {
+    return gift.quantity > 1
+      ? t("notificationsPage.items.giftReceivedTitleQty", { sender: gift.sender, gift: gift.gift, n: gift.quantity })
+      : t("notificationsPage.items.giftReceivedTitle", { sender: gift.sender, gift: gift.gift });
+  }
+  return item.titleKey ? t(TITLE_KEYS[item.titleKey]) : item.title;
+}
+
+function itemBody(item: NotificationItem, t: (key: string, values?: Record<string, string | number>) => string): string {
+  const gift = item.type === "gift_received" ? item.giftParams : null;
+  if (gift) {
+    return gift.points > 0 ? t("notificationsPage.items.giftReceivedBody", { n: gift.points }) : "";
+  }
+  return item.bodyKey ? t(BODY_KEYS[item.bodyKey]) : item.body;
+}
+
 const TYPE_BG: Record<NotificationItem["type"], string> = {
   announcement: "bg-[#d01f25]",
   gift_received: "bg-[#fd54b1]",
@@ -38,16 +58,20 @@ export function NotificationsPageClient({
   initialData: NotificationsData;
 }) {
   const { locale, t } = useLocale();
+  const router = useRouter();
   const [data, setData] = useState(initialData);
 
   const openItem = async (item: NotificationItem) => {
-    if (item.readAt) {
-      return;
+    if (!item.readAt) {
+      try {
+        setData(await markNotificationRead(data.items, item.id));
+      } catch (error) {
+        console.warn("[notifications] mark read failed", error);
+      }
     }
-    try {
-      setData(await markNotificationRead(data.items, item.id));
-    } catch (error) {
-      console.warn("[notifications] mark read failed", error);
+    // A received gift opens the received-gifts page.
+    if (item.type === "gift_received") {
+      router.push("/profile/received-gifts");
     }
   };
 
@@ -105,10 +129,10 @@ export function NotificationsPageClient({
                   </span>
                   <span className="ml-3 min-w-0 flex-1">
                     <span className="block text-[14px] leading-snug font-bold text-white">
-                      {item.titleKey ? t(TITLE_KEYS[item.titleKey]) : item.title}
+                      {itemTitle(item, t)}
                     </span>
                     <span className="mt-1 block text-[12px] leading-relaxed text-white/70">
-                      {item.bodyKey ? t(BODY_KEYS[item.bodyKey]) : item.body}
+                      {itemBody(item, t)}
                     </span>
                     <span className="mt-1.5 block text-[11px] leading-none text-white/40">
                       {formatRelativeTime(item.createdAt, locale, t)}

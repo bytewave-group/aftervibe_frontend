@@ -9,6 +9,7 @@ import {
   type VisualEffectUser,
 } from "./electron-bridge";
 import "./visual-effect.css";
+import { TierFrame, tierAccent } from "./TierFrame";
 
 const EXIT_MS = 450;
 
@@ -209,9 +210,22 @@ export function VisualEffect({ layout, screenWidth = 0, screenHeight = 0 }: Visu
   const renderUser = (user: VisualEffectUser | null | undefined, role: "Sender" | "Receiver") => {
     const name = user?.name || user?.username || role;
     const src = avatarUrl(user?.avatar);
+    const accent = tierAccent(user?.membership_tier);
     return (
-      <div className={`visual-effect-user visual-effect-${role.toLowerCase()}`}>
-        <div className="visual-effect-ring">
+      <div
+        className={`visual-effect-user visual-effect-${role.toLowerCase()}`}
+        style={accent ? ({ "--ve-accent": accent } as CSSProperties) : undefined}
+      >
+        <div
+          // With a tier, the tier frame replaces the default spinning accent ring (.visual-effect-ring).
+          className={accent ? undefined : "visual-effect-ring"}
+          style={
+            accent
+              ? { position: "relative", width: 132, height: 132, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 12 }
+              : undefined
+          }
+        >
+          {accent ? <TierFrame value={user?.membership_tier} ringWidth="5px" outset="0px" emblemSize="52px" animate glowScale={2} /> : null}
           <div className="visual-effect-avatar">
             {src ? (
               <img

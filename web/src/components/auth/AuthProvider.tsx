@@ -145,6 +145,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return null;
     } catch (error) {
       if (error instanceof ApiError) {
+        const code =
+          error.payload && typeof error.payload === "object"
+            ? (error.payload as { error_code?: unknown }).error_code
+            : undefined;
+        if (code === "otp_expired") return { error: "otp_expired" };
+        if (code === "otp_too_many_attempts") return { error: "otp_attempts" };
         return { error: registerErrorFromMessage(error.message) };
       }
       return { error: "network" };

@@ -19,6 +19,12 @@ const icons: Record<string, MenuIcon> = {
     height: 23,
     background: "bg-[#d01f25]",
   },
+  received: {
+    src: "/images/icon-gift-received.svg",
+    width: 22,
+    height: 22,
+    background: "bg-[#ba4df5]",
+  },
   edit: {
     src: "/images/icon-edit.svg",
     width: 20,
@@ -63,6 +69,18 @@ export function ProfileSettings() {
             <RowIcon icon={icons.history} />
             <span className="ml-[20px] text-[16px] leading-none font-bold text-white">
               {t("profile.history")}
+            </span>
+          </GuardedLink>
+        </li>
+
+        <li>
+          <GuardedLink
+            href="/profile/received-gifts"
+            className="flex items-center no-underline"
+          >
+            <RowIcon icon={icons.received} />
+            <span className="ml-[20px] text-[16px] leading-none font-bold text-white">
+              {t("profile.receivedGifts")}
             </span>
           </GuardedLink>
         </li>

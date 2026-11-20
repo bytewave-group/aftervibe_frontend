@@ -57,7 +57,7 @@ export function TopBar({ balance, foodcourtCustomerId }: TopBarProps) {
   const [languageOpen, setLanguageOpen] = useState(false);
 
   return (
-    <header className="relative z-20 px-6 pt-[8px] pb-[31px] [padding-top:max(8px,env(safe-area-inset-top))]">
+    <header className="relative z-20 px-2 pt-[8px] pb-[31px] [padding-top:max(8px,env(safe-area-inset-top))]">
       <div className="relative flex h-[49px] items-end justify-between">
         <NavIconButton
           href="/recharge"

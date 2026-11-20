@@ -8,16 +8,24 @@ import { HistoryBodySkeleton } from "@/components/navigation/PageSkeletons";
 import { useTranslations } from "@/i18n/locale-provider";
 import { loadHistory } from "@/lib/api/history";
 import type { HistoryData } from "@/lib/mock/history";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 
 function HistoryInner() {
   const ready = useAuthedPage();
   const t = useTranslations();
+  const router = useRouter();
+  // Old links (profile menu / gift notifications) used ?tab=received; received gifts have their own page now.
+  const legacyReceived = useSearchParams().get("tab") === "received";
   const [data, setData] = useState<HistoryData | null>(null);
   const [failed, setFailed] = useState(false);
 
   useEffect(() => {
-    if (!ready) return;
+    if (legacyReceived) router.replace("/profile/received-gifts");
+  }, [legacyReceived, router]);
+
+  useEffect(() => {
+    if (!ready || legacyReceived) return;
     let cancelled = false;
     void loadHistory()
       .then((next) => {
@@ -29,7 +37,7 @@ function HistoryInner() {
     return () => {
       cancelled = true;
     };
-  }, [ready]);
+  }, [ready, legacyReceived]);
 
   return (
     <>

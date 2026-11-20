@@ -21,7 +21,7 @@ export function EventList({
   cardAria,
 }: EventListProps) {
   return (
-    <section className="mt-[20px] px-6" aria-labelledby="home-events-title">
+    <section className="mt-[20px] px-2" aria-labelledby="home-events-title">
       <h2 id="home-events-title" className="text-[16px] leading-none font-bold text-white">
         {title}
       </h2>

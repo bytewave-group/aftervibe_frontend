@@ -303,6 +303,56 @@ body::-webkit-scrollbar,
   animation: av-glow 2.2s var(--ease-motion) infinite;
 }
 
+/* Spin page free-chance line: highlight lives on the text (gradient glyphs + red glow + slow shimmer). */
+.spin-chance-text {
+  display: inline-block;
+  padding: 2px 4px;
+  background-image: linear-gradient(
+    100deg,
+    #f3c867 0%,
+    #ffe9b0 30%,
+    #ffffff 45%,
+    #ffffff 55%,
+    #ffe9b0 70%,
+    #f3c867 100%
+  );
+  background-size: 250% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 3px rgba(208, 31, 37, 0.85)) drop-shadow(0 0 8px rgba(208, 31, 37, 0.45));
+  animation:
+    av-chance-shimmer 3.2s linear infinite,
+    av-chance-glow 2.2s var(--ease-motion) infinite;
+}
+
+.spin-chance-num {
+  margin: 0 2px;
+  font-size: 17px;
+  font-weight: 800;
+}
+
+@keyframes av-chance-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0% 0;
+  }
+}
+
+@keyframes av-chance-glow {
+  0%,
+  100% {
+    filter: drop-shadow(0 0 2px rgba(208, 31, 37, 0.7)) drop-shadow(0 0 6px rgba(208, 31, 37, 0.3));
+  }
+  50% {
+    filter: drop-shadow(0 0 4px rgba(208, 31, 37, 1)) drop-shadow(0 0 12px rgba(208, 31, 37, 0.65));
+  }
+}
+
 .anim-heart-pulse {
   animation: av-heart-pulse 2.4s var(--ease-motion) infinite;
 }
@@ -747,6 +797,7 @@ body::-webkit-scrollbar,
   .anim-stagger > *,
   .anim-shimmer,
   .anim-glow,
+  .spin-chance-text,
   .anim-heart-pulse,
   .anim-bounce-in,
   .anim-content-fade,

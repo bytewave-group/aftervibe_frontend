@@ -2,7 +2,8 @@
 
 import { GiftDialog, GiftDialogButtons } from "@/components/gifts/GiftDialog";
 import { ShieldIcon } from "@/components/gifts/GiftIcons";
-import { DiamondBalance, GiftFlowHeader } from "@/components/gifts/GiftFlowHeader";
+import { HeaderDiamondBalance } from "@/components/common/HeaderDiamondBalance";
+import { GiftFlowHeader } from "@/components/gifts/GiftFlowHeader";
 import { GiftInfoTooltip } from "@/components/gifts/GiftInfoTooltip";
 import { GiftSearchBar } from "@/components/gifts/GiftSearchBar";
 import { rememberRecentCustomer, rememberRecentStaff, useConfirmToggle } from "@/components/gifts/recent";
@@ -357,7 +358,7 @@ export function GiftSelectClient({
       <GiftFlowHeader
         titleKey="gifts.giftTitle"
         backHref="/gifts"
-        right={<DiamondBalance amount={balance.available} />}
+        right={<HeaderDiamondBalance amount={balance.available} />}
       >
         <GiftSearchBar
           value={query}

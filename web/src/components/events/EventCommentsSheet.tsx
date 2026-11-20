@@ -1,7 +1,7 @@
 "use client";
 
 import { useRequireAuth } from "@/components/auth/useRequireAuth";
-import { SafeImage } from "@/components/media/SafeImage";
+import { TierAvatar } from "@/components/profile/TierAvatar";
 import { usePresence } from "@/components/ui/usePresence";
 import { useLocale } from "@/i18n/locale-provider";
 import {
@@ -12,6 +12,7 @@ import {
 import type { EventCommentDto } from "@/lib/api/types";
 import { FIGMA_SHEET_BG } from "@/lib/figma-backgrounds";
 import { formatRelativeTime } from "@/lib/format/datetime";
+import { tierOf } from "@/lib/tier";
 import { useEffect, useId, useState, useSyncExternalStore, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 
@@ -195,21 +196,20 @@ export function EventCommentsSheet({
             <ul className="space-y-4">
               {comments.map((comment) => (
                 <li key={comment.id} className="flex gap-3">
-                  <div className="relative size-9 shrink-0 overflow-hidden rounded-full bg-[#3a3a3a]">
-                    {comment.customer.avatar_url ? (
-                      <SafeImage
-                        src={comment.customer.avatar_url}
-                        alt=""
-                        fill
-                        sizes="36px"
-                        className="object-cover"
-                      />
-                    ) : (
+                  <TierAvatar
+                    avatar={comment.customer.avatar_url}
+                    // `membership_tier` is sent by the API but not yet on EventCommentAuthorDto.
+                    tier={tierOf(comment.customer)}
+                    size={36}
+                    ringOutset={0}
+                    plainRing={false}
+                    imageClassName="object-cover"
+                    fallback={
                       <span className="flex size-full items-center justify-center text-[12px] font-bold text-white/80">
                         {(comment.customer.name || "?").slice(0, 1)}
                       </span>
-                    )}
-                  </div>
+                    }
+                  />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-baseline gap-2">
                       <p className="truncate text-[13px] font-bold text-white">{comment.customer.name}</p>

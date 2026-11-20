@@ -10,6 +10,7 @@ import {
   type RankingListData,
 } from "@/lib/mock/home";
 import { formatBalance } from "@/lib/mock/profile";
+import { parseTier } from "@/lib/tier";
 
 const HOME_RANK_LIMIT = 3;
 
@@ -39,6 +40,7 @@ function mapSpender(spender: HomeSpenderDto, index: number): RankingEntry {
     avatar: spender.image ? avatarUrl(spender.image) : "",
     avatarFit: "center",
     badge: spender.badge || undefined,
+    tier: parseTier(spender.membership_tier),
     amount: spender.amount,
   };
 }

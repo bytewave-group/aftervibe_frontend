@@ -69,7 +69,7 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
   if (count === 0) return null;
 
   return (
-    <section className="px-6" aria-roledescription="carousel" aria-label={t("home.bannerAria")}>
+    <section className="px-0" aria-roledescription="carousel" aria-label={t("home.bannerAria")}>
       <div
         className="relative aspect-[393/221] w-full touch-pan-y overflow-hidden rounded-[10px] shadow-[0px_2px_3.5px_0px_rgba(0,0,0,0.1)]"
         onPointerDown={onPointerDown}

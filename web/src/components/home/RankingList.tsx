@@ -2,6 +2,7 @@
 
 import { RequireAuthTap } from "@/components/auth/RequireAuthTap";
 import { SafeImage } from "@/components/media/SafeImage";
+import { TierAvatar } from "@/components/profile/TierAvatar";
 import { useTranslations } from "@/i18n/locale-provider";
 import {
   metricIcons,
@@ -48,6 +49,23 @@ export function RankingList({ data, empty }: RankingListProps) {
                 {entry.rank}
               </span>
 
+              {entry.tier ? (
+                <div style={{ marginLeft: 11 }}>
+                  <TierAvatar
+                    avatar={entry.avatar || null}
+                    tier={entry.tier}
+                    size={39}
+                    ringOutset={0}
+                    plainRing={false}
+                    // The row already shows the tier icon as the 40px badge next to the avatar.
+                    emblem={!entry.badge}
+                    imageClassName="object-cover"
+                    objectPosition={
+                      entry.objectPosition ?? (entry.avatarFit === "top" ? "50% 0%" : "50% 50%")
+                    }
+                  />
+                </div>
+              ) : (
               <div className="relative ml-[13px] size-[35px] shrink-0 overflow-hidden rounded-full bg-[#3a3a3a]">
                 {entry.avatar ? (
                   <SafeImage
@@ -64,6 +82,7 @@ export function RankingList({ data, empty }: RankingListProps) {
                   />
                 ) : null}
               </div>
+              )}
 
               {entry.badge ? (
                 <SafeImage

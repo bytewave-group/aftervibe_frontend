@@ -1,3 +1,5 @@
+import type { CustomerTier } from "@/lib/tier";
+
 /**
  * Static home chrome and the offline fallback when GET /api/customer/home
  * is unavailable. Quick-action icons and hrefs are UI config, not API data.
@@ -38,6 +40,8 @@ export interface RankingEntry {
   objectPosition?: string;
   badge?: string;
   amount: number;
+  /** Customer VIP tier (`membership_tier` on home spenders); frames the avatar when present. */
+  tier?: CustomerTier | null;
 }
 
 export interface RankingListData {

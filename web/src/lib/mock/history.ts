@@ -31,6 +31,25 @@ export interface GiftRecord {
   image: string;
 }
 
+/**
+ * A gift another customer sent to me: GET /api/customer/gifts?direction=received
+ * (CustomerGiftApiController::receivedPayload).
+ */
+export interface ReceivedGiftRecord {
+  id: number;
+  sentAt: string;
+  senderName: string;
+  senderAvatar: string | null;
+  /** Raw `sender_membership_tier` (MembershipService::tierPayload); parse with parseTier. */
+  senderTier?: unknown;
+  giftName: string;
+  quantity: number;
+  totalAmount: number | null;
+  image: string;
+  /** Reward points I earned from this gift (0 when none). */
+  pointsEarned: number;
+}
+
 export interface RechargeRecord {
   id: string;
   orderNo: string;
@@ -101,6 +120,33 @@ export const mockRechargeRecords: RechargeRecord[] = [
     amount: 20,
     currency: "RM",
     createdAt: "2026-07-03 11:15:00",
+  },
+];
+
+export const mockReceivedGiftRecords: ReceivedGiftRecord[] = [
+  {
+    id: 11,
+    sentAt: "2026-10-25 22:40:00",
+    senderName: "Test Customer1",
+    senderAvatar: "/images/avatar-1.png",
+    senderTier: { name: "GOLD", level: 2, levels: 3, color: "#FFE14A", icon: null },
+    giftName: "香槟塔",
+    quantity: 2,
+    totalAmount: 200,
+    image: GIFT_PLACEHOLDER_IMAGE,
+    pointsEarned: 50,
+  },
+  {
+    id: 12,
+    sentAt: "2026-10-20 23:12:00",
+    senderName: "Nova Lynx",
+    senderAvatar: null,
+    senderTier: { name: "NEWBIE", level: 0, levels: 3, color: "#A8B0BA", icon: null },
+    giftName: "玫瑰花束",
+    quantity: 1,
+    totalAmount: 10,
+    image: GIFT_PLACEHOLDER_IMAGE,
+    pointsEarned: 0,
   },
 ];
 

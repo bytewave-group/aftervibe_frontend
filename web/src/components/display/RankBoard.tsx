@@ -5,6 +5,8 @@ import { formatInteger } from "@/lib/format/datetime";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import type { RankEntry } from "./electron-bridge";
 import "./rank-board.css";
+import { TierFrame } from "./TierFrame";
+import { parseTier } from "@/lib/tier";
 
 export type RankPeriod = "daily" | "weekly" | "monthly";
 
@@ -91,16 +93,39 @@ function Avatar({ user }: { user: RankEntry }) {
   const [failed, setFailed] = useState(false);
   const showImage = Boolean(src) && !failed;
   const pos = user.profile_image_position;
+  const hasTier = parseTier(user.membership_tier) != null;
   const objectPosition =
     pos && Number.isFinite(pos.x) && Number.isFinite(pos.y) ? `${pos.x}% ${pos.y}%` : undefined;
 
-  return (
-    <span className="rb-avatar">
+  const avatar = (
+    <span className="rb-avatar" style={hasTier ? { borderColor: "transparent", boxShadow: "none", marginRight: 0 } : undefined}>
       {showImage ? (
         <img src={src!} alt="" onError={() => setFailed(true)} style={objectPosition ? { objectPosition } : undefined} />
       ) : (
         <span className="rb-avatar__initials">{initials(user.name)}</span>
       )}
+    </span>
+  );
+  if (!hasTier) return avatar;
+
+  // Tier frame sits outside .rb-avatar (which clips); small on the board, so static (glow only).
+  return (
+    <span
+      style={{
+        position: "relative",
+        display: "inline-flex",
+        flex: "0 0 auto",
+        marginRight: "calc(var(--rb-fs) * 0.35)",
+      }}
+    >
+      {avatar}
+      <TierFrame
+        value={user.membership_tier}
+        ringWidth="calc(var(--rb-fs) * 0.09)"
+        outset="calc(var(--rb-fs) * 0.06)"
+        emblemSize="calc(var(--rb-fs) * 0.8)"
+        glowScale={0.8}
+      />
     </span>
   );
 }

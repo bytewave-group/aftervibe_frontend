@@ -17,7 +17,7 @@ export function QuickActions({ actions, ariaLabel }: QuickActionsProps) {
   const requireAuth = useRequireAuth();
 
   return (
-    <nav className="mt-[15px] flex items-start justify-between px-[42px]" aria-label={ariaLabel}>
+    <nav className="mt-[15px] flex items-start justify-between px-[8px]" aria-label={ariaLabel}>
       {actions.map((action, index) =>
         action.id === "checkin" ? (
           <button

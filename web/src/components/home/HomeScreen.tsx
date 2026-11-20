@@ -34,10 +34,23 @@ function HomeBody({
     ...banner,
     alt: t("home.bannerAlt"),
   }));
-  const marqueeItems = home.marqueeItems.map((item) => ({
-    ...item,
-    label: t(item.labelKey),
-  }));
+  const marqueeEmpty = t("home.marqueeEmpty");
+  const marqueeName = (id: string) =>
+    home.marqueeItems.find((item) => item.id === id)?.name || marqueeEmpty;
+  const marqueeItems = [
+    {
+      id: "wealth-leader",
+      label: t("home.marqueeWealth"),
+      name: marqueeName("wealth-leader"),
+      nameColor: "gold" as const,
+    },
+    {
+      id: "charm-leader",
+      label: t("home.marqueeCharm"),
+      name: marqueeName("charm-leader"),
+      nameColor: "pink" as const,
+    },
+  ];
   const quickActions = home.quickActions.map((action) => ({
     ...action,
     label: t(`home.actions.${action.id}`),
@@ -60,9 +73,7 @@ function HomeBody({
     <div className="anim-content-fade">
       <BannerCarousel banners={banners} />
       <RankingsHost lists={rankingLists}>
-        {marqueeItems.length > 0 ? (
-          <Marquee prefix={t("home.marqueePrefix")} items={marqueeItems} />
-        ) : null}
+        <Marquee prefix={t("home.marqueePrefix")} items={marqueeItems} />
       </RankingsHost>
       <CheckinHost>
         <QuickActions actions={quickActions} ariaLabel={t("home.quickActionsAria")} />

@@ -10,6 +10,7 @@ import {
   type RankingListData,
 } from "@/lib/mock/home";
 import { formatBalance } from "@/lib/mock/profile";
+import { parseTier } from "@/lib/tier";
 import { devMockIfEmpty, devMockOnError } from "@/lib/mock/devFallback";
 
 export type HomeSource = "api" | "mock";
@@ -54,6 +55,7 @@ function mapSpender(spender: HomeSpenderDto, index: number): RankingEntry {
     avatar: spender.image ? avatarUrl(spender.image) : "",
     avatarFit: "center",
     badge: spender.badge || undefined,
+    tier: parseTier(spender.membership_tier),
     amount: spender.amount,
   };
 }

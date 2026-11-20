@@ -187,6 +187,29 @@ export function HistoryBodySkeleton() {
   );
 }
 
+/** 收到的礼物 rows: sender avatar, two text lines, gift image (no tabs). */
+export function ReceivedGiftsBodySkeleton() {
+  return (
+    <div className="px-6 pb-8">
+      <ul className="mt-4 flex flex-col gap-3">
+        {Array.from({ length: 5 }, (_, i) => (
+          <li
+            key={i}
+            className="flex items-center rounded-[12px] border border-white/20 bg-[#141010] py-3 pr-3 pl-3"
+          >
+            <Bone className="size-[40px] shrink-0 rounded-full" />
+            <div className="ml-3 min-w-0 flex-1">
+              <Bone className="h-[13px] w-[90%] rounded-full" />
+              <Bone className="mt-2 h-[13px] w-[60%] rounded-full" />
+            </div>
+            <Bone className="ml-3 size-[56px] shrink-0 rounded-[8px]" />
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export function EditProfileBodySkeleton() {
   return (
     <div className="px-6 pb-8">
@@ -360,6 +383,17 @@ export function HistorySkeleton({ framed = true }: { framed?: boolean } = {}) {
       <PageHeader titleKey="history.title" backHref="/?tab=me" />
       <Main>
         <HistoryBodySkeleton />
+      </Main>
+    </Shell>
+  );
+}
+
+export function ReceivedGiftsSkeleton({ framed = true }: { framed?: boolean } = {}) {
+  return (
+    <Shell framed={framed}>
+      <PageHeader titleKey="profile.receivedGifts" backHref="/?tab=me" />
+      <Main>
+        <ReceivedGiftsBodySkeleton />
       </Main>
     </Shell>
   );
@@ -550,6 +584,7 @@ export function skeletonForPath(pathname: string): ReactNode {
   if (path === "/notifications") return <NotificationsSkeleton />;
   if (path === "/profile/history") return <HistorySkeleton />;
   if (path === "/profile/edit") return <EditProfileSkeleton />;
+  if (path === "/profile/received-gifts") return <ReceivedGiftsSkeleton />;
   if (path === "/events") return <EventDetailSkeleton />;
   if (path === "/gifts") return <GiftStaffSkeleton />;
   if (path === "/gifts/select") return <GiftSelectSkeleton />;

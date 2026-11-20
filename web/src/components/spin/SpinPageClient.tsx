@@ -15,6 +15,22 @@ import { useEffect, useState, useSyncExternalStore } from "react";
 
 const WHEEL_SIZE = 300;
 const RIM_SIZE = 348;
+/** Smallest wheel on very short screens (px). */
+const RIM_MIN = 200;
+/** Height the header, title, text block and button need besides the wheel (px). */
+const RIM_HEIGHT_RESERVE = 340;
+/** Prize label centre, as a fraction of the wheel size from its centre. */
+const LABEL_RADIUS = 0.32;
+
+/** Design px (at the full 348px rim) → rim-relative length, so every layer scales together. */
+function cq(px: number): string {
+  return `${(px / RIM_SIZE) * 100}cqw`;
+}
+
+/** Design px (at the full 348px rim) → percentage of the rim. */
+function pct(px: number): string {
+  return `${(px / RIM_SIZE) * 100}%`;
+}
 const LIGHT_COUNT = 20;
 
 function prizeLabel(
@@ -109,6 +125,27 @@ function ArchTitle({ text }: { text: string }) {
   );
 }
 
+/** Placeholder swapped for the emphasised count inside the translated free-spin line. */
+const CHANCE_SLOT = "\u0001";
+
+/** Free-spin line with the highlight on the glyphs (gold/white gradient text + red glow), not a band. */
+function FreeChanceText({ text, n }: { text: string; n: number }) {
+  const slot = text.indexOf(CHANCE_SLOT);
+  return (
+    <span className="spin-chance-text">
+      {slot < 0 ? (
+        text
+      ) : (
+        <>
+          {text.slice(0, slot)}
+          <span className="spin-chance-num">{n}</span>
+          {text.slice(slot + CHANCE_SLOT.length)}
+        </>
+      )}
+    </span>
+  );
+}
+
 export function SpinPageClient({ initialStatus }: { initialStatus: SpinStatus }) {
   const t = useTranslations();
   const [status, setStatus] = useState(initialStatus);
@@ -195,11 +232,21 @@ export function SpinPageClient({ initialStatus }: { initialStatus: SpinStatus })
           className="pointer-events-none absolute left-1/2 top-1/2 w-[170%] max-w-none -translate-x-1/2 -translate-y-[46%] opacity-45 mix-blend-screen"
         />
       <div
-        className="relative"
-        style={{ width: `${RIM_SIZE}px`, height: `${RIM_SIZE}px` }}
+        className="relative shrink-0"
+        data-spin-rim
+        style={{
+          // One square for every wheel layer. Shrinks with the screen width and, on short screens,
+          // with the height so the text and 转起来 button below stay in view.
+          width: `min(100%, ${RIM_SIZE}px, max(${RIM_MIN}px, calc(100dvh - ${RIM_HEIGHT_RESERVE}px)))`,
+          aspectRatio: "1 / 1",
+          containerType: "inline-size",
+        }}
       >
         <div
-          className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_50%_40%,#8a1520_0%,#4a0a10_58%,#2a0508_100%)] shadow-[0_10px_28px_rgba(0,0,0,0.55),inset_0_0_0_4px_#2a0508,inset_0_0_0_7px_#c9a14a]"
+          className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_50%_40%,#8a1520_0%,#4a0a10_58%,#2a0508_100%)]"
+          style={{
+            boxShadow: `0 10px 28px rgba(0,0,0,0.55), inset 0 0 0 ${cq(4)} #2a0508, inset 0 0 0 ${cq(7)} #c9a14a`,
+          }}
           aria-hidden="true"
         />
 
@@ -209,26 +256,34 @@ export function SpinPageClient({ initialStatus }: { initialStatus: SpinStatus })
           return (
             <span
               key={index}
-              className={
-                on
-                  ? "absolute top-1/2 left-1/2 size-[10px] rounded-full bg-[#ffe58a] shadow-[0_0_8px_2px_rgba(255,214,80,0.95)]"
-                  : "absolute top-1/2 left-1/2 size-[10px] rounded-full bg-[#fff7d6] shadow-[0_0_4px_1px_rgba(255,255,255,0.55)]"
-              }
-              style={{
-                transform: `translate(-50%, -50%) rotate(${index * step}deg) translateY(-${RIM_SIZE / 2 - 11}px)`,
-              }}
+              className="absolute inset-0"
+              style={{ transform: `rotate(${index * step}deg)` }}
               aria-hidden="true"
-            />
+            >
+              <span
+                className={
+                  on
+                    ? "absolute left-1/2 rounded-full bg-[#ffe58a] shadow-[0_0_8px_2px_rgba(255,214,80,0.95)]"
+                    : "absolute left-1/2 rounded-full bg-[#fff7d6] shadow-[0_0_4px_1px_rgba(255,255,255,0.55)]"
+                }
+                style={{
+                  top: pct(11),
+                  width: cq(10),
+                  height: cq(10),
+                  transform: "translate(-50%, -50%)",
+                }}
+              />
+            </span>
           );
         })}
 
         <div
           className="absolute overflow-hidden rounded-full bg-[conic-gradient(from_-22.5deg,#e31b23_0deg_45deg,#ffffff_45deg_90deg,#e31b23_90deg_135deg,#ffffff_135deg_180deg,#e31b23_180deg_225deg,#ffffff_225deg_270deg,#e31b23_270deg_315deg,#ffffff_315deg_360deg)] shadow-[inset_0_0_0_3px_rgba(80,8,12,0.35)]"
           style={{
-            width: `${WHEEL_SIZE}px`,
-            height: `${WHEEL_SIZE}px`,
-            left: `${(RIM_SIZE - WHEEL_SIZE) / 2}px`,
-            top: `${(RIM_SIZE - WHEEL_SIZE) / 2}px`,
+            width: pct(WHEEL_SIZE),
+            height: pct(WHEEL_SIZE),
+            left: pct((RIM_SIZE - WHEEL_SIZE) / 2),
+            top: pct((RIM_SIZE - WHEEL_SIZE) / 2),
             transform: `rotate(${rotation}deg)`,
             transition: spinning
               ? `transform ${(reduceMotion ? 200 : SPIN_DURATION_MS) / 1000}s cubic-bezier(0.08, 0.85, 0.12, 1)`
@@ -242,45 +297,60 @@ export function SpinPageClient({ initialStatus }: { initialStatus: SpinStatus })
             return (
               <span
                 key={`${prize.type}-${prize.amount}-${index}`}
-                className={`absolute top-1/2 left-1/2 flex w-[76px] flex-col items-center text-center text-[11px] leading-tight font-bold ${
-                  onRed
-                    ? "text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.45)]"
-                    : "text-[#8b1018]"
-                }`}
-                style={{
-                  transform: `translate(-50%, -50%) rotate(${angle}deg) translateY(-${WHEEL_SIZE * 0.32}px)`,
-                }}
+                className="absolute inset-0"
+                style={{ transform: `rotate(${angle}deg)` }}
               >
-                {image ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src={image}
-                    alt=""
-                    width={28}
-                    height={28}
-                    className="mb-0.5 size-7 object-contain"
-                  />
-                ) : prize.type === "coins" ? (
-                  /* eslint-disable-next-line @next/next/no-img-element */
-                  <img
-                    src="/images/diamond.png"
-                    alt=""
-                    width={22}
-                    height={22}
-                    className="mb-0.5 size-[22px] object-contain"
-                  />
-                ) : null}
-                {prizeLabel(t, prize)}
+                <span
+                  className={`absolute left-1/2 flex flex-col items-center text-center leading-tight font-bold ${
+                    onRed
+                      ? "text-white [text-shadow:0_1px_3px_rgba(0,0,0,0.45)]"
+                      : "text-[#8b1018]"
+                  }`}
+                  style={{
+                    top: `${50 - LABEL_RADIUS * 100}%`,
+                    width: cq(76),
+                    fontSize: cq(11),
+                    transform: "translate(-50%, -50%)",
+                  }}
+                >
+                  {image ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={image}
+                      alt=""
+                      width={28}
+                      height={28}
+                      className="mb-0.5 object-contain"
+                      style={{ width: cq(28), height: cq(28) }}
+                    />
+                  ) : prize.type === "coins" ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src="/images/diamond.png"
+                      alt=""
+                      width={22}
+                      height={22}
+                      className="mb-0.5 object-contain"
+                      style={{ width: cq(22), height: cq(22) }}
+                    />
+                  ) : null}
+                  {prizeLabel(t, prize)}
+                </span>
               </span>
             );
           })}
         </div>
 
         <div
-          className="absolute top-[6px] left-1/2 z-20 -translate-x-1/2"
+          className="absolute left-1/2 z-20 -translate-x-1/2"
+          style={{ top: pct(6), width: cq(32) }}
           aria-hidden="true"
         >
-          <svg width="32" height="36" viewBox="0 0 32 36" fill="none">
+          <svg
+            viewBox="0 0 32 36"
+            fill="none"
+            style={{ display: "block", width: "100%", height: "auto" }}
+          >
             <path
               d="M16 34 L2 6 Q16 0 30 6 Z"
               fill="#c62828"
@@ -292,8 +362,18 @@ export function SpinPageClient({ initialStatus }: { initialStatus: SpinStatus })
           </svg>
         </div>
 
-        <div className="absolute top-1/2 left-1/2 z-10 flex size-[92px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#c62828] ring-[5px] ring-white shadow-[0_4px_14px_rgba(0,0,0,0.5)]">
-          <span className="text-[30px] leading-none font-bold text-white [text-shadow:0_2px_0_rgba(0,0,0,0.25)]">
+        <div
+          className="absolute top-1/2 left-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#c62828]"
+          style={{
+            width: cq(92),
+            height: cq(92),
+            boxShadow: `0 0 0 ${cq(5)} #ffffff, 0 4px 14px rgba(0,0,0,0.5)`,
+          }}
+        >
+          <span
+            className="leading-none font-bold text-white [text-shadow:0_2px_0_rgba(0,0,0,0.25)]"
+            style={{ fontSize: cq(30) }}
+          >
             {t("spin.hub")}
           </span>
         </div>
@@ -330,17 +410,16 @@ export function SpinPageClient({ initialStatus }: { initialStatus: SpinStatus })
               )}
         </p>
         {status.chances > 0 ? (
-          <p
-            className={`mt-3 text-[13px] leading-none font-bold text-white ${
-              status.chances > 0 ? "anim-glow" : ""
-            }`}
-          >
-            {t(
-              status.freeSpinPeriod === "weekly"
-                ? "spin.chancesWeekly"
-                : "spin.chances",
-              { n: status.chances },
-            )}
+          <p className="mt-3 text-[13px] leading-none font-bold text-white">
+            <FreeChanceText
+              text={t(
+                status.freeSpinPeriod === "weekly"
+                  ? "spin.chancesWeekly"
+                  : "spin.chances",
+                { n: CHANCE_SLOT },
+              )}
+              n={status.chances}
+            />
           </p>
         ) : status.nextSpinSeconds > 0 ? (
           <p className="mt-3 text-[13px] leading-none text-white/80">

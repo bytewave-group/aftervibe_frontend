@@ -29,7 +29,7 @@ export function LanguageDialog({
 
   const dialog = (
     <AppDialog title={t("profile.language")} open={open} onClose={onClose}>
-      <ul className="flex flex-col gap-2">
+      <ul className="flex flex-col gap-4 pt-3 pb-2">
         {locales.map((code) => {
           const selected = code === locale;
           return (
@@ -38,7 +38,7 @@ export function LanguageDialog({
                 type="button"
                 disabled={isPending}
                 aria-current={selected ? "true" : undefined}
-                className={`anim-press flex w-full items-center justify-between rounded-[12px] px-4 py-3 text-left text-[16px] leading-none font-bold ${
+                className={`anim-press flex w-full items-center justify-between rounded-[12px] px-4 py-4 text-left text-[16px] leading-none font-bold ${
                   selected ? "bg-white text-black" : "bg-white/10 text-white"
                 }`}
                 onClick={() => choose(code)}

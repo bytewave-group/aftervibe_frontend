@@ -7,6 +7,17 @@ export interface CustomerSummary {
   bar_id: string | number | null;
 }
 
+export interface MembershipTierDto {
+  id: number;
+  name: string;
+  code: string;
+  color: string | null;
+  icon: { id: number; url: string | null } | null;
+  level: number;
+  levels: number;
+  minimum_coins: number;
+}
+
 export interface CustomerPayload {
   id: number;
   phone: string | null;
@@ -19,6 +30,7 @@ export interface CustomerPayload {
   available_balance?: number;
   reward_points: number;
   membership: string | null;
+  membership_tier?: MembershipTierDto | null;
   created_at: string | null;
   bar_id: string | number | null;
 }
@@ -64,6 +76,7 @@ export interface HomeSpenderDto {
   amount: number;
   image: string | null;
   badge?: string | null;
+  membership_tier?: MembershipTierDto | null;
 }
 
 export interface HomeArtistDto {
@@ -161,6 +174,7 @@ export interface EventCommentAuthorDto {
   id: number;
   name: string;
   avatar_url: string | null;
+  membership_tier?: MembershipTierDto | null;
 }
 
 export interface EventCommentDto {

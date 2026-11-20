@@ -9,6 +9,7 @@ import { PoweredByAfterVibe } from "@/components/common/PoweredByAfterVibe";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileIdentity } from "@/components/profile/ProfileIdentity";
 import { ProfileSettings } from "@/components/profile/ProfileSettings";
+import { customerTier } from "@/components/profile/tier";
 import { useTranslations } from "@/i18n/locale-provider";
 import { mapCustomerToProfile } from "@/lib/api/profile";
 
@@ -17,6 +18,7 @@ export function ProfilePanel({ showBack = false }: { showBack?: boolean }) {
   const t = useTranslations();
   const { status, customer, meStatus } = useAuth();
   const profile = customer ? mapCustomerToProfile(customer) : null;
+  const tier = customerTier(customer);
 
   let body;
   if (status !== "authenticated" || meStatus === "loading" || meStatus === "guest") {
@@ -30,8 +32,8 @@ export function ProfilePanel({ showBack = false }: { showBack?: boolean }) {
   } else {
     body = (
       <div className="anim-content-fade">
-        <ProfileIdentity profile={profile} />
-        <BalanceCard balance={profile.balance} />
+        <ProfileIdentity profile={profile} tier={tier} />
+        <BalanceCard balance={profile.balance} tier={tier} />
         <ProfileSettings />
         <LogoutButton />
       </div>

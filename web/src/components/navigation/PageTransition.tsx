@@ -35,7 +35,12 @@ import { skeletonForPath } from "./PageSkeletons";
 const PAGE_MS = 420;
 const EASE = "cubic-bezier(0.32, 0.72, 0, 1)";
 const PARALLAX = 30;
-const DIM_MAX = 0.12;
+/**
+ * No dark overlay or edge shadow on push / pop / swipe-back: on the dark Voxx shell they read as a
+ * "shadow" over the page (was DIM_MAX 0.12 + a visible .pt-shadow gradient). The slide itself stays.
+ */
+const DIM_MAX = 0;
+const SHADOW_OPACITY = "0";
 const EDGE_PX = 20;
 const SAFETY_MS = 4000;
 const SNAPSHOT_LIMIT = 8;
@@ -107,6 +112,24 @@ function setX(el: HTMLElement | null, percent: number) {
 function setXpx(el: HTMLElement | null, px: number) {
   if (!el) return;
   el.style.transform = `translate3d(${px}px,0,0)`;
+}
+
+/**
+ * Layers are transparent (the shell background shows through), so the lower page would ghost through the
+ * page sliding over it. Clip the lower layer to the strip left of the upper layer's edge:
+ * hidden width (from its right) = 100% + lowerX% - upperX%.
+ */
+function clipRightPercent(lowerPercent: number, upperPercent: number): number {
+  return Math.max(0, Math.min(100, 100 + lowerPercent - upperPercent));
+}
+
+function clipInset(rightPercent: number): string {
+  return `inset(0 ${rightPercent}% 0 0)`;
+}
+
+function setClipRight(el: HTMLElement | null, rightPercent: number | null) {
+  if (!el) return;
+  el.style.clipPath = rightPercent == null ? "" : clipInset(rightPercent);
 }
 
 function setDim(el: HTMLElement | null, opacity: number) {
@@ -270,6 +293,7 @@ export function PageTransition({ children }: { children: ReactNode }) {
         }
       }
       el.style.transform = "none";
+      el.style.clipPath = "";
       el.style.opacity = "1";
       el.style.zIndex = "";
       el.style.pointerEvents = "";
@@ -361,8 +385,8 @@ export function PageTransition({ children }: { children: ReactNode }) {
       setX(under, opts.underFrom);
       setDim(dim, opts.dimFrom);
       const isBack = opts.dir === NAV_BACK;
-      if (outgoingShadow) outgoingShadow.style.opacity = isBack ? "1" : "0";
-      if (incomingShadow) incomingShadow.style.opacity = isBack ? "0" : "1";
+      if (outgoingShadow) outgoingShadow.style.opacity = isBack ? SHADOW_OPACITY : "0";
+      if (incomingShadow) incomingShadow.style.opacity = isBack ? "0" : SHADOW_OPACITY;
       current.style.zIndex = isBack ? "3" : "1";
       if (under) {
         under.style.zIndex = isBack ? "1" : "3";
@@ -370,18 +394,41 @@ export function PageTransition({ children }: { children: ReactNode }) {
       }
       if (dim) dim.style.zIndex = "2";
 
+      // The lower layer (outgoing on push, incoming on back) is clipped at the upper layer's edge so it
+      // never shows through the transparent page sliding over it.
+      const currentClip = isBack
+        ? null
+        : [clipRightPercent(opts.fromPercent, opts.underFrom), clipRightPercent(opts.toPercent, opts.underTo)];
+      const underClip = isBack
+        ? [clipRightPercent(opts.underFrom, opts.fromPercent), clipRightPercent(opts.underTo, opts.toPercent)]
+        : null;
+      setClipRight(current, currentClip ? currentClip[0] : null);
+      setClipRight(under, underClip ? underClip[0] : null);
+
       const currentAnim = current.animate(
         [
-          { transform: `translate3d(${opts.fromPercent}%,0,0)` },
-          { transform: `translate3d(${opts.toPercent}%,0,0)` },
+          {
+            transform: `translate3d(${opts.fromPercent}%,0,0)`,
+            ...(currentClip ? { clipPath: clipInset(currentClip[0]) } : {}),
+          },
+          {
+            transform: `translate3d(${opts.toPercent}%,0,0)`,
+            ...(currentClip ? { clipPath: clipInset(currentClip[1]) } : {}),
+          },
         ],
         { duration: PAGE_MS, easing: EASE, fill: "forwards" },
       );
       const underAnim = under
         ? under.animate(
             [
-              { transform: `translate3d(${opts.underFrom}%,0,0)` },
-              { transform: `translate3d(${opts.underTo}%,0,0)` },
+              {
+                transform: `translate3d(${opts.underFrom}%,0,0)`,
+                ...(underClip ? { clipPath: clipInset(underClip[0]) } : {}),
+              },
+              {
+                transform: `translate3d(${opts.underTo}%,0,0)`,
+                ...(underClip ? { clipPath: clipInset(underClip[1]) } : {}),
+              },
             ],
             { duration: PAGE_MS, easing: EASE, fill: "forwards" },
           )
@@ -539,7 +586,7 @@ export function PageTransition({ children }: { children: ReactNode }) {
         setX(back, 100);
         setDim(dimRef.current, 0);
         const incomingShadow = backShadow();
-        if (incomingShadow) incomingShadow.style.opacity = "1";
+        if (incomingShadow) incomingShadow.style.opacity = SHADOW_OPACITY;
         runSlide({
           dir,
           fromPercent: 0,
@@ -776,6 +823,8 @@ export function PageTransition({ children }: { children: ReactNode }) {
             animatingRef.current = false;
             setX(front, 0);
             setX(under, -PARALLAX);
+            setClipRight(front, null);
+            setClipRight(under, null);
             setDim(dim, 0);
             if (front) front.style.pointerEvents = "";
             const shadow = frontShadow();
@@ -903,7 +952,7 @@ export function PageTransition({ children }: { children: ReactNode }) {
         const front = frontLayer();
         if (front) front.style.pointerEvents = "none";
         const shadow = frontShadow();
-        if (shadow) shadow.style.opacity = "1";
+        if (shadow) shadow.style.opacity = SHADOW_OPACITY;
         setDim(dimRef.current, DIM_MAX);
         stage.setAttribute("data-nav-pending", origin?.path ?? "/");
         stage.setAttribute("data-ios-nav", NAV_BACK);
@@ -917,6 +966,7 @@ export function PageTransition({ children }: { children: ReactNode }) {
       const progress = x / width;
       setXpx(frontLayer(), x);
       setXpx(backLayer(), (-PARALLAX / 100) * width + (PARALLAX / 100) * x);
+      setClipRight(backLayer(), clipRightPercent(-PARALLAX + PARALLAX * progress, progress * 100));
       setDim(dimRef.current, DIM_MAX * (1 - progress));
       event.preventDefault();
     };

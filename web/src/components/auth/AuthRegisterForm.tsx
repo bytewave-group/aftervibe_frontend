@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/components/auth/AuthProvider";
-import { sendOtp, verifyOtp } from "@/lib/api/otp";
+import { fetchOtpChannels, OTP_CHANNELS, sendOtp, verifyOtp, type OtpChannel } from "@/lib/api/otp";
 import {
   COUNTRY_OPTIONS,
   DEFAULT_COUNTRY_ID,
@@ -18,6 +18,12 @@ const ERROR_KEYS: Record<string, string> = {
   phone: "register.errorPhone",
   otp: "register.errorOtp",
   otp_required: "register.errorOtpRequired",
+  otp_expired: "register.errorOtpExpired",
+  otp_attempts: "register.errorOtpAttempts",
+  otp_cooldown: "register.errorOtpCooldown",
+  otp_limit: "register.errorOtpLimit",
+  otp_send_failed: "register.errorOtpSendFailed",
+  otp_unavailable: "register.errorOtpUnavailable",
   phone_taken: "register.errorPhoneTaken",
   username_taken: "register.errorUsernameTaken",
   generic: "register.errorGeneric",
@@ -29,12 +35,28 @@ const fieldClass =
 
 const RESEND_SECONDS = 60;
 
+const CHANNEL_LABEL_KEYS: Record<OtpChannel, string> = {
+  sms: "register.channelSms",
+  whatsapp: "register.channelWhatsapp",
+};
+
+const SEND_ERRORS: Record<string, string> = {
+  phone_taken: "phone_taken",
+  cooldown: "otp_cooldown",
+  limit: "otp_limit",
+  send_failed: "otp_send_failed",
+  unavailable: "otp_unavailable",
+  network: "network",
+};
+
 export function AuthRegisterForm({ redirectTo }: { redirectTo: string }) {
   const t = useTranslations();
   const { register } = useAuth();
   const [countryId, setCountryId] = useState(DEFAULT_COUNTRY_ID);
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
+  const [channel, setChannel] = useState<OtpChannel>("whatsapp");
+  const [channels, setChannels] = useState<OtpChannel[]>(OTP_CHANNELS);
   const [otpSent, setOtpSent] = useState(false);
   const [sending, setSending] = useState(false);
   const [countdown, setCountdown] = useState(0);
@@ -42,6 +64,18 @@ export function AuthRegisterForm({ redirectTo }: { redirectTo: string }) {
   const [clientError, setClientError] = useState<string | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
   void redirectTo;
+
+  useEffect(() => {
+    let active = true;
+    void fetchOtpChannels().then((list) => {
+      if (!active) return;
+      setChannels(list);
+      setChannel((current) => (list.includes(current) ? current : (list[0] ?? current)));
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (countdown <= 0) return;
@@ -60,19 +94,24 @@ export function AuthRegisterForm({ redirectTo }: { redirectTo: string }) {
   const handleSendOtp = async () => {
     if (sending || countdown > 0 || pending) return;
     setClientError(null);
+    if (channels.length === 0) {
+      setClientError("otp_unavailable");
+      return;
+    }
     if (!isValidNationalNumber(phone)) {
       setClientError("phone");
       return;
     }
     setSending(true);
-    const result = await sendOtp(phone, countryId);
+    const result = await sendOtp(phone, countryId, channel);
     setSending(false);
     if (!result.ok) {
-      setClientError("network");
+      setClientError(SEND_ERRORS[result.error] ?? "generic");
+      if (result.error === "cooldown" && result.retryAfter) setCountdown(result.retryAfter);
       return;
     }
     setOtpSent(true);
-    setCountdown(RESEND_SECONDS);
+    setCountdown(result.resendIn ?? RESEND_SECONDS);
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -209,6 +248,31 @@ export function AuthRegisterForm({ redirectTo }: { redirectTo: string }) {
           placeholder={t("register.phonePlaceholder")}
           className="h-full min-w-0 flex-1 bg-transparent pr-3 pl-2 text-[14px] text-white outline-none placeholder:text-white/35"
         />
+      </div>
+
+      <div
+        role="radiogroup"
+        aria-label={t("register.channelLabel")}
+        className="mt-3 flex h-[44px] items-center gap-1 rounded-[10px] border border-[#5a5a5a] bg-[#1a1a1a] p-1"
+      >
+        <span className="shrink-0 pr-1 pl-3 text-[13px] leading-none text-white/60">
+          {t("register.channelLabel")}
+        </span>
+        {channels.map((option) => (
+          <button
+            key={option}
+            type="button"
+            role="radio"
+            aria-checked={channel === option}
+            disabled={sending || pending}
+            onClick={() => setChannel(option)}
+            className={`anim-press h-full min-w-0 flex-1 rounded-[8px] text-[13px] leading-none font-bold disabled:opacity-60 ${
+              channel === option ? "bg-[#d01f25] text-white" : "text-white/60"
+            }`}
+          >
+            {t(CHANNEL_LABEL_KEYS[option])}
+          </button>
+        ))}
       </div>
 
       <div className="mt-3 flex h-[44px] items-center rounded-[10px] border border-[#5a5a5a] bg-[#1a1a1a] focus-within:border-white/50">

@@ -24,6 +24,13 @@ export interface NotificationItem {
   bodyKey?: "welcome" | "gift" | "coins" | "reward" | "ladies";
   title: string;
   body: string;
+  /** gift_received: backend `data.params` so the title/body render in the UI language. */
+  giftParams?: {
+    sender: string;
+    gift: string;
+    quantity: number;
+    points: number;
+  } | null;
   readAt: string | null;
   createdAt: string;
 }

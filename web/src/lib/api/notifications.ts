@@ -30,12 +30,29 @@ function mapType(value: string | undefined): NotificationType {
     : "announcement";
 }
 
+/** `data.params` of a gift_received row (PlaylistService::chargeUnits), so the UI can localize it. */
+function mapGiftParams(data: unknown): NotificationItem["giftParams"] {
+  if (!data || typeof data !== "object") return null;
+  const params = (data as { params?: unknown }).params;
+  if (!params || typeof params !== "object") return null;
+  const { sender, gift, quantity, points } = params as Record<string, unknown>;
+  if (typeof sender !== "string" || typeof gift !== "string") return null;
+  return {
+    sender,
+    gift,
+    quantity: Math.max(1, Number(quantity) || 1),
+    points: Math.max(0, Number(points) || 0),
+  };
+}
+
 function mapNotification(row: CustomerNotificationDto): NotificationItem {
+  const type = mapType(row.type);
   return {
     id: row.id,
-    type: mapType(row.type),
+    type,
     title: row.title || "",
     body: row.body || "",
+    giftParams: type === "gift_received" ? mapGiftParams(row.data) : null,
     readAt: row.read_at ?? null,
     createdAt: row.created_at || "",
   };

@@ -25,8 +25,8 @@ export function isValidNationalNumber(value: string): boolean {
 
 /**
  * Compose a phone number for the customer APIs.
- * Malaysian numbers follow the existing AV rule (0… or 60… stay as-is;
- * otherwise prefix 60) so PhoneNumber::normalize can store `0xxxxxxxxx`.
+ * Malaysian numbers are always sent as `+60…`; PhoneNumber::normalize
+ * still stores them as `0xxxxxxxxx`.
  */
 export function composePhone(countryId: string, national: string): string {
   const option = COUNTRY_OPTIONS.find((item) => item.id === countryId) ?? COUNTRY_OPTIONS[0];
@@ -36,10 +36,12 @@ export function composePhone(countryId: string, national: string): string {
   }
 
   if (option.id === "MY") {
-    if (digits.startsWith("0") || digits.startsWith("60")) {
-      return digits;
+    // Always send Malaysian numbers as +60…; PhoneNumber::normalize still stores 0xxxxxxxxx.
+    if (digits.startsWith("60")) {
+      return `+${digits}`;
     }
-    return `${option.dial}${digits}`;
+    const local = digits.startsWith("0") ? digits.slice(1) : digits;
+    return `+${option.dial}${local}`;
   }
 
   if (digits.startsWith(option.dial)) {

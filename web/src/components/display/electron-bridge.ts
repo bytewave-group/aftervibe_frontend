@@ -8,6 +8,8 @@ export type RankEntry = {
   name: string;
   amount: number;
   membership?: unknown;
+  /** Customer tier (backend MembershipService::tierPayload); frames the avatar. Staff rows omit it. */
+  membership_tier?: unknown;
   /** Optional; the current rankboard API does not send this. */
   avatar?: string | null;
   avatar_url?: string | null;
@@ -64,6 +66,8 @@ export type VisualEffectUser = {
   /** Staff receivers: same crop as the web /gifts picker (percent, 0–100). */
   profile_image_position?: { x: number; y: number } | null;
   type?: "customer" | "staff";
+  /** Customer sender/receiver tier (backend MembershipService::tierPayload); frames the card avatar. */
+  membership_tier?: unknown;
 };
 
 export type VisualEffectResult = {

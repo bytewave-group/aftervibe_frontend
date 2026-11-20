@@ -22,6 +22,7 @@ export function isSolidPageBg(pathname: string): boolean {
     path === "/recharge" ||
     path === "/inventory" ||
     path === "/profile/history" ||
+    path === "/profile/received-gifts" ||
     path === "/gifts" ||
     path.startsWith("/gifts/")
   );

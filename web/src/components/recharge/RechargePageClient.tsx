@@ -1,5 +1,6 @@
 "use client";
 
+import { HeaderDiamondBalance } from "@/components/common/HeaderDiamondBalance";
 import { GiftFlowHeader } from "@/components/gifts/GiftFlowHeader";
 import { PageMain } from "@/components/layout/AppShell";
 import { useTranslations } from "@/i18n/locale-provider";
@@ -222,7 +223,7 @@ export function RechargePageClient({
       <GiftFlowHeader
         titleKey="recharge.title"
         backHref={safeRedirectPath(backHref, "/")}
-        right={<QuietBalance amount={data.balance.available} />}
+        right={<HeaderDiamondBalance amount={data.balance.available} />}
       />
       <PageMain>
         <div className="px-6 pt-5 pb-4">
@@ -334,20 +335,6 @@ export function RechargePageClient({
           {pending ? t("recharge.starting") : t("recharge.pay")}
         </button>
       </div>
-    </div>
-  );
-}
-
-function QuietBalance({ amount }: { amount: number }) {
-  const t = useTranslations();
-  return (
-    <div
-      className="flex items-center gap-1 text-white/45"
-      aria-label={t("gifts.balanceAria", { n: amount })}
-    >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src="/images/diamond.png" alt="" width={12} height={12} className="size-3 object-contain" />
-      <span className="text-[11px] leading-none tabular-nums">{formatInt(amount)}</span>
     </div>
   );
 }
