@@ -50,9 +50,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
       lang={localeHtmlLang[defaultLocale]}
-      className={`${notoSansSC.variable} h-full antialiased`}
+      className={`${notoSansSC.variable} h-full overscroll-none antialiased`}
     >
-      <body className={`${notoSansSC.className} min-h-full bg-black text-white`}>
+      <body className={`${notoSansSC.className} min-h-full overscroll-none bg-black text-white`}>
         <LegacyTenantLink />
         <LocaleProvider>
           <AuthProvider>

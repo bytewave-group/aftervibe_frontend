@@ -66,8 +66,11 @@ export function currentLocationKey(): string {
 }
 
 /**
- * Starts the page-slide and commits the route on pointerdown (same turn,
- * before React can hide the source link). Keyboard uses click.
+ * Mouse: starts the page-slide and commits the route on pointerdown (same turn,
+ * before React can hide the source link). Touch/pen: only on click, which the
+ * browser fires for a real tap but not when the finger drags to scroll, so a
+ * list (e.g. 活动 cards) can be scrolled without opening the item under the
+ * finger. Keyboard uses click.
  */
 export function useNavTrigger(
   href: string,
@@ -79,6 +82,8 @@ export function useNavTrigger(
   const onPointerDown = useCallback(
     (event: PointerEvent<HTMLElement>) => {
       if (!enabled || isModifiedClick(event)) return;
+      // Touch/pen: wait for click (a tap), never navigate on touch-down — that fired while scrolling.
+      if (event.pointerType !== "mouse") return;
       try {
         event.currentTarget.setPointerCapture(event.pointerId);
       } catch {

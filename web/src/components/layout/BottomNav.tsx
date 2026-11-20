@@ -35,6 +35,48 @@ const items: NavItem[] = [
   },
 ];
 
+const BAR_FILL = "#170304";
+const BAR_EDGE = "rgba(255,255,255,0.22)";
+/** Bar height above the safe area; the raised heart adds 34px on top (BOTTOM_NAV_HEIGHT). */
+const BAR_HEIGHT = 70;
+/** Width of the dip under the heart (same curve as the old nav-bar.svg, never stretched). */
+const NOTCH_WIDTH = 134.39;
+const NOTCH_FILL = `M0 0H1C44.812 0 32.907 36 67.195 36C101.483 36 89.578 0 133.39 0H${NOTCH_WIDTH}V${BAR_HEIGHT}H0Z`;
+const NOTCH_EDGE = "M0 0.5H1C44.812 0.5 32.907 36.5 67.195 36.5C101.483 36.5 89.578 0.5 133.39 0.5H134.39";
+
+/**
+ * Full-width bar docked to the bottom edge of the app column: flat top edge with the dip for the raised
+ * heart, square corners, and the fill continuing down through env(safe-area-inset-bottom).
+ */
+export function BottomNavBarShape() {
+  const side = `calc(50% - ${NOTCH_WIDTH / 2 - 1}px)`;
+  return (
+    <div className="pointer-events-auto absolute inset-x-0 bottom-0" aria-hidden="true">
+      <div className="relative" style={{ height: BAR_HEIGHT }}>
+        <div
+          className="absolute top-0 bottom-0 left-0"
+          style={{ width: side, background: BAR_FILL, borderTop: `1px solid ${BAR_EDGE}` }}
+        />
+        <svg
+          className="absolute top-0 left-1/2 -translate-x-1/2"
+          width={NOTCH_WIDTH}
+          height={BAR_HEIGHT}
+          viewBox={`0 0 ${NOTCH_WIDTH} ${BAR_HEIGHT}`}
+          fill="none"
+        >
+          <path d={NOTCH_FILL} fill={BAR_FILL} />
+          <path d={NOTCH_EDGE} stroke={BAR_EDGE} strokeWidth={1} />
+        </svg>
+        <div
+          className="absolute top-0 right-0 bottom-0"
+          style={{ width: side, background: BAR_FILL, borderTop: `1px solid ${BAR_EDGE}` }}
+        />
+      </div>
+      <div style={{ height: "env(safe-area-inset-bottom)", background: BAR_FILL }} />
+    </div>
+  );
+}
+
 export function BottomNav() {
   const pathname = canonicalPath(usePathname() ?? "/");
   const t = useTranslations();
@@ -44,23 +86,15 @@ export function BottomNav() {
 
   return (
     <nav
-      className="pointer-events-none absolute inset-x-0 bottom-0 z-30 pb-[max(20px,env(safe-area-inset-bottom))]"
+      className="pointer-events-none absolute inset-x-0 bottom-0 z-30 pb-[env(safe-area-inset-bottom)]"
       aria-label={t("nav.aria")}
     >
-      <div className="pointer-events-auto relative mx-6 h-[104px]">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/images/nav-bar.svg"
-          alt=""
-          width={394}
-          height={72}
-          className="absolute -bottom-px left-1/2 max-w-none -translate-x-1/2"
-          style={{ width: "calc(100% + 2px)", height: "72px" }}
-        />
+      <BottomNavBarShape />
+      <div className="relative h-[104px]">
 
         <GuardedLink
           href="/gifts"
-          className={`anim-heart-pulse anim-press absolute top-0 left-1/2 z-10 -translate-x-1/2 transition-opacity duration-[var(--motion-base)] ease-[var(--ease-motion)] ${pathname === "/gifts" ? "opacity-100" : "opacity-70"}`}
+          className={`anim-heart-pulse anim-press pointer-events-auto absolute top-0 left-1/2 z-10 -translate-x-1/2 transition-opacity duration-[var(--motion-base)] ease-[var(--ease-motion)] ${pathname === "/gifts" ? "opacity-100" : "opacity-70"}`}
           aria-label={t("nav.gifts")}
           aria-current={pathname === "/gifts" ? "page" : undefined}
         >
@@ -74,7 +108,7 @@ export function BottomNav() {
           />
         </GuardedLink>
 
-        <ul className="absolute bottom-0 left-0 grid h-[70px] w-full grid-cols-3">
+        <ul className="pointer-events-auto absolute bottom-0 left-0 grid h-[70px] w-full grid-cols-3">
           {items.map((item) => {
             const active =
               item.tab === "home"

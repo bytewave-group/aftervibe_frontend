@@ -1,12 +1,13 @@
 "use client";
 
+import { BottomNavBarShape } from "@/components/layout/BottomNav";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { useTranslations } from "@/i18n/locale-provider";
 import type { ReactNode } from "react";
 
 const PAGE_PAD = "pb-[max(20px,env(safe-area-inset-bottom))]";
 const HOME_SCROLL_PAD =
-  "pb-[calc(104px+max(20px,env(safe-area-inset-bottom))+24px)]";
+  "pb-[calc(104px+env(safe-area-inset-bottom)+16px)]";
 
 export function Bone({ className = "" }: { className?: string }) {
   return (
@@ -65,20 +66,10 @@ function Shell({
 function BottomNavPlaceholder() {
   return (
     <div
-      className="pointer-events-none absolute inset-x-0 bottom-0 z-30 pb-[max(20px,env(safe-area-inset-bottom))]"
+      className="pointer-events-none absolute inset-x-0 bottom-0 z-30 h-[104px]"
       aria-hidden="true"
     >
-      <div className="relative mx-6 h-[104px]">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/images/nav-bar.svg"
-          alt=""
-          width={394}
-          height={72}
-          className="absolute -bottom-px left-1/2 max-w-none -translate-x-1/2"
-          style={{ width: "calc(100% + 2px)", height: "72px" }}
-        />
-      </div>
+      <BottomNavBarShape />
     </div>
   );
 }
