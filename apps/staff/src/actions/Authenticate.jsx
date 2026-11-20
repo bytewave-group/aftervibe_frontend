@@ -35,6 +35,14 @@ function useAuthenticate() {
     ktv_rooms_lists,
     create_order_flower,
     create_order_buyout,
+    ktv_session_lists,
+    extend_order_ktv,
+    floor_plan_lists,
+    floor_plan_live,
+    move_order_ktv,
+    move_spot_ktv,
+    end_order_ktv,
+    floor_ws_ticket,
     create_order_ktv,
     create_order_product,
     report_orders,
@@ -283,6 +291,90 @@ function useAuthenticate() {
       return data;
     } catch (error) {
       return { status: false, message: "Invalid create order buyout" };
+    }
+  }
+
+
+  async function ktv_session_lists(form = {}) {
+    try {
+      const res = await api.post("ktv_session_lists", form);
+      const data = res.data;
+      if (!data.status) {
+        return data;
+      }
+
+      return data;
+    } catch (error) {
+      return { status: false, message: "Failed while fetching KTV sessions" };
+    }
+  }
+
+  async function extend_order_ktv(form) {
+    try {
+      const res = await api.post("extend_order_ktv", form);
+      const data = res.data;
+      if (!data.status) {
+        return data;
+      }
+
+      return data;
+    } catch (error) {
+      return { status: false, message: "Failed while extending KTV order" };
+    }
+  }
+
+  // Floor plan (live KTV sessions)
+  async function floor_plan_lists(form = {}) {
+    try {
+      const res = await api.post("floor_plan_lists", form);
+      return res.data;
+    } catch (error) {
+      return { status: false, message: "Failed while fetching floor plans" };
+    }
+  }
+
+  async function floor_plan_live(form = {}) {
+    try {
+      const res = await api.post("floor_plan_live", form);
+      return res.data;
+    } catch (error) {
+      return { status: false, message: "Failed while fetching live floor plan" };
+    }
+  }
+
+  async function move_order_ktv(form = {}) {
+    try {
+      const res = await api.post("move_order_ktv", form);
+      return res.data;
+    } catch (error) {
+      return { status: false, message: "Failed while moving KTV session" };
+    }
+  }
+
+  async function move_spot_ktv(form = {}) {
+    try {
+      const res = await api.post("move_spot_ktv", form);
+      return res.data;
+    } catch (error) {
+      return { status: false, message: "Failed while moving KTV sessions" };
+    }
+  }
+
+  async function end_order_ktv(form = {}) {
+    try {
+      const res = await api.post("end_order_ktv", form);
+      return res.data;
+    } catch (error) {
+      return { status: false, message: "Failed while ending KTV session" };
+    }
+  }
+
+  async function floor_ws_ticket(form = {}) {
+    try {
+      const res = await api.post("floor_ws_ticket", form);
+      return res.data;
+    } catch (error) {
+      return { status: false, message: "Failed while connecting to live updates" };
     }
   }
 

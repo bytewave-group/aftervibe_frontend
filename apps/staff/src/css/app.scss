@@ -12159,7 +12159,10 @@ input[type="number"] {
   padding: 0;
   margin: 0;
   color: $font-color;
-  position: relative;
+  // Keep Framework7's .page { position: absolute }. position: relative
+  // pulls stacked /ktv and /ktv-extend pages into document flow, so the
+  // current page sits below the fold (opacity-0 previous still takes height)
+  // and .view-main { overflow: hidden } shows a blank dark viewport.
 
   // QR Scanner Modal Styles (shared with other pages)
   .qr-scanner-modal {
@@ -18165,5 +18168,175 @@ input[type="number"] {
 
   .flower-tracking-page input.flower-tracking-amount-input {
     font-size: 24px;
+  }
+}
+
+
+
+/* KTV active sessions / extend — scoped additions only */
+.ktv-page {
+  .ktv-page-tabs {
+    margin-bottom: 4px;
+  }
+
+  .ktv-chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .ktv-chip {
+    min-width: 56px;
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 2px solid $input-border;
+    background: rgba($input-border, 0.5);
+    color: $font-color;
+    font-weight: 700;
+    cursor: pointer;
+
+    &.active,
+    &:hover {
+      border-color: $primary-color;
+      background: rgba($primary-color, 0.16);
+      color: $primary-color;
+    }
+  }
+
+  .ktv-text-field {
+    width: 100%;
+  }
+
+  .ktv-preview {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: rgba($input-border, 0.45);
+    border: 1px solid $input-border;
+    color: $font-color;
+  }
+
+  .ktv-warning {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: rgba(#e6b640, 0.16);
+    border: 1px solid $primary-color;
+    color: $font-color;
+  }
+
+  .ktv-warning-close {
+    border: none;
+    background: transparent;
+    color: $primary-color;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .ktv-session-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .ktv-session-card {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 12px;
+    background: rgba($input-border, 0.5);
+    border: 2px solid $input-border;
+    cursor: pointer;
+
+    &.urgent {
+      border-color: #f44336;
+    }
+  }
+
+  .ktv-session-name {
+    font-weight: 700;
+    font-size: 16px;
+    color: $font-color;
+  }
+
+  .ktv-session-meta {
+    margin-top: 4px;
+    font-size: 13px;
+    color: $secondary-color;
+  }
+
+  .ktv-session-side {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+  }
+
+  .ktv-countdown {
+    font-weight: 700;
+    font-size: 18px;
+    color: $primary-color;
+
+    &.urgent {
+      color: #f44336;
+    }
+  }
+
+  .ktv-extend-btn {
+    min-height: 36px;
+    padding: 6px 12px;
+  }
+
+  .ktv-empty {
+    padding: 24px 12px;
+    text-align: center;
+    color: $secondary-color;
+  }
+
+  .ktv-detail {
+    color: $font-color;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .ktv-extension-row {
+    padding: 8px 0;
+    border-top: 1px solid $input-border;
+    font-size: 13px;
+  }
+}
+
+.service-timeout-actions {
+  display: flex;
+  gap: 8px;
+
+  .service-timeout-extend-button,
+  .service-timeout-complete-button {
+    flex: 1;
+  }
+
+  .service-timeout-extend-button {
+    width: 100%;
+    padding: 12px 20px;
+    background: $primary-color;
+    color: $black;
+    border: none;
+    border-radius: 10px;
+    font-size: 16px;
+    font-weight: 600;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
   }
 }

@@ -24,11 +24,14 @@ import {
 } from '../utils/androidReceiptPrinter';
 import { RECEIPT_STATUS_KIND, resolveReceiptStatusLabel } from '../constants/receiptStatus';
 import { STAFF_WORK_TYPE } from '../constants/staffWorkType';
+import KtvActiveSessions from '../components/ktv/KtvActiveSessions';
+import KtvSpotPicker from '../components/ktv/KtvSpotPicker';
+import { loadUser } from '../components/action/preferences';
 
-const KtvPage = () => {
+const KtvPage = ({ f7route, f7router }) => {
     const { t, i18n } = useTranslation();
     const { navigate } = useCommon();
-    const { staff_work_lists, ktv_packages_lists, create_order_ktv, verify_qr } = useAuthenticate();
+    const { staff_work_lists, ktv_packages_lists, create_order_ktv, verify_qr, floor_plan_lists, mummy_lists } = useAuthenticate();
 
     const [form, setForm] = useState({
         private_key: env.private_key,
@@ -40,12 +43,29 @@ const KtvPage = () => {
 
     const [ktvPackagesLists, setKtvPackagesLists] = useState([]);
     const [ktvPackagesHourly, setKtvPackagesHourly] = useState(null);
-    const [selectedKtvTab, setSelectedKtvTab] = useState("package"); // 'package', 'customHour'
+    const [selectedKtvTab, setSelectedKtvTab] = useState("package"); // 'package', 'customHour', 'custom'
     const [selectedPackage, setSelectedPackage] = useState(null);
     const [selectedHourlyPackage, setSelectedHourlyPackage] = useState(null);
     const [customKtvHours, setCustomKtvHours] = useState("");
+    const [customKtvAmount, setCustomKtvAmount] = useState("");
+    const [customKtvAmountHours, setCustomKtvAmountHours] = useState("");
     const [ktvTableNumber, setKtvTableNumber] = useState("");
+    // Room / table from the floor plan (prefilled from /floor-plan via ?spot_type=&spot_id=&spot_name=).
+    const [selectedSpot, setSelectedSpot] = useState(() => {
+        const query = f7route?.query || {};
+        return query.spot_type && query.spot_id
+            ? { type: String(query.spot_type), id: Number(query.spot_id), name: String(query.spot_name || "") }
+            : null;
+    });
+    const [spotLayout, setSpotLayout] = useState(null);
+    const [manualTable, setManualTable] = useState(false);
+    const [userRole, setUserRole] = useState("");
+    const [mummyOptions, setMummyOptions] = useState([]);
+    const [selectedMummyId, setSelectedMummyId] = useState("");
+    const isManager = userRole === "manager";
+    const effectiveTable = selectedSpot && !manualTable ? selectedSpot.name : ktvTableNumber;
     const [totalAmount, setTotalAmount] = useState(0);
+    const [pageTab, setPageTab] = useState(f7route?.query?.tab === "sessions" ? "sessions" : "order");
 
     const [paymentMethodsFromGlobal, setPaymentMethodsFromGlobal] = useState([]);
 
@@ -97,7 +117,29 @@ const KtvPage = () => {
         };
         loadGlobal();
         fetchStaffWorkList();
+        loadSpotData();
     }, []);
+
+    const loadSpotData = async () => {
+        try {
+            const user = await loadUser();
+            const role = String(user?.role || "").toLowerCase();
+            setUserRole(role);
+            if (role === "manager") {
+                setPageTab("order");
+                const mummies = await mummy_lists({ private_key: env.private_key });
+                if (mummies?.status && Array.isArray(mummies.data)) {
+                    setMummyOptions(mummies.data);
+                }
+            }
+            const layout = await floor_plan_lists({ private_key: env.private_key });
+            if (layout?.status && layout.data) {
+                setSpotLayout(layout.data);
+            }
+        } catch (error) {
+            console.error("Error loading floor plan rooms / tables:", error);
+        }
+    };
 
     useEffect(() => {
         if (form.staff_id) {
@@ -172,6 +214,8 @@ const KtvPage = () => {
         setSelectedPackage(null);
         setSelectedHourlyPackage(null);
         setCustomKtvHours("");
+        setCustomKtvAmount("");
+        setCustomKtvAmountHours("");
         setKtvTableNumber("");
         setTotalAmount(0);
     };
@@ -379,11 +423,32 @@ const KtvPage = () => {
         setKtvTableNumber(formatted);
     };
 
+    const handleCustomAmountChange = (e) => {
+        const value = e.target.value;
+        let formatted = value
+            .replace(/[^\d.]/g, '')
+            .replace(/(\..*?)\..*/g, '$1')
+            .replace(/^(\d*\.?\d{0,2}).*$/, '$1');
+        setCustomKtvAmount(formatted);
+        setTotalAmount(formatted !== "" ? (parseFloat(formatted) || 0) : 0);
+    };
+
+    const handleCustomAmountHoursChange = (e) => {
+        const value = e.target.value;
+        let formatted = value
+            .replace(/[^\d.]/g, '')
+            .replace(/(\..*?)\..*/g, '$1')
+            .replace(/^(\d*\.?\d{0,2}).*$/, '$1');
+        setCustomKtvAmountHours(formatted);
+    };
+
     const handleCancelPackage = () => {
         setSelectedPackage(null);
         setSelectedHourlyPackage(null);
         setTotalAmount(0);
         setCustomKtvHours("");
+        setCustomKtvAmount("");
+        setCustomKtvAmountHours("");
         setKtvTableNumber("");
     };
 
@@ -393,8 +458,8 @@ const KtvPage = () => {
                 showAlert(t("Please select a package"));
                 return;
             }
-            if (!ktvTableNumber) {
-                showAlert(t("Please enter table number"));
+            if (!effectiveTable) {
+                showAlert(t(spotLayout?.has_layout ? "Please select a room / table" : "Please enter table number"));
                 return;
             }
         } else if (selectedKtvTab === "customHour") {
@@ -406,14 +471,32 @@ const KtvPage = () => {
                 showAlert(t("Please enter custom hours"));
                 return;
             }
-            if (!ktvTableNumber) {
-                showAlert(t("Please enter table number"));
+            if (!effectiveTable) {
+                showAlert(t(spotLayout?.has_layout ? "Please select a room / table" : "Please enter table number"));
+                return;
+            }
+        } else if (selectedKtvTab === "custom") {
+            if (!customKtvAmount || parseFloat(customKtvAmount) < 0 || customKtvAmount === "") {
+                showAlert(t("Please enter custom amount"));
+                return;
+            }
+            if (!customKtvAmountHours || parseFloat(customKtvAmountHours) <= 0) {
+                showAlert(t("Please enter custom hours"));
+                return;
+            }
+            if (!effectiveTable) {
+                showAlert(t(spotLayout?.has_layout ? "Please select a room / table" : "Please enter table number"));
                 return;
             }
         }
 
         if (!form.staff_id) {
             showAlert(t("Please select a staff"));
+            return;
+        }
+
+        if (isManager && !selectedMummyId) {
+            showAlert(t("Please select a mummy"));
             return;
         }
 
@@ -424,8 +507,8 @@ const KtvPage = () => {
         const nextOrderInfo = {
             staffName: staffName,
             amount: finalAmount,
-            tableNumber: ktvTableNumber,
-            customHours: selectedKtvTab === "customHour" ? customKtvHours : ""
+            tableNumber: effectiveTable,
+            customHours: selectedKtvTab === "customHour" ? customKtvHours : (selectedKtvTab === "custom" ? customKtvAmountHours : "")
         };
 
         setOrderInfo(nextOrderInfo);
@@ -547,6 +630,13 @@ const KtvPage = () => {
                 qty: 1,
                 total,
             });
+        } else if (selectedKtvTab === 'custom') {
+            const hours = nextOrderInfo.customHours || customKtvAmountHours;
+            items.push({
+                name: hours ? `KTV (${hours} Hours)` : 'KTV',
+                qty: 1,
+                total,
+            });
         } else {
             items.push({ name: 'KTV', qty: 1, total });
         }
@@ -585,6 +675,15 @@ const KtvPage = () => {
             table_number: nextOrderInfo.tableNumber
         };
 
+        if (selectedSpot && !manualTable) {
+            orderData.spot_type = selectedSpot.type;
+            orderData.spot_id = selectedSpot.id;
+        }
+
+        if (isManager) {
+            orderData.mummy_id = parseInt(selectedMummyId);
+        }
+
         if (selectedKtvTab === "package") {
             orderData = {
                 ...orderData,
@@ -597,6 +696,15 @@ const KtvPage = () => {
                 ...orderData,
                 id: selectedHourlyPackage.id,
                 value: parseFloat(customKtvHours),
+                room_id: null
+            };
+        } else if (selectedKtvTab === "custom") {
+            orderData = {
+                ...orderData,
+                type: "custom",
+                value: parseFloat(customKtvAmountHours),
+                amount: parseFloat(customKtvAmount),
+                id: null,
                 room_id: null
             };
         }
@@ -671,6 +779,48 @@ const KtvPage = () => {
             <Header title={t("KTV")} orderListType="ktv" />
             <div className="content-panel">
                 <div className="content">
+                    <div className="buyout-segmented-group ktv-page-tabs">
+                        <button
+                            type="button"
+                            className={`font-bold buyout-segment-btn${pageTab === "order" ? " active" : ""}`}
+                            onClick={() => setPageTab("order")}
+                        >
+                            {t("Place Order")}
+                        </button>
+                        {!isManager && (
+                        <button
+                            type="button"
+                            className={`font-bold buyout-segment-btn${pageTab === "sessions" ? " active" : ""}`}
+                            onClick={() => setPageTab("sessions")}
+                        >
+                            {t("Active sessions")}
+                        </button>
+                        )}
+                    </div>
+
+                    {pageTab === "sessions" && (
+                        <KtvActiveSessions f7router={f7router} />
+                    )}
+
+                    {pageTab === "order" && (
+                    <>
+                    {isManager && (
+                    <div className="form-group">
+                        <span className="form-label font-medium font-bold">{t("Mummy")}</span>
+                        <div className="form-input-container font-medium">
+                            <select
+                                className="custom-hour-field"
+                                value={selectedMummyId}
+                                onChange={(event) => setSelectedMummyId(event.target.value)}
+                            >
+                                <option value="">{t("Select mummy")}</option>
+                                {mummyOptions.map((mummy) => (
+                                    <option key={mummy.id} value={mummy.id}>{mummy.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+                    )}
                     <div className="form-group">
                         <span className="form-label font-medium font-bold">{t("Staff")}</span>
                         <div className="form-input-container font-medium staff-input-with-scan">
@@ -773,6 +923,13 @@ const KtvPage = () => {
                                 >
                                     {t("Hourly")}
                                 </button>
+                                <button
+                                    type="button"
+                                    className={`buyout-segment-btn${selectedKtvTab === "custom" ? " active" : ""}`}
+                                    onClick={() => handleKtvTabChange("custom")}
+                                >
+                                    {t("Custom Amount")}
+                                </button>
                             </div>
 
                             {selectedKtvTab === "package" && (
@@ -810,20 +967,17 @@ const KtvPage = () => {
                                             </Button>
                                         )}
                                     </Block>
-                                    <Block className="custom-hour-input" style={{ padding: "0", marginTop: "0" }}>
-                                        <label htmlFor="ktv-table-number" className="custom-hour-label">
-                                            {t("Table Number")}:
-                                        </label>
-                                        <input
-                                            id="ktv-table-number"
-                                            type="text"
-                                            inputMode="numeric"
-                                            placeholder={t("Enter Table Number")}
-                                            value={ktvTableNumber}
-                                            onChange={handleKtvTableNumberChange}
-                                            className="custom-hour-field"
-                                        />
-                                    </Block>
+                                    <KtvSpotPicker
+                                        t={t}
+                                        inputId="ktv-table-number"
+                                        layout={spotLayout}
+                                        selectedSpot={selectedSpot}
+                                        onSelectSpot={setSelectedSpot}
+                                        manual={manualTable}
+                                        onManualChange={setManualTable}
+                                        tableNumber={ktvTableNumber}
+                                        onTableNumberChange={handleKtvTableNumberChange}
+                                    />
                                 </>
                             )}
 
@@ -880,22 +1034,63 @@ const KtvPage = () => {
                                                     className="custom-hour-field"
                                                 />
                                             </Block>
-                                            <Block className="custom-hour-input" style={{ padding: "0", marginTop: "0" }}>
-                                                <label htmlFor="ktv-table-number" className="custom-hour-label">
-                                                    {t("Table Number")}:
-                                                </label>
-                                                <input
-                                                    id="ktv-table-number"
-                                                    type="text"
-                                                    inputMode="numeric"
-                                                    placeholder={t("Enter Table Number")}
-                                                    value={ktvTableNumber}
-                                                    onChange={handleKtvTableNumberChange}
-                                                    className="custom-hour-field"
-                                                />
-                                            </Block>
+                                            <KtvSpotPicker
+                                                t={t}
+                                                inputId="ktv-table-number"
+                                                layout={spotLayout}
+                                                selectedSpot={selectedSpot}
+                                                onSelectSpot={setSelectedSpot}
+                                                manual={manualTable}
+                                                onManualChange={setManualTable}
+                                                tableNumber={ktvTableNumber}
+                                                onTableNumberChange={handleKtvTableNumberChange}
+                                            />
                                         </>
                                     )}
+                                </>
+                            )}
+
+                            {selectedKtvTab === "custom" && (
+                                <>
+                                    <Block className="custom-hour-input" style={{ padding: "0", marginTop: "0" }}>
+                                        <label htmlFor="ktv-custom-amount" className="custom-hour-label">
+                                            {t("Enter Custom Amount")} (RM):
+                                        </label>
+                                        <input
+                                            id="ktv-custom-amount"
+                                            type="text"
+                                            inputMode="decimal"
+                                            placeholder={t("Custom Amount")}
+                                            value={customKtvAmount}
+                                            onChange={handleCustomAmountChange}
+                                            className="custom-hour-field"
+                                        />
+                                    </Block>
+                                    <Block className="custom-hour-input" style={{ padding: "0", marginTop: "0" }}>
+                                        <label htmlFor="ktv-custom-amount-hours" className="custom-hour-label">
+                                            {t("Enter Custom Hours")}:
+                                        </label>
+                                        <input
+                                            id="ktv-custom-amount-hours"
+                                            type="text"
+                                            inputMode="decimal"
+                                            placeholder={t("Custom Hours")}
+                                            value={customKtvAmountHours}
+                                            onChange={handleCustomAmountHoursChange}
+                                            className="custom-hour-field"
+                                        />
+                                    </Block>
+                                    <KtvSpotPicker
+                                        t={t}
+                                        inputId="ktv-table-number-custom"
+                                        layout={spotLayout}
+                                        selectedSpot={selectedSpot}
+                                        onSelectSpot={setSelectedSpot}
+                                        manual={manualTable}
+                                        onManualChange={setManualTable}
+                                        tableNumber={ktvTableNumber}
+                                        onTableNumberChange={handleKtvTableNumberChange}
+                                    />
                                 </>
                             )}
 
@@ -920,6 +1115,8 @@ const KtvPage = () => {
                                 </Button>
                             </div>
                         </>
+                    )}
+                    </>
                     )}
                 </div>
             </div>

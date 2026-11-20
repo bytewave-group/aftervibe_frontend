@@ -20,6 +20,8 @@ import FlowerMovementPage from '../pages/flowerMovement.jsx';
 import PaymentCollectionPage from '../pages/paymentCollection.jsx';
 import ReportMummyPage from '../pages/reportMummy.jsx';
 import BuyoutPage from '../pages/buyout.jsx';
+import KtvExtendPage from '../pages/ktvExtend.jsx';
+import FloorPlanPage from '../pages/floorPlan.jsx';
 import ProductPage from '../pages/product.jsx';
 import OrderListPage from '../pages/orderList.jsx';
 import PrinterSettingsPage from '../pages/PrinterSettings.jsx';
@@ -134,6 +136,14 @@ var routes = [
   {
     path: '/buyout',
     component: BuyoutPage,
+  },
+  {
+    path: '/ktv-extend/:orderId',
+    component: KtvExtendPage,
+  },
+  {
+    path: '/floor-plan',
+    component: FloorPlanPage,
   },
   {
     path: '/product',

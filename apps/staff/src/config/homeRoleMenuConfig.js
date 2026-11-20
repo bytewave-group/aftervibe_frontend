@@ -75,6 +75,13 @@ export function getHomeRoleMenuConfig({
             route: "/payment-collection",
             useTranslation: true,
           },
+          {
+            permission: "floor_plan",
+            icon: "map",
+            text: "Floor Plan",
+            route: "/floor-plan",
+            useTranslation: true,
+          },
         ],
       },
       {
@@ -127,6 +134,13 @@ export function getHomeRoleMenuConfig({
             icon: "money_dollar_circle",
             text: "KTV",
             route: "/ktv",
+            useTranslation: true,
+          },
+          {
+            permission: "floor_plan",
+            icon: "map",
+            text: "Floor Plan",
+            route: "/floor-plan",
             useTranslation: true,
           },
           {

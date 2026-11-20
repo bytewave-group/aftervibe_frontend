@@ -680,11 +680,29 @@ const AppContent = () => {
     });
   };
 
+  const handleServiceTimeoutExtend = (service) => {
+    if (!service?.id || isProcessingServiceTimeout) return;
+
+    // Hide without acknowledging so the notification can return if extend is cancelled.
+    setShowServiceTimeoutOverlay(false);
+    const params = new URLSearchParams();
+    if (service.end_time) params.set('end_time', service.end_time);
+    if (service.staff_name) params.set('staff_name', service.staff_name);
+    if (service.table) params.set('table', service.table);
+    const qs = params.toString();
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+    f7.views?.main?.router?.navigate(`/ktv-extend/${service.id}${qs ? `?${qs}` : ''}`);
+  };
+
   const getServiceTypeName = (type, targetType) => {
     if (type === 1 || targetType?.includes('KtvPackage')) {
       return t('KTV Package');
     } else if (type === 3 || targetType?.includes('BuyoutPackage')) {
       return t('Buyout Package');
+    } else if (Number(type) === 7) {
+      return t('KTV extend');
     }
     return t('Service');
   };
@@ -826,6 +844,17 @@ const AppContent = () => {
                         </div>
 
                         <div className="service-timeout-actions">
+                          {service.can_extend && (
+                            <Button
+                              fill
+                              className="service-timeout-extend-button"
+                              onClick={() => handleServiceTimeoutExtend(service)}
+                              disabled={isProcessingServiceTimeout}
+                            >
+                              <Icon f7="plus_circle" />
+                              <span>{t('Extend time')}</span>
+                            </Button>
+                          )}
                           <Button
                             fill
                             className="service-timeout-complete-button"
