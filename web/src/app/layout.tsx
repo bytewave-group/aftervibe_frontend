@@ -1,6 +1,7 @@
 import { AuthModalProvider } from "@/components/auth/AuthModalProvider";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { BootWatchdog } from "@/components/navigation/BootWatchdog";
+import { IosScrollGuard } from "@/components/layout/IosScrollGuard";
 import { LegacyTenantLink } from "@/components/navigation/LegacyTenantLink";
 import { LocaleProvider } from "@/i18n/locale-provider";
 import { defaultLocale, localeHtmlLang } from "@/i18n/config";
@@ -55,6 +56,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     >
       <body className={`${notoSansSC.className} min-h-full overscroll-none bg-black text-white`}>
         <BootWatchdog />
+        <IosScrollGuard />
         <LegacyTenantLink />
         <LocaleProvider>
           <AuthProvider>
