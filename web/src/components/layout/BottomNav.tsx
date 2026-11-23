@@ -38,7 +38,7 @@ const items: NavItem[] = [
 const BAR_FILL = "#170304";
 const BAR_EDGE = "rgba(255,255,255,0.22)";
 /** Bar height above the safe area; the raised heart adds 34px on top (BOTTOM_NAV_HEIGHT). */
-const BAR_HEIGHT = 70;
+const BAR_HEIGHT = 60;
 /** Width of the dip under the heart (same curve as the old nav-bar.svg, never stretched). */
 const NOTCH_WIDTH = 134.39;
 const NOTCH_FILL = `M0 0H1C44.812 0 32.907 36 67.195 36C101.483 36 89.578 0 133.39 0H${NOTCH_WIDTH}V${BAR_HEIGHT}H0Z`;
@@ -90,7 +90,7 @@ export function BottomNav() {
       aria-label={t("nav.aria")}
     >
       <BottomNavBarShape />
-      <div className="relative h-[104px]">
+      <div className="relative h-[94px]">
 
         <GuardedLink
           href="/gifts"
@@ -108,7 +108,7 @@ export function BottomNav() {
           />
         </GuardedLink>
 
-        <ul className="pointer-events-auto absolute bottom-0 left-0 grid h-[70px] w-full grid-cols-3">
+        <ul className="pointer-events-auto absolute bottom-0 left-0 grid h-[60px] w-full grid-cols-3">
           {items.map((item) => {
             const active =
               item.tab === "home"

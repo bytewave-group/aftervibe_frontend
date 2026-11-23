@@ -1,7 +1,7 @@
 import { displayImageUrl } from "@/lib/api/images";
 import { apiGet, apiPost, ApiError } from "@/lib/api/browser";
 import { logApiFallback, redirectIfUnauthorized } from "@/lib/api/paginate";
-import { loadMe } from "@/lib/api/me-cache";
+import { loadMe, patchMe } from "@/lib/api/me-cache";
 import type {
   RewardPackageDto,
   RewardRedeemResponse,
@@ -83,8 +83,10 @@ export async function redeemMallPackage(
       {},
       "required",
     );
+    const points = Number(payload.reward_points) || 0;
+    patchMe({ reward_points: points });
     return {
-      points: Number(payload.reward_points) || 0,
+      points,
       packageId,
     };
   } catch (error) {

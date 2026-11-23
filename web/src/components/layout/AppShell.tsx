@@ -11,7 +11,7 @@ import { usePathname } from "next/navigation";
 import { Suspense, type ReactNode } from "react";
 
 const HOME_SCROLL_PAD =
-  "pb-[calc(104px+env(safe-area-inset-bottom)+16px)]";
+  "pb-[calc(94px+env(safe-area-inset-bottom)+16px)]";
 const PAGE_PAD = "pb-[max(20px,env(safe-area-inset-bottom))]";
 
 function ShellFrame({ children }: { children: ReactNode }) {

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { BottomNavBarShape } from "@/components/layout/BottomNav";
@@ -7,7 +8,7 @@ import type { ReactNode } from "react";
 
 const PAGE_PAD = "pb-[max(20px,env(safe-area-inset-bottom))]";
 const HOME_SCROLL_PAD =
-  "pb-[calc(104px+env(safe-area-inset-bottom)+16px)]";
+  "pb-[calc(94px+env(safe-area-inset-bottom)+16px)]";
 
 export function Bone({ className = "" }: { className?: string }) {
   return (
@@ -66,7 +67,7 @@ function Shell({
 function BottomNavPlaceholder() {
   return (
     <div
-      className="pointer-events-none absolute inset-x-0 bottom-0 z-30 h-[104px]"
+      className="pointer-events-none absolute inset-x-0 bottom-0 z-30 h-[94px]"
       aria-hidden="true"
     >
       <BottomNavBarShape />

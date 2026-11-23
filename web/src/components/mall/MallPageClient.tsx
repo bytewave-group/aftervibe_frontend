@@ -55,7 +55,7 @@ export function MallPageClient({ initialData }: { initialData: MallData }) {
   const dialogOpen = selected !== null || (isAuthed && pendingRedeem !== null);
   const displayPoints =
     isAuthed
-      ? (customer?.reward_points != null && message == null
+      ? (customer?.reward_points != null
           ? Number(customer.reward_points) || 0
           : data.points)
       : 0;
@@ -226,7 +226,7 @@ export function MallPageClient({ initialData }: { initialData: MallData }) {
               </button>
               <button
                 type="button"
-                disabled={busy || data.points < dialogItem.pointsRequired}
+                disabled={busy || displayPoints < dialogItem.pointsRequired}
                 className="anim-press anim-btn-shimmer flex h-[44px] flex-1 items-center justify-center rounded-[10px] bg-[#d01f25] text-[15px] font-bold text-white disabled:opacity-50"
                 onClick={() => void confirmRedeem()}
               >

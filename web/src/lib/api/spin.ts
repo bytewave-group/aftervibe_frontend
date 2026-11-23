@@ -1,5 +1,6 @@
 import { resolveMediaUrl } from "@/lib/api/images";
 import { apiGet, apiPost, ApiError } from "@/lib/api/browser";
+import { patchMe } from "@/lib/api/me-cache";
 import { logApiFallback, redirectIfUnauthorized } from "@/lib/api/paginate";
 import type {
   SpinPrizeDto,
@@ -109,13 +110,20 @@ export async function performSpin(
       payWith ? { pay_with: payWith } : {},
       "required",
     );
+    const balance = spendableBalance(payload);
+    const rewardPoints = Number(payload.reward_points) || 0;
+    patchMe({
+      reward_points: rewardPoints,
+      balance,
+      available_balance: payload.available_balance ?? balance,
+    });
     return {
       prizeIndex: Number(payload.prize_index) || 0,
       prize: mapPrize(payload.prize),
       paidWith: mapPaidWith(payload.paid_with),
       costAmount: Number(payload.cost_amount) || 0,
-      balance: spendableBalance(payload),
-      rewardPoints: Number(payload.reward_points) || 0,
+      balance,
+      rewardPoints,
       chances: Number(payload.chances) || 0,
       paidSpinsRemaining:
         payload.paid_spins_remaining === undefined

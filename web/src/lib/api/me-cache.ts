@@ -40,6 +40,15 @@ export function resetMe(): void {
   publish({ customer: null, status: "guest" });
 }
 
+/** Merge fields into the cached customer so other pages see the latest balances. */
+export function patchMe(partial: Partial<CustomerPayload>): void {
+  if (!snapshot.customer) return;
+  publish({
+    customer: { ...snapshot.customer, ...partial },
+    status: snapshot.status === "guest" ? "ready" : snapshot.status,
+  });
+}
+
 onSessionChange(resetMe);
 
 /** One in-flight GET /api/customer/me per token. Later callers share the result. */
