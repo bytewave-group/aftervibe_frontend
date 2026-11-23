@@ -1,6 +1,7 @@
 "use client";
 
 import { claimCheckinAction, loadCheckinStatusAction } from "@/lib/api/checkin-actions";
+import { createPortal } from "react-dom";
 import { claimedRewardText, grantCaption } from "@/lib/checkin";
 import { mockCheckinStatus, type CheckinStatus, type DayState } from "@/lib/mock/checkin";
 import { useTranslations } from "@/i18n/locale-provider";
@@ -151,7 +152,10 @@ export function CheckinDialog({ onClose, previewStatus, open = true }: CheckinDi
   const streakKey =
     (status?.streakCount ?? 0) === 1 ? "checkin.streakStatus" : "checkin.streakStatusPlural";
 
-  return (
+  // Portal to <body>: rendered inside the page's <main> (z-10 stacking context, scroll container),
+  // the overlay sat under the top bar and bottom nav, and iOS Safari can mis-paint a fixed layer
+  // inside a scrolling element.
+  return createPortal(
     <div
       className={`anim-backdrop fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/70 px-6 ${exiting ? "is-exit" : ""}`}
       onClick={onClose}
@@ -276,7 +280,8 @@ export function CheckinDialog({ onClose, previewStatus, open = true }: CheckinDi
           <img src="/images/checkin-close.svg" alt="" width={32} height={32} />
         </button>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -313,35 +318,45 @@ function DayTile({
       aria-label={ariaLabel}
       aria-disabled={!clickable}
       onClick={onClaim}
-      className={`anim-press relative flex flex-col overflow-hidden rounded-[10px] bg-[#1A0A0C] ring-1 ring-white/10 ${
+      className={`anim-press relative block overflow-hidden rounded-[10px] bg-[#1A0A0C] p-0 ring-1 ring-white/10 ${
         wide ? "col-span-2 h-[92px]" : "h-[92px] w-full"
       } ${clickable ? "cursor-pointer" : "cursor-default"} ${claiming ? "opacity-70" : ""}`}
     >
-      <span className="flex min-h-0 flex-1 flex-col items-center justify-center gap-0.5 px-0.5">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={
-            image
-              ? image
-              : wide
-                ? "/images/checkin-chest.png"
-                : claimedOrToday
-                  ? "/images/checkin-diamond-orange.png"
-                  : "/images/checkin-diamond-silver.png"
-          }
-          alt=""
-          width={wide ? 72 : 40}
-          height={wide ? 54 : 40}
-          className={wide ? "h-[54px] w-[72px] object-contain" : "size-[40px] object-contain"}
-        />
-        <span className="max-w-full truncate text-[9px] leading-none text-white/90">
-          {caption}
-        </span>
-      </span>
+      {/*
+        Lay the tile out in an absolutely positioned layer, not on the <button> itself: Safari before
+        16 wraps a button's children in an anonymous block, so flex on the button was ignored and the
+        icon slid to the top-left on iOS 15.
+      */}
       <span
-        className={`flex h-[22px] w-full shrink-0 items-center justify-center text-[12px] leading-none font-bold ${labelBarClass}`}
+        className="absolute inset-0 flex flex-col"
+        style={{ top: 0, right: 0, bottom: 0, left: 0 }}
       >
-        {label}
+        <span className="flex min-h-0 flex-1 flex-col items-center justify-center gap-0.5 px-0.5">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={
+              image
+                ? image
+                : wide
+                  ? "/images/checkin-chest.png"
+                  : claimedOrToday
+                    ? "/images/checkin-diamond-orange.png"
+                    : "/images/checkin-diamond-silver.png"
+            }
+            alt=""
+            width={wide ? 72 : 40}
+            height={wide ? 54 : 40}
+            className={wide ? "h-[54px] w-[72px] object-contain" : "size-[40px] object-contain"}
+          />
+          <span className="max-w-full truncate text-[9px] leading-none text-white/90">
+            {caption}
+          </span>
+        </span>
+        <span
+          className={`flex h-[22px] w-full shrink-0 items-center justify-center text-[12px] leading-none font-bold ${labelBarClass}`}
+        >
+          {label}
+        </span>
       </span>
       {state === "claimed" ? (
         <span className="absolute inset-0 flex items-center justify-center bg-black/55">

@@ -11,7 +11,7 @@ import {
   type SpinResult,
   type SpinStatus,
 } from "@/lib/mock/spin";
-import { useEffect, useState, useSyncExternalStore } from "react";
+import { useEffect, useLayoutEffect, useState, useSyncExternalStore } from "react";
 
 const WHEEL_SIZE = 300;
 const RIM_SIZE = 348;
@@ -22,9 +22,30 @@ const RIM_HEIGHT_RESERVE = 340;
 /** Prize label centre, as a fraction of the wheel size from its centre. */
 const LABEL_RADIUS = 0.32;
 
-/** Design px (at the full 348px rim) → rim-relative length, so every layer scales together. */
-function cq(px: number): string {
-  return `${(px / RIM_SIZE) * 100}cqw`;
+/**
+ * Design px (at the full 348px rim) → px at the measured rim size, so every layer scales together.
+ * Not `cqw`: container query units need Safari 16+, and on iOS 15 every size using them was
+ * dropped (giant pointer, collapsed hub, missing lights, oversized labels).
+ */
+function scaleToRim(px: number, rimPx: number): string {
+  return `${Math.round((px / RIM_SIZE) * rimPx * 100) / 100}px`;
+}
+
+/** Rendered rim width in px (layout size, ignores transforms); RIM_SIZE until measured. */
+function useRimSize(): [(node: HTMLDivElement | null) => void, number] {
+  const [node, setNode] = useState<HTMLDivElement | null>(null);
+  const [size, setSize] = useState(RIM_SIZE);
+  useLayoutEffect(() => {
+    if (!node) return;
+    const update = () => {
+      if (node.offsetWidth > 0) setSize(node.offsetWidth);
+    };
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [node]);
+  return [setNode, size];
 }
 
 /** Design px (at the full 348px rim) → percentage of the rim. */
@@ -159,6 +180,8 @@ export function SpinPageClient({ initialStatus }: { initialStatus: SpinStatus })
   }
   const dialogResult = result ?? heldResult;
   const reduceMotion = usePrefersReducedMotion();
+  const [rimRef, rimPx] = useRimSize();
+  const cq = (px: number) => scaleToRim(px, rimPx);
 
   useEffect(() => {
     if (status.nextSpinSeconds <= 0) {
@@ -229,17 +252,18 @@ export function SpinPageClient({ initialStatus }: { initialStatus: SpinStatus })
         <img
           src="/images/spin-chevron.png"
           alt=""
-          className="pointer-events-none absolute left-1/2 top-1/2 w-[170%] max-w-none -translate-x-1/2 -translate-y-[46%] opacity-45 mix-blend-screen"
+          className="pointer-events-none absolute left-1/2 top-1/2 w-[170%] max-w-none opacity-45 mix-blend-screen"
+          style={{ transform: "translate(-50%, -46%)" }}
         />
       <div
         className="relative shrink-0"
+        ref={rimRef}
         data-spin-rim
         style={{
           // One square for every wheel layer. Shrinks with the screen width and, on short screens,
           // with the height so the text and 转起来 button below stay in view.
           width: `min(100%, ${RIM_SIZE}px, max(${RIM_MIN}px, calc(100dvh - ${RIM_HEIGHT_RESERVE}px)))`,
           aspectRatio: "1 / 1",
-          containerType: "inline-size",
         }}
       >
         <div
@@ -342,8 +366,8 @@ export function SpinPageClient({ initialStatus }: { initialStatus: SpinStatus })
         </div>
 
         <div
-          className="absolute left-1/2 z-20 -translate-x-1/2"
-          style={{ top: pct(6), width: cq(32) }}
+          className="absolute left-1/2 z-20"
+          style={{ top: pct(6), width: cq(32), transform: "translateX(-50%)" }}
           aria-hidden="true"
         >
           <svg
@@ -363,8 +387,9 @@ export function SpinPageClient({ initialStatus }: { initialStatus: SpinStatus })
         </div>
 
         <div
-          className="absolute top-1/2 left-1/2 z-10 flex -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#c62828]"
+          className="absolute top-1/2 left-1/2 z-10 flex items-center justify-center rounded-full bg-[#c62828]"
           style={{
+            transform: "translate(-50%, -50%)",
             width: cq(92),
             height: cq(92),
             boxShadow: `0 0 0 ${cq(5)} #ffffff, 0 4px 14px rgba(0,0,0,0.5)`,

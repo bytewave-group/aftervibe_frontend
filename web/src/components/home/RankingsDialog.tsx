@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "@/i18n/locale-provider";
+import { createPortal } from "react-dom";
 import { usePresence } from "@/components/ui/usePresence";
 import { useCallback, useEffect, useId, useRef, type ReactNode } from "react";
 
@@ -38,7 +39,10 @@ export function RankingsDialog({ onClose, open = true, children }: RankingsDialo
     return null;
   }
 
-  return (
+  // Portal to <body>: rendered inside the page's <main> (z-10 stacking context, scroll container),
+  // the overlay sat under the top bar and bottom nav, and iOS Safari can mis-paint a fixed layer
+  // inside a scrolling element.
+  return createPortal(
     <div
       className={`anim-backdrop fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/70 px-5 ${exiting ? "is-exit" : ""}`}
       onClick={close}
@@ -84,6 +88,7 @@ export function RankingsDialog({ onClose, open = true, children }: RankingsDialo
           <img src="/images/checkin-close.svg" alt="" width={32} height={32} />
         </button>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }

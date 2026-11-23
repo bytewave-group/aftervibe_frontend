@@ -1,6 +1,7 @@
 "use client";
 
 import { usePresence } from "@/components/ui/usePresence";
+import { createPortal } from "react-dom";
 import { useTranslations } from "@/i18n/locale-provider";
 import { useEffect, useId, useRef, type ReactNode } from "react";
 
@@ -40,7 +41,10 @@ export function AppDialog({
     return null;
   }
 
-  return (
+  // Portal to <body>: rendered inside the page's <main> (z-10 stacking context, scroll container),
+  // the overlay sat under the top bar and bottom nav, and iOS Safari can mis-paint a fixed layer
+  // inside a scrolling element.
+  return createPortal(
     <div
       className={`anim-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/75 px-8 ${exiting ? "is-exit" : ""}`}
       role="dialog"
@@ -70,6 +74,7 @@ export function AppDialog({
         <div className="mt-4 text-[14px] leading-relaxed text-white/80">{children}</div>
         {footer ? <div className="mt-5">{footer}</div> : null}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
