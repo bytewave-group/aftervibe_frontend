@@ -416,10 +416,8 @@
     "empty": "No packages available",
     "paid": "{n} diamonds have been added.",
     "confirming": "Confirming your payment…",
-    "stillPending": "Payment is still processing. Diamonds will be added once it is confirmed.",
     "notCompleted": "Payment was not completed. No diamonds were added.",
     "errorStart": "Couldn't start the payment. Please try again.",
-    "errorCheck": "Couldn't check the payment. Please try again.",
     "amountLabel": "Deposit amount ({symbol}1 = {n} diamonds)",
     "amountPlaceholder": "Enter an amount, {symbol}{min}–{symbol}{max} per deposit",
     "amountError": "Enter a whole amount between {symbol}{min} and {symbol}{max}",
@@ -427,6 +425,10 @@
     "youReceive": "You'll get {n} diamonds",
     "youReceiveBonus": "You'll get {n} diamonds (includes {bonus} bonus)",
     "customUnsupported": "This amount can't be paid online yet.",
-    "loadError": "Couldn't load top-up packages. Please try again."
+    "loadError": "Couldn't load top-up packages. Please try again.",
+    "resultPaidTitle": "Top-up successful",
+    "resultFailedTitle": "Payment not completed",
+    "resultBalance": "Balance: {n} diamonds",
+    "resultOk": "OK"
   }
 }

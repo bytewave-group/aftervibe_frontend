@@ -3,6 +3,10 @@
 import { HeaderDiamondBalance } from "@/components/common/HeaderDiamondBalance";
 import { GiftFlowHeader } from "@/components/gifts/GiftFlowHeader";
 import { PageMain } from "@/components/layout/AppShell";
+import {
+  RechargeResultDialog,
+  type RechargeResult,
+} from "@/components/recharge/RechargeResultDialog";
 import { useTranslations } from "@/i18n/locale-provider";
 import {
   checkCoinOrderAction,
@@ -20,7 +24,18 @@ import {
   type RechargeData,
   type RechargePackage,
 } from "@/lib/mock/recharge";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
+
+/** Drop `coin_order` / `status` from the URL so a refresh doesn't show the result again. */
+function clearReturnParams() {
+  const url = new URL(window.location.href);
+  if (!url.searchParams.has("coin_order") && !url.searchParams.has("status")) {
+    return;
+  }
+  url.searchParams.delete("coin_order");
+  url.searchParams.delete("status");
+  window.history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+}
 
 function nearestAmount(coins: number, rate: number): number {
   const raw = amountForCoins(coins, rate);
@@ -95,6 +110,8 @@ export function RechargePageClient({
     shortfall != null && shortfall > 0 ? "info" : "info",
   );
   const [pending, startTransition] = useTransition();
+  const [outcome, setOutcome] = useState<RechargeResult | null>(null);
+  const closeOutcome = useCallback(() => setOutcome(null), []);
 
   const amount = parseAmountInput(amountText);
   const amountError =
@@ -122,6 +139,13 @@ export function RechargePageClient({
     let attempts = 0;
     const maxAttempts = 20;
 
+    // Final outcome: popup instead of the inline message, and forget the return params.
+    const finish = (next: RechargeResult) => {
+      setMessage(null);
+      setOutcome(next);
+      clearReturnParams();
+    };
+
     const poll = async () => {
       attempts += 1;
       const result = await checkCoinOrderAction(returnedOrderNo);
@@ -129,8 +153,7 @@ export function RechargePageClient({
         return;
       }
       if (!result) {
-        setMessageTone("error");
-        setMessage(t("recharge.errorCheck"));
+        finish({ kind: "failed" });
         return;
       }
       if (result.status === "paid") {
@@ -143,8 +166,7 @@ export function RechargePageClient({
             },
           }));
         }
-        setMessageTone("ok");
-        setMessage(t("recharge.paid", { n: result.coins + result.bonusCoins }));
+        finish({ kind: "paid", diamonds: result.coins + result.bonusCoins, balance: result.balance });
         return;
       }
       if (result.status === "pending" && attempts < maxAttempts) {
@@ -155,10 +177,7 @@ export function RechargePageClient({
         }, 3000);
         return;
       }
-      setMessageTone("error");
-      setMessage(
-        result.status === "pending" ? t("recharge.stillPending") : t("recharge.notCompleted"),
-      );
+      finish({ kind: "failed" });
     };
 
     void poll();
@@ -335,6 +354,7 @@ export function RechargePageClient({
           {pending ? t("recharge.starting") : t("recharge.pay")}
         </button>
       </div>
+      <RechargeResultDialog result={outcome} onClose={closeOutcome} />
     </div>
   );
 }

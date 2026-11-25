@@ -416,10 +416,8 @@
     "empty": "暂无充值套餐",
     "paid": "已到账 {n} 钻石。",
     "confirming": "正在确认支付结果…",
-    "stillPending": "支付仍在处理中，到账后钻石会自动到账。",
     "notCompleted": "支付未完成，钻石尚未到账。",
     "errorStart": "无法发起支付，请稍后重试。",
-    "errorCheck": "无法查询支付结果，请稍后重试。",
     "amountLabel": "存款金额（{symbol}1 = {n} 钻石）",
     "amountPlaceholder": "输入金额，单笔存款{symbol}{min}~{symbol}{max}",
     "amountError": "单笔存款须为 {symbol}{min}~{symbol}{max} 的整数",
@@ -427,6 +425,10 @@
     "youReceive": "将获得 {n} 钻石",
     "youReceiveBonus": "将获得 {n} 钻石（含赠 {bonus}）",
     "customUnsupported": "该金额暂不支持在线支付。",
-    "loadError": "无法加载充值套餐，请稍后重试。"
+    "loadError": "无法加载充值套餐，请稍后重试。",
+    "resultPaidTitle": "充值成功",
+    "resultFailedTitle": "支付未完成",
+    "resultBalance": "当前余额 {n} 钻石",
+    "resultOk": "确定"
   }
 }
